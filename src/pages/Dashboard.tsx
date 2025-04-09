@@ -19,6 +19,9 @@ import EngagementByOwner from "@/components/dashboard/EngagementByOwner";
 import LifecycleStages from "@/components/dashboard/LifecycleStages";
 import JobTitleAnalysis from "@/components/dashboard/JobTitleAnalysis";
 import OwnerLifecycleBreakdown from "@/components/dashboard/OwnerLifecycleBreakdown";
+import ContactBreakdown from "@/components/dashboard/ContactBreakdown";
+import LifecycleBreakdown from "@/components/dashboard/LifecycleBreakdown";
+import LeadIntentBreakdown from "@/components/dashboard/LeadIntentBreakdown";
 
 const Dashboard = () => {
   const { isAuthenticated, contacts, accounts, isConnecting } = useHubspot();
@@ -166,25 +169,23 @@ const Dashboard = () => {
                 </TabsContent>
                 
                 <TabsContent value="contacts" className="mt-6">
-                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-                    <div className="lg:col-span-2">
-                      <ContactOwnerDistribution />
-                    </div>
-                    <div>
-                      <LifecycleStages />
-                    </div>
+                  <div className="space-y-6 mb-6">
+                    <ContactBreakdown />
+                    <LifecycleBreakdown />
+                    <LeadIntentBreakdown />
                   </div>
                   
-                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-                    <div className="lg:col-span-2">
-                      <EngagementByOwner />
-                    </div>
-                    <div>
-                      <OwnerLifecycleBreakdown />
-                    </div>
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                    <ContactOwnerDistribution />
+                    <LifecycleStages />
                   </div>
                   
-                  <div className="grid grid-cols-1 gap-6">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                    <EngagementByOwner />
+                    <OwnerLifecycleBreakdown />
+                  </div>
+                  
+                  <div className="grid grid-cols-1 gap-6 mb-6">
                     <JobTitleAnalysis />
                   </div>
                   
