@@ -11,6 +11,12 @@ import { cn } from "@/lib/utils";
 const LeadIntentBreakdown = () => {
   const { contacts } = useHubspot();
   
+  // Print some debug information about the scores
+  console.log("All contact scores:", contacts.map(c => ({ 
+    name: `${c.firstName} ${c.lastName}`,
+    score: c.score
+  })));
+  
   // Categorize contacts by intent level based on lead score
   const intentCategories = {
     high: contacts.filter(c => c.score >= 20),

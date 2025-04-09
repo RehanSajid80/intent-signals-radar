@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -266,13 +265,32 @@ export const HubspotProvider: React.FC<{ children: React.ReactNode }> = ({ child
     return data.map((item, index) => {
       console.log(`Processing contact ${index}:`, item['First Name'], item['Last Name']);
       
-      const contactScore = parseInt(item['HubSpot Score'] || '0', 10);
+      // Make sure we're correctly parsing the HubSpot Score as a number
+      let contactScore = 0;
+      
+      // Try different possible column names for the score
+      if (item['HubSpot Score'] !== undefined) {
+        contactScore = parseInt(item['HubSpot Score'], 10) || 0;
+        console.log(`Found 'HubSpot Score' for ${item['First Name']} ${item['Last Name']}: ${contactScore}`);
+      } else if (item['Lead Score'] !== undefined) {
+        contactScore = parseInt(item['Lead Score'], 10) || 0;
+        console.log(`Found 'Lead Score' for ${item['First Name']} ${item['Last Name']}: ${contactScore}`);
+      } else if (item['Score'] !== undefined) {
+        contactScore = parseInt(item['Score'], 10) || 0;
+        console.log(`Found 'Score' for ${item['First Name']} ${item['Last Name']}: ${contactScore}`);
+      }
+      
+      // Log the column names for debugging
+      if (index === 0) {
+        console.log("Available columns:", Object.keys(item));
+      }
+      
       const timesContacted = parseInt(item['Number of times contacted'] || '0', 10);
       
       let priorityLevel: "high" | "medium" | "low" = "medium";
-      if (item['Lead Status']?.toLowerCase().includes('qualified') || contactScore > 75) {
+      if (item['Lead Status']?.toLowerCase().includes('qualified') || contactScore >= 20) {
         priorityLevel = "high";
-      } else if (item['Lead Status']?.toLowerCase().includes('nurturing') || contactScore > 40) {
+      } else if (item['Lead Status']?.toLowerCase().includes('nurturing') || (contactScore >= 10 && contactScore < 20)) {
         priorityLevel = "medium";
       } else {
         priorityLevel = "low";
