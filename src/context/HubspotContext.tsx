@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -181,6 +182,46 @@ export const HubspotProvider: React.FC<{ children: React.ReactNode }> = ({ child
     });
   };
 
+  const processContactsData = (data: any[]): Contact[] => {
+    return data.map((item, index) => ({
+      id: item.id || `contact-${index}`,
+      firstName: item.firstName || item.first_name || '',
+      lastName: item.lastName || item.last_name || '',
+      email: item.email || '',
+      company: item.company || '',
+      title: item.title || item.job_title || '',
+      phone: item.phone || item.phoneNumber || '',
+      score: parseInt(item.score || '0', 10),
+      priorityLevel: (item.priorityLevel || 'medium') as "high" | "medium" | "low",
+      lastActivity: item.lastActivity || item.last_activity || new Date().toISOString(),
+      engagementLevel: parseInt(item.engagementLevel || '0', 10),
+      intentSignals: []
+    }));
+  };
+
+  const processAccountsData = (data: any[], processedContacts: Contact[]): Account[] => {
+    return data.map((item, index) => {
+      // Find contacts that belong to this account
+      const accountContacts = processedContacts.filter(
+        contact => contact.company.toLowerCase() === (item.name || '').toLowerCase()
+      );
+      
+      return {
+        id: item.id || `account-${index}`,
+        name: item.name || '',
+        industry: item.industry || '',
+        website: item.website || '',
+        size: item.size || item.companySize || '',
+        contacts: accountContacts,
+        stage: (item.stage || 'awareness') as FunnelStage,
+        penetrationScore: parseInt(item.penetrationScore || '0', 10),
+        totalDeals: parseInt(item.totalDeals || '0', 10),
+        totalRevenue: parseInt(item.totalRevenue || '0', 10),
+        activeDeals: parseInt(item.activeDeals || '0', 10)
+      };
+    });
+  };
+
   const processFileUpload = async (files: FileUploadItem[]): Promise<void> => {
     setIsProcessing(true);
     
@@ -189,7 +230,6 @@ export const HubspotProvider: React.FC<{ children: React.ReactNode }> = ({ child
       description: "Your HubSpot data files are being processed",
     });
     
-    // Simulate processing delay
     return new Promise<void>((resolve) => {
       setTimeout(async () => {
         try {
@@ -210,13 +250,17 @@ export const HubspotProvider: React.FC<{ children: React.ReactNode }> = ({ child
             }
           }
           
-          // Here we would transform the raw CSV data into our application's data models
-          // For this demo, we'll use mock data instead
+          // Transform the CSV data into our application's data models
+          const processedContacts = processContactsData(contactData);
+          const processedAccounts = processAccountsData(accountData, processedContacts);
+          
+          // Generate empty notifications array - in real app these would come from activity data
+          const processedNotifications: Notification[] = [];
           
           setIsAuthenticated(true);
-          setContacts(mockContacts);
-          setAccounts(mockAccounts);
-          setNotifications(mockNotifications);
+          setContacts(processedContacts);
+          setAccounts(processedAccounts);
+          setNotifications(processedNotifications);
           
           toast({
             title: "Upload successful",
