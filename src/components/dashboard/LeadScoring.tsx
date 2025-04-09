@@ -32,6 +32,13 @@ const LeadScoring = () => {
     aiScore: contact.score // Using HubSpot Score directly
   }));
   
+  // Log some sample contacts to debug
+  console.log("Sample scored contacts:", scoredContacts.slice(0, 5).map(c => ({ 
+    name: `${c.firstName} ${c.lastName}`, 
+    score: c.score, 
+    aiScore: c.aiScore 
+  })));
+  
   // Filter contacts by search query
   const filteredContacts = searchQuery 
     ? scoredContacts.filter(contact => 
@@ -65,6 +72,9 @@ const LeadScoring = () => {
                                                     contact.aiScore < PROBABILITY_LEVELS.HIGH.min).length;
   const lowCount = sortedContacts.filter(contact => contact.aiScore < PROBABILITY_LEVELS.MEDIUM.min).length;
   const totalCount = filteredContacts.length;
+  
+  // Log the distribution to debug
+  console.log("Lead distribution:", { highCount, mediumCount, lowCount, totalCount });
 
   const handleExportCsv = () => {
     // Create CSV content

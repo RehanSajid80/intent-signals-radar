@@ -18,6 +18,13 @@ const LeadIntentBreakdown = () => {
     low: contacts.filter(c => c.score < 10)
   };
   
+  // Check the distribution with console logs
+  console.log("Total contacts:", contacts.length);
+  console.log("High intent contacts:", intentCategories.high.length);
+  console.log("Medium intent contacts:", intentCategories.medium.length);
+  console.log("Low intent contacts:", intentCategories.low.length);
+  console.log("Sample scores:", contacts.slice(0, 5).map(c => c.score));
+  
   const chartData = [
     { name: 'High Intent', value: intentCategories.high.length, color: '#ea384c' },
     { name: 'Medium Intent', value: intentCategories.medium.length, color: '#f97316' },
@@ -82,7 +89,7 @@ const LeadIntentBreakdown = () => {
                     </TableCell>
                     <TableCell className="text-right">{category.value}</TableCell>
                     <TableCell className="text-right">
-                      {Math.round((category.value / contacts.length) * 100)}%
+                      {contacts.length > 0 ? Math.round((category.value / contacts.length) * 100) : 0}%
                     </TableCell>
                   </TableRow>
                 ))}
@@ -114,6 +121,13 @@ const LeadIntentBreakdown = () => {
                     <TableCell className="text-right font-bold">{contact.score}</TableCell>
                   </TableRow>
                 ))}
+                {intentCategories.high.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={4} className="text-center py-4 text-muted-foreground">
+                      No high intent leads found
+                    </TableCell>
+                  </TableRow>
+                )}
               </TableBody>
             </Table>
           </div>
