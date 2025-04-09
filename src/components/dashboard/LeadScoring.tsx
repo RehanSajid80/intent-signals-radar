@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useHubspot, Contact } from "@/context/HubspotContext";
-import { Brain, Filter, Users, UserCheck, AlertTriangle } from "lucide-react";
+import { Brain, Filter, Users, UserCheck, AlertTriangle, Download, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import LeadCard from "@/components/ui/LeadCard";
@@ -25,6 +25,7 @@ const getProbabilityLevel = (score: number) => {
 const LeadScoring = () => {
   const { contacts } = useHubspot();
   const [displayCount, setDisplayCount] = useState(20);
+  const [searchQuery, setSearchQuery] = useState("");
   
   // Use HubSpot Score directly
   const scoredContacts = contacts.map(contact => ({
@@ -32,8 +33,19 @@ const LeadScoring = () => {
     aiScore: contact.score // Using HubSpot Score directly
   }));
   
+  // Filter contacts by search query
+  const filteredContacts = searchQuery 
+    ? scoredContacts.filter(contact => 
+        contact.firstName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        contact.lastName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        contact.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        contact.company.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        contact.title.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+    : scoredContacts;
+  
   // Group by probability level and sort by score
-  const sortedContacts = [...scoredContacts].sort((a, b) => b.aiScore - a.aiScore);
+  const sortedContacts = [...filteredContacts].sort((a, b) => b.aiScore - a.aiScore);
   
   const highProbabilityLeads = sortedContacts.filter(
     contact => contact.aiScore >= PROBABILITY_LEVELS.HIGH.min
@@ -53,7 +65,36 @@ const LeadScoring = () => {
   const mediumCount = sortedContacts.filter(contact => contact.aiScore >= PROBABILITY_LEVELS.MEDIUM.min && 
                                                     contact.aiScore < PROBABILITY_LEVELS.HIGH.min).length;
   const lowCount = sortedContacts.filter(contact => contact.aiScore < PROBABILITY_LEVELS.MEDIUM.min).length;
-  const totalCount = contacts.length;
+  const totalCount = filteredContacts.length;
+
+  const handleExportCsv = () => {
+    // Create CSV content
+    const headers = ["Name", "Company", "Title", "Email", "Score", "Priority"];
+    const rows = sortedContacts.map(contact => [
+      `${contact.firstName} ${contact.lastName}`,
+      contact.company,
+      contact.title,
+      contact.email,
+      contact.aiScore.toString(),
+      getProbabilityLevel(contact.aiScore).label
+    ]);
+    
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(row => row.join(','))
+    ].join('\n');
+    
+    // Create and download the file
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', 'hubspot_contacts.csv');
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   return (
     <Card className="h-full">
@@ -63,6 +104,27 @@ const LeadScoring = () => {
           <CardTitle className="text-lg">Lead Scoring</CardTitle>
         </div>
         <div className="flex items-center gap-2">
+          <div className="relative">
+            <input
+              type="text"
+              placeholder="Search contacts..."
+              className="pl-2 pr-8 py-1 text-sm border rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+            {searchQuery && (
+              <button 
+                className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                onClick={() => setSearchQuery("")}
+              >
+                ×
+              </button>
+            )}
+          </div>
+          <Button variant="outline" size="sm" className="h-8" onClick={handleExportCsv}>
+            <Download className="h-3.5 w-3.5 mr-1" />
+            Export
+          </Button>
           <Button variant="outline" size="sm" className="h-8">
             <Filter className="h-3.5 w-3.5 mr-1" />
             Top
@@ -195,7 +257,8 @@ const LeadScoring = () => {
                   <TableHead>Name</TableHead>
                   <TableHead>Company</TableHead>
                   <TableHead>Title</TableHead>
-                  <TableHead className="text-right">HubSpot Score</TableHead>
+                  <TableHead>Email</TableHead>
+                  <TableHead className="text-right">Score</TableHead>
                   <TableHead>Priority</TableHead>
                 </TableRow>
               </TableHeader>
@@ -211,6 +274,7 @@ const LeadScoring = () => {
                       </TableCell>
                       <TableCell>{contact.company}</TableCell>
                       <TableCell>{contact.title}</TableCell>
+                      <TableCell>{contact.email}</TableCell>
                       <TableCell className="text-right font-mono">{contact.aiScore}</TableCell>
                       <TableCell>
                         <span className={`text-xs px-2 py-0.5 rounded-full ${probability.color}`}>
@@ -222,6 +286,11 @@ const LeadScoring = () => {
                 })}
               </TableBody>
             </Table>
+            {sortedContacts.length === 0 && (
+              <div className="text-center py-12 text-muted-foreground">
+                No contacts found
+              </div>
+            )}
           </TabsContent>
         </Tabs>
       </CardContent>
