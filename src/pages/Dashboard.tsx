@@ -1,3 +1,5 @@
+
+import React from 'react';
 import { useHubspot } from "@/context/HubspotContext";
 import Sidebar from "@/components/Sidebar";
 import PriorityLeads from "@/components/dashboard/PriorityLeads";
@@ -140,12 +142,12 @@ const Dashboard = () => {
                 
                 <TabsContent value="overview" className="mt-4">
                   <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-                    <div className="lg:col-span-2 space-y-4">
+                    <div className="lg:col-span-2 space-y-3">
                       <AccountPenetration className="w-full" />
                       <LifecycleStageBreakdown />
                       <IntentSignals />
                     </div>
-                    <div className="space-y-4">
+                    <div className="space-y-3">
                       <PriorityLeads />
                       <Notifications />
                     </div>
