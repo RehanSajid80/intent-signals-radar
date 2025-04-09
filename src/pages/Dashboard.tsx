@@ -1,4 +1,3 @@
-
 import { useHubspot } from "@/context/HubspotContext";
 import Sidebar from "@/components/Sidebar";
 import PriorityLeads from "@/components/dashboard/PriorityLeads";
@@ -8,15 +7,15 @@ import IntentSignals from "@/components/dashboard/IntentSignals";
 import Notifications from "@/components/dashboard/Notifications";
 import DataCard from "@/components/ui/DataCard";
 import { useNavigate } from "react-router-dom";
-import { useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import HubspotConnect from "@/components/hubspot/HubspotConnect";
+import StageConversions from "@/components/dashboard/StageConversions";
+import LeadScoring from "@/components/dashboard/LeadScoring";
+import AccountPenetrationAnalysis from "@/components/dashboard/AccountPenetrationAnalysis";
 
 const Dashboard = () => {
-  const { isAuthenticated, contacts, accounts, isConnecting, connectToHubspot } = useHubspot();
-  const navigate = useNavigate();
+  const { isAuthenticated, contacts, accounts, isConnecting } = useHubspot();
   
   // Calculate summary metrics if authenticated
   const highPriorityCount = isAuthenticated ? contacts.filter(c => c.priorityLevel === "high").length : 0;
@@ -83,12 +82,12 @@ const Dashboard = () => {
                     <p className="text-sm text-muted-foreground">Analyze your account engagement levels</p>
                   </div>
                   <div className="bg-card p-4 rounded-md border">
-                    <h4 className="font-medium">Sales Funnel</h4>
-                    <p className="text-sm text-muted-foreground">Track your deals through the pipeline</p>
+                    <h4 className="font-medium">Stage Conversions</h4>
+                    <p className="text-sm text-muted-foreground">Track lead progression through stages</p>
                   </div>
                   <div className="bg-card p-4 rounded-md border">
-                    <h4 className="font-medium">Intent Signals</h4>
-                    <p className="text-sm text-muted-foreground">Detect buying signals from your contacts</p>
+                    <h4 className="font-medium">AI Lead Scoring</h4>
+                    <p className="text-sm text-muted-foreground">Get AI-powered scoring of your leads</p>
                   </div>
                 </div>
               </div>
@@ -129,8 +128,9 @@ const Dashboard = () => {
               <Tabs defaultValue="overview" className="mb-6">
                 <TabsList>
                   <TabsTrigger value="overview">Overview</TabsTrigger>
-                  <TabsTrigger value="contacts">Contacts</TabsTrigger>
+                  <TabsTrigger value="leads">Leads</TabsTrigger>
                   <TabsTrigger value="accounts">Accounts</TabsTrigger>
+                  <TabsTrigger value="conversions">Conversions</TabsTrigger>
                 </TabsList>
                 
                 <TabsContent value="overview" className="mt-6">
@@ -141,11 +141,26 @@ const Dashboard = () => {
                         <SalesFunnel />
                       </div>
                       <IntentSignals />
+                      <StageConversions />
                     </div>
                     <div className="space-y-6">
                       <PriorityLeads />
                       <Notifications />
                     </div>
+                  </div>
+                </TabsContent>
+                
+                <TabsContent value="leads" className="mt-6">
+                  <LeadScoring />
+                </TabsContent>
+                
+                <TabsContent value="accounts" className="mt-6">
+                  <AccountPenetrationAnalysis />
+                </TabsContent>
+                
+                <TabsContent value="conversions" className="mt-6">
+                  <div className="grid grid-cols-1 gap-6">
+                    <StageConversions />
                   </div>
                 </TabsContent>
                 
@@ -195,7 +210,7 @@ const Dashboard = () => {
                   </div>
                 </TabsContent>
                 
-                <TabsContent value="accounts" className="mt-6">
+                <TabsContent value="accounts-list" className="mt-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {accounts.map(account => (
                       <div key={account.id} className="card-interactive">
