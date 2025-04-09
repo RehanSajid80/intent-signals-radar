@@ -22,7 +22,12 @@ const Index = () => {
       <header className="bg-white border-b py-4">
         <div className="container mx-auto px-4">
           <div className="flex justify-between items-center">
-            <div className="flex items-center">
+            <div className="flex items-center gap-3">
+              <img 
+                src="https://www.zyter.com/wp-content/uploads/2023/04/ZTC_LOGO_FINAL1.png" 
+                alt="Zyter Logo" 
+                className="h-10" 
+              />
               <h1 className="text-2xl font-bold text-teal-500">
                 Lead Priority Radar
               </h1>
@@ -219,7 +224,14 @@ const Index = () => {
       
       <footer className="bg-neutral-50 py-6 border-t">
         <div className="container mx-auto px-4 text-center text-sm text-muted-foreground">
-          <p>© 2023 Lead Priority Radar. All rights reserved.</p>
+          <div className="flex items-center justify-center mb-3">
+            <img 
+              src="https://www.zyter.com/wp-content/uploads/2023/04/ZTC_LOGO_FINAL1.png" 
+              alt="Zyter Logo" 
+              className="h-6" 
+            />
+          </div>
+          <p>© 2023 Zyter Lead Priority Radar. All rights reserved.</p>
         </div>
       </footer>
     </div>

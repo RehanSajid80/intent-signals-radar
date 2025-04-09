@@ -11,7 +11,7 @@ import AccountPenetrationAnalysis from "@/components/dashboard/AccountPenetratio
 import ContactsTabContent from "@/components/dashboard/ContactsTabContent";
 
 const Dashboard = () => {
-  const { isAuthenticated, isConnecting } = useHubspot();
+  const { isAuthenticated } = useHubspot();
   
   return (
     <div className="flex min-h-screen bg-background">
@@ -20,7 +20,14 @@ const Dashboard = () => {
       <div className="flex-1">
         <header className="border-b bg-card p-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between">
-            <h1 className="text-2xl font-bold">Dashboard</h1>
+            <div className="flex items-center gap-2">
+              <img 
+                src="https://www.zyter.com/wp-content/uploads/2023/04/ZTC_LOGO_FINAL1.png" 
+                alt="Zyter Logo" 
+                className="h-8 md:h-10" 
+              />
+              <h1 className="text-2xl font-bold">Dashboard</h1>
+            </div>
             <div className="text-sm text-muted-foreground">
               {isAuthenticated ? (
                 <>Last updated: {new Date().toLocaleDateString()} {new Date().toLocaleTimeString()}</>
