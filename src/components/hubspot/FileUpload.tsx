@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -17,36 +16,56 @@ const FileUpload = () => {
     deals: null,
   });
   const [uploadSuccess, setUploadSuccess] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>, fileType: string) => {
+    setError(null);
     if (event.target.files && event.target.files[0]) {
+      const file = event.target.files[0];
+      
+      if (!file.name.toLowerCase().endsWith('.csv')) {
+        setError("Please upload a CSV file");
+        return;
+      }
+      
       setSelectedFiles({
         ...selectedFiles,
-        [fileType]: event.target.files[0],
+        [fileType]: file,
       });
+      
+      console.log(`Selected ${fileType} file:`, file.name, file.size);
     }
   };
 
   const handleUpload = async () => {
-    // Filter out null files
+    setError(null);
     const filesToUpload = Object.entries(selectedFiles)
       .filter(([_, file]) => file !== null)
       .map(([type, file]) => ({ type, file: file as File }));
     
-    if (filesToUpload.length === 0) return;
+    if (filesToUpload.length === 0) {
+      setError("Please select at least one file to upload");
+      return;
+    }
     
-    await processFileUpload(filesToUpload);
-    setUploadSuccess(true);
+    console.log("Uploading files:", filesToUpload.map(f => `${f.type}: ${f.file.name}`));
     
-    // Reset file inputs after 3 seconds
-    setTimeout(() => {
-      setUploadSuccess(false);
-      setSelectedFiles({
-        contacts: null,
-        accounts: null,
-        deals: null,
-      });
-    }, 3000);
+    try {
+      await processFileUpload(filesToUpload);
+      setUploadSuccess(true);
+      
+      setTimeout(() => {
+        setUploadSuccess(false);
+        setSelectedFiles({
+          contacts: null,
+          accounts: null,
+          deals: null,
+        });
+      }, 3000);
+    } catch (err) {
+      console.error("Error in upload:", err);
+      setError("Failed to process files. Check console for details.");
+    }
   };
 
   return (
@@ -183,6 +202,14 @@ const FileUpload = () => {
           </TabsContent>
         </Tabs>
         
+        {error && (
+          <Alert className="mt-4 bg-red-50 border-red-200">
+            <AlertDescription className="text-red-700">
+              {error}
+            </AlertDescription>
+          </Alert>
+        )}
+        
         {uploadSuccess && (
           <Alert className="mt-4 bg-green-50 border-green-200">
             <AlertDescription className="text-green-700">
@@ -204,7 +231,6 @@ const FileUpload = () => {
   );
 };
 
-// Component to display required columns information
 const RequiredColumnsDialog = ({ type }: { type: string }) => {
   const requiredColumns: Record<string, string[]> = {
     contacts: [

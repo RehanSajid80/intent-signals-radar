@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -166,31 +167,88 @@ export const HubspotProvider: React.FC<{ children: React.ReactNode }> = ({ child
       
       reader.onload = (event) => {
         if (!event.target || typeof event.target.result !== 'string') {
+          console.log("Failed to read file or result is not a string");
           resolve([]);
           return;
         }
         
         const csvData = event.target.result;
-        const lines = csvData.split('\n');
-        const headers = lines[0].split(',').map(header => header.trim());
+        console.log("CSV data length:", csvData.length);
+        
+        // Split by line breaks, handling different OS formats
+        const lines = csvData.split(/\r\n|\n|\r/).filter(line => line.trim() !== '');
+        
+        if (lines.length <= 1) {
+          console.log("CSV has no data rows, only headers or empty");
+          resolve([]);
+          return;
+        }
+        
+        console.log("Number of lines in CSV:", lines.length);
+        console.log("Headers:", lines[0]);
+        
+        // Parse headers - handle both comma and tab delimiters
+        const delimiter = lines[0].includes('\t') ? '\t' : ',';
+        const headers = lines[0].split(delimiter).map(header => header.trim());
+        console.log("Parsed headers:", headers);
         
         const result = [];
         
+        // Start from line 1 (after header)
         for (let i = 1; i < lines.length; i++) {
-          if (lines[i].trim() === '') continue;
+          const line = lines[i];
+          if (line.trim() === '') continue;
           
-          const data = lines[i].split(',');
-          const obj: Record<string, string> = {};
+          // Handle quoted values correctly
+          let inQuote = false;
+          let currentValue = '';
+          const values = [];
           
-          if (data.length === headers.length) {
+          for (let j = 0; j < line.length; j++) {
+            const char = line[j];
+            
+            if (char === '"' && (j === 0 || line[j-1] !== '\\')) {
+              inQuote = !inQuote;
+            } else if (char === delimiter && !inQuote) {
+              values.push(currentValue.trim());
+              currentValue = '';
+            } else {
+              currentValue += char;
+            }
+          }
+          
+          // Add the last value
+          values.push(currentValue.trim());
+          
+          // Create object from headers and values
+          if (values.length === headers.length) {
+            const obj: Record<string, string> = {};
             headers.forEach((header, index) => {
-              obj[header] = data[index].trim();
+              // Remove any surrounding quotes
+              let value = values[index];
+              if (value && value.startsWith('"') && value.endsWith('"')) {
+                value = value.substring(1, value.length - 1);
+              }
+              obj[header] = value;
             });
             result.push(obj);
+          } else {
+            console.log(`Line ${i} has ${values.length} values but ${headers.length} headers. Skipping.`);
+            console.log("Values:", values);
           }
         }
         
+        console.log("Parsed result count:", result.length);
+        if (result.length > 0) {
+          console.log("First parsed row:", result[0]);
+        }
+        
         resolve(result);
+      };
+      
+      reader.onerror = (error) => {
+        console.error("Error reading file:", error);
+        resolve([]);
       };
       
       reader.readAsText(file);
@@ -198,7 +256,16 @@ export const HubspotProvider: React.FC<{ children: React.ReactNode }> = ({ child
   };
 
   const processContactsData = (data: any[]): Contact[] => {
+    console.log("Processing contacts data, count:", data.length);
+    
+    if (data.length === 0) {
+      console.log("No contact data to process");
+      return [];
+    }
+    
     return data.map((item, index) => {
+      console.log(`Processing contact ${index}:`, item['First Name'], item['Last Name']);
+      
       const contactScore = parseInt(item['HubSpot Score'] || '0', 10);
       const timesContacted = parseInt(item['Number of times contacted'] || '0', 10);
       
@@ -344,8 +411,13 @@ export const HubspotProvider: React.FC<{ children: React.ReactNode }> = ({ child
           let dealData: any[] = [];
           
           for (const item of files) {
+            console.log(`Processing file: ${item.file.name}, type: ${item.type}`);
             const data = await parseCSV(item.file);
-            console.log(`Parsed ${item.type} data:`, data[0]);
+            console.log(`Parsed ${item.type} data, rows:`, data.length);
+            
+            if (data.length > 0) {
+              console.log(`Sample row for ${item.type}:`, data[0]);
+            }
             
             if (item.type === 'contacts') {
               contactData = data;
@@ -357,11 +429,17 @@ export const HubspotProvider: React.FC<{ children: React.ReactNode }> = ({ child
           }
           
           const processedContacts = processContactsData(contactData);
+          console.log("Processed contacts:", processedContacts.length);
+          
           const processedAccounts = processAccountsData(accountData, processedContacts);
+          console.log("Processed accounts:", processedAccounts.length);
           
           const processedNotifications: Notification[] = [];
           
-          calculateAnalytics(processedContacts);
+          // Only calculate analytics if we have data
+          if (processedContacts.length > 0) {
+            calculateAnalytics(processedContacts);
+          }
           
           setIsAuthenticated(true);
           setContacts(processedContacts);
@@ -370,13 +448,13 @@ export const HubspotProvider: React.FC<{ children: React.ReactNode }> = ({ child
           
           toast({
             title: "Upload successful",
-            description: `Processed ${files.length} files successfully`,
+            description: `Processed ${processedContacts.length} contacts and ${processedAccounts.length} accounts`,
           });
         } catch (error) {
           console.error("Error processing files:", error);
           toast({
             title: "Error processing files",
-            description: "There was a problem processing your HubSpot data files",
+            description: "There was a problem processing your HubSpot data files. Check the console for details.",
             variant: "destructive",
           });
         } finally {
