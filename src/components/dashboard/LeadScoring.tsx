@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -9,9 +8,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import LeadCard from "@/components/ui/LeadCard";
 import { Badge } from "@/components/ui/badge";
 
-// Lead probability classification based on new thresholds
+// Lead probability classification based on updated thresholds
 const PROBABILITY_LEVELS = {
-  HIGH: { min: 25, label: "High", color: "bg-success-100 text-success-600" },
+  HIGH: { min: 20, label: "High", color: "bg-success-100 text-success-600" },
   MEDIUM: { min: 10, label: "Medium", color: "bg-warning-100 text-warning-600" },
   LOW: { min: 0, label: "Low", color: "bg-alert-100 text-alert-600" }
 };
@@ -147,7 +146,7 @@ const LeadScoring = () => {
               <UserCheck className="h-5 w-5 text-success-600 mr-2" />
               <div>
                 <p className="font-medium">High Priority</p>
-                <p className="text-xs text-muted-foreground">Score 25+</p>
+                <p className="text-xs text-muted-foreground">Score 20+</p>
               </div>
             </div>
             <Badge variant="outline" className="bg-success-100 text-success-700">
@@ -160,7 +159,7 @@ const LeadScoring = () => {
               <Users className="h-5 w-5 text-warning-600 mr-2" />
               <div>
                 <p className="font-medium">Medium Priority</p>
-                <p className="text-xs text-muted-foreground">Score 10-24</p>
+                <p className="text-xs text-muted-foreground">Score 10-19</p>
               </div>
             </div>
             <Badge variant="outline" className="bg-warning-100 text-warning-700">

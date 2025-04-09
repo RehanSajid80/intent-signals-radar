@@ -13,8 +13,8 @@ const LeadIntentBreakdown = () => {
   
   // Categorize contacts by intent level based on lead score
   const intentCategories = {
-    high: contacts.filter(c => c.score > 20),
-    medium: contacts.filter(c => c.score >= 10 && c.score <= 20),
+    high: contacts.filter(c => c.score >= 20),
+    medium: contacts.filter(c => c.score >= 10 && c.score < 20),
     low: contacts.filter(c => c.score < 10)
   };
   
@@ -34,7 +34,7 @@ const LeadIntentBreakdown = () => {
           </div>
         </div>
         <CardDescription>
-          Categorized by lead score: High (&gt;20), Medium (10-20), Low (&lt;10)
+          Categorized by lead score: High (20+), Medium (10-19), Low (&lt;10)
         </CardDescription>
       </CardHeader>
       <CardContent>
