@@ -1,4 +1,3 @@
-
 import { useHubspot } from "@/context/HubspotContext";
 import Sidebar from "@/components/Sidebar";
 import PriorityLeads from "@/components/dashboard/PriorityLeads";
@@ -10,6 +9,7 @@ import DataCard from "@/components/ui/DataCard";
 import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent } from "@/components/ui/card";
 
 const Dashboard = () => {
   const { isAuthenticated, contacts, accounts } = useHubspot();
