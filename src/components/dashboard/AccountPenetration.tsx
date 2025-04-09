@@ -1,17 +1,28 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useHubspot } from "@/context/HubspotContext";
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip, Legend, CartesianGrid } from 'recharts';
-import { Building, Info } from "lucide-react";
+import { Building, Filter, SlidersHorizontal } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface AccountPenetrationProps extends React.HTMLAttributes<HTMLDivElement> {}
 
 const AccountPenetration = ({ className, ...props }: AccountPenetrationProps) => {
   const { accounts, contacts } = useHubspot();
+  const [sortField, setSortField] = useState<'penetration' | 'contacts' | 'mqls' | 'sqls'>('penetration');
+  const [displayCount, setDisplayCount] = useState(10);
 
   // Group contacts by company
   const companyData = contacts.reduce((acc, contact) => {
@@ -59,17 +70,63 @@ const AccountPenetration = ({ className, ...props }: AccountPenetrationProps) =>
     };
   });
 
-  // Sort by penetration score
-  const sortedCompanies = [...companiesArray].sort((a, b) => b.penetration - a.penetration);
+  // Sort companies based on selected field
+  const sortedCompanies = [...companiesArray].sort((a, b) => {
+    if (sortField === 'penetration') return b.penetration - a.penetration;
+    if (sortField === 'contacts') return b.contacts - a.contacts;
+    if (sortField === 'mqls') return b.mqls - a.mqls;
+    if (sortField === 'sqls') return b.sqls - a.sqls;
+    return 0;
+  });
   
-  // Only show top 10 companies for chart readability
-  const chartData = sortedCompanies.slice(0, 10);
+  // Only show selected number of companies for chart readability
+  const chartData = sortedCompanies.slice(0, displayCount);
 
   return (
     <Card className={cn("h-full", className)} {...props}>
-      <CardHeader className="flex flex-row items-center pb-2">
-        <Building className="h-5 w-5 mr-2 text-primary" />
-        <CardTitle className="text-lg">Account Penetration</CardTitle>
+      <CardHeader className="flex flex-row items-center justify-between pb-2">
+        <div className="flex items-center">
+          <Building className="h-5 w-5 mr-2 text-primary" />
+          <CardTitle className="text-lg">Account Penetration</CardTitle>
+        </div>
+        
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground">Sort by:</span>
+            <Select 
+              value={sortField} 
+              onValueChange={(value) => setSortField(value as any)}
+            >
+              <SelectTrigger className="h-8 w-[120px]">
+                <SelectValue placeholder="Sort by" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="penetration">Penetration %</SelectItem>
+                <SelectItem value="contacts">Contacts</SelectItem>
+                <SelectItem value="mqls">MQLs</SelectItem>
+                <SelectItem value="sqls">SQLs</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground">Show:</span>
+            <Select 
+              value={displayCount.toString()} 
+              onValueChange={(value) => setDisplayCount(Number(value))}
+            >
+              <SelectTrigger className="h-8 w-[80px]">
+                <SelectValue placeholder="Show" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="5">5</SelectItem>
+                <SelectItem value="10">10</SelectItem>
+                <SelectItem value="15">15</SelectItem>
+                <SelectItem value="20">20</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
       </CardHeader>
       <CardContent>
         <Tabs defaultValue="chart" className="space-y-4">
@@ -132,45 +189,83 @@ const AccountPenetration = ({ className, ...props }: AccountPenetrationProps) =>
           
           <TabsContent value="table">
             <div className="rounded-md border">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Company Name</TableHead>
-                    <TableHead className="text-right">Contacts</TableHead>
-                    <TableHead className="text-right">MQLs</TableHead>
-                    <TableHead className="text-right">SQLs</TableHead>
-                    <TableHead className="text-right">Penetration %</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {sortedCompanies.map((company, index) => (
-                    <TableRow key={index}>
-                      <TableCell className="font-medium">{company.name}</TableCell>
-                      <TableCell className="text-right">{company.contacts}</TableCell>
-                      <TableCell className="text-right">{company.mqls}</TableCell>
-                      <TableCell className="text-right">{company.sqls}</TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex items-center justify-end">
-                          <span className="mr-2">{company.penetration}%</span>
-                          <div className="w-16 bg-muted rounded-full h-1.5">
-                            <div
-                              className="h-1.5 rounded-full bg-purple-500"
-                              style={{ width: `${company.penetration}%` }}
-                            ></div>
-                          </div>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                  {sortedCompanies.length === 0 && (
+              <ScrollArea className="h-[400px]">
+                <Table>
+                  <TableHeader>
                     <TableRow>
-                      <TableCell colSpan={5} className="text-center py-6 text-muted-foreground">
-                        No company data available
-                      </TableCell>
+                      <TableHead>Company Name</TableHead>
+                      <TableHead className="text-right">
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          onClick={() => setSortField('contacts')}
+                          className={cn("p-0 h-auto font-medium", sortField === 'contacts' && "text-primary")}
+                        >
+                          Contacts
+                        </Button>
+                      </TableHead>
+                      <TableHead className="text-right">
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          onClick={() => setSortField('mqls')}
+                          className={cn("p-0 h-auto font-medium", sortField === 'mqls' && "text-primary")}
+                        >
+                          MQLs
+                        </Button>
+                      </TableHead>
+                      <TableHead className="text-right">
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          onClick={() => setSortField('sqls')}
+                          className={cn("p-0 h-auto font-medium", sortField === 'sqls' && "text-primary")}
+                        >
+                          SQLs
+                        </Button>
+                      </TableHead>
+                      <TableHead className="text-right">
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          onClick={() => setSortField('penetration')}
+                          className={cn("p-0 h-auto font-medium", sortField === 'penetration' && "text-primary")}
+                        >
+                          Penetration %
+                        </Button>
+                      </TableHead>
                     </TableRow>
-                  )}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {sortedCompanies.map((company, index) => (
+                      <TableRow key={index}>
+                        <TableCell className="font-medium">{company.name}</TableCell>
+                        <TableCell className="text-right">{company.contacts}</TableCell>
+                        <TableCell className="text-right">{company.mqls}</TableCell>
+                        <TableCell className="text-right">{company.sqls}</TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex items-center justify-end">
+                            <span className="mr-2">{company.penetration}%</span>
+                            <div className="w-16 bg-muted rounded-full h-1.5">
+                              <div
+                                className="h-1.5 rounded-full bg-purple-500"
+                                style={{ width: `${company.penetration}%` }}
+                              ></div>
+                            </div>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                    {sortedCompanies.length === 0 && (
+                      <TableRow>
+                        <TableCell colSpan={5} className="text-center py-6 text-muted-foreground">
+                          No company data available
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </ScrollArea>
             </div>
           </TabsContent>
         </Tabs>
