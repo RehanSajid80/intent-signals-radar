@@ -208,14 +208,24 @@ const FileUpload = () => {
 const RequiredColumnsDialog = ({ type }: { type: string }) => {
   const requiredColumns: Record<string, string[]> = {
     contacts: [
+      "Record ID",
       "First Name", 
       "Last Name", 
       "Email", 
-      "Company", 
-      "Job Title", 
       "Phone Number", 
-      "Lead Score", 
-      "Last Activity Date"
+      "Contact owner", 
+      "Last Activity Date",
+      "Lead Status",
+      "Marketing contact status",
+      "Create Date",
+      "HubSpot Score",
+      "Recent Sales Email Clicked Date",
+      "Marketing emails clicked",
+      "Last Engagement Date",
+      "Next Activity Date",
+      "Number of times contacted",
+      "Job Title",
+      "Lifecycle Stage"
     ],
     accounts: [
       "Company Name", 

@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -183,20 +182,64 @@ export const HubspotProvider: React.FC<{ children: React.ReactNode }> = ({ child
   };
 
   const processContactsData = (data: any[]): Contact[] => {
-    return data.map((item, index) => ({
-      id: item.id || `contact-${index}`,
-      firstName: item.firstName || item.first_name || '',
-      lastName: item.lastName || item.last_name || '',
-      email: item.email || '',
-      company: item.company || '',
-      title: item.title || item.job_title || '',
-      phone: item.phone || item.phoneNumber || '',
-      score: parseInt(item.score || '0', 10),
-      priorityLevel: (item.priorityLevel || 'medium') as "high" | "medium" | "low",
-      lastActivity: item.lastActivity || item.last_activity || new Date().toISOString(),
-      engagementLevel: parseInt(item.engagementLevel || '0', 10),
-      intentSignals: []
-    }));
+    return data.map((item, index) => {
+      // Map the CSV columns to our Contact model
+      // This mapping is based on the CSV format provided
+      const contactScore = parseInt(item['HubSpot Score'] || '0', 10);
+      
+      // Determine priority level based on lead status or score
+      let priorityLevel: "high" | "medium" | "low" = "medium";
+      if (item['Lead Status']?.toLowerCase().includes('qualified') || contactScore > 75) {
+        priorityLevel = "high";
+      } else if (item['Lead Status']?.toLowerCase().includes('nurturing') || contactScore > 40) {
+        priorityLevel = "medium";
+      } else {
+        priorityLevel = "low";
+      }
+      
+      // Calculate engagement level based on available metrics
+      const emailsClicked = parseInt(item['Marketing emails clicked'] || '0', 10);
+      const timesContacted = parseInt(item['Number of times contacted'] || '0', 10);
+      const engagementLevel = Math.min(10, Math.ceil((emailsClicked + timesContacted) / 3));
+      
+      // Generate intent signals based on activity
+      const intentSignals: IntentSignal[] = [];
+      
+      if (item['Recent Sales Email Clicked Date'] && item['Recent Sales Email Clicked Date'].trim() !== '') {
+        intentSignals.push({
+          id: `intent-email-${index}`,
+          type: "email_open",
+          timestamp: new Date(item['Recent Sales Email Clicked Date']).toISOString(),
+          description: "Opened sales email",
+          strength: 75
+        });
+      }
+      
+      if (emailsClicked > 0) {
+        intentSignals.push({
+          id: `intent-marketing-${index}`,
+          type: "email_open",
+          timestamp: new Date(item['Last Activity Date'] || new Date()).toISOString(),
+          description: "Clicked marketing email",
+          strength: 60
+        });
+      }
+      
+      return {
+        id: item['Record ID'] || `contact-${index}`,
+        firstName: item['First Name'] || '',
+        lastName: item['Last Name'] || '',
+        email: item['Email'] || '',
+        company: item['Company Name'] || '',
+        title: item['Job Title'] || '',
+        phone: item['Phone Number'] || '',
+        score: contactScore,
+        priorityLevel: priorityLevel,
+        lastActivity: item['Last Activity Date'] || item['Last Engagement Date'] || new Date().toISOString(),
+        engagementLevel: engagementLevel,
+        intentSignals: intentSignals
+      };
+    });
   };
 
   const processAccountsData = (data: any[], processedContacts: Contact[]): Account[] => {
@@ -240,6 +283,7 @@ export const HubspotProvider: React.FC<{ children: React.ReactNode }> = ({ child
           // Process each file based on type
           for (const item of files) {
             const data = await parseCSV(item.file);
+            console.log(`Parsed ${item.type} data:`, data[0]); // Log first row for debugging
             
             if (item.type === 'contacts') {
               contactData = data;
@@ -267,6 +311,7 @@ export const HubspotProvider: React.FC<{ children: React.ReactNode }> = ({ child
             description: `Processed ${files.length} files successfully`,
           });
         } catch (error) {
+          console.error("Error processing files:", error);
           toast({
             title: "Error processing files",
             description: "There was a problem processing your HubSpot data files",
