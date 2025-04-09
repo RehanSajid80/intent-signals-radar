@@ -208,7 +208,7 @@ const FileUpload = () => {
 const RequiredColumnsDialog = ({ type }: { type: string }) => {
   const requiredColumns: Record<string, string[]> = {
     contacts: [
-      "Record ID",
+      "Record ID - Contact",
       "First Name", 
       "Last Name", 
       "Email", 
@@ -225,15 +225,22 @@ const RequiredColumnsDialog = ({ type }: { type: string }) => {
       "Next Activity Date",
       "Number of times contacted",
       "Job Title",
-      "Lifecycle Stage"
+      "Lifecycle Stage",
+      "Company name",
+      "City",
+      "Country/Region"
     ],
     accounts: [
-      "Company Name", 
+      "Record ID - Company",
+      "Company name", 
       "Industry", 
       "Website", 
       "Company Size", 
       "Lifecycle Stage", 
-      "Annual Revenue"
+      "Annual Revenue",
+      "Company owner",
+      "City",
+      "Country/Region"
     ],
     deals: [
       "Deal Name", 

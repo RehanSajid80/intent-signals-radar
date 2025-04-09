@@ -15,6 +15,14 @@ export interface Contact {
   lastActivity: string;
   engagementLevel: number;
   intentSignals: IntentSignal[];
+  owner: string;
+  lifecycleStage: string;
+  lastEngagementDate: string;
+  timesContacted: number;
+  city?: string;
+  country?: string;
+  marketingStatus?: string;
+  leadStatus?: string;
 }
 
 export interface Account {
@@ -77,6 +85,10 @@ interface HubspotContextType {
   markNotificationAsRead: (id: string) => void;
   refreshData: () => Promise<void>;
   processFileUpload: (files: FileUploadItem[]) => Promise<void>;
+  contactOwnerStats: Record<string, number>;
+  contactLifecycleStats: Record<string, Record<string, number>>;
+  jobTitleStats: Record<string, number>;
+  engagementByOwner: Record<string, {high: number, medium: number, low: number}>;
 }
 
 const HubspotContext = createContext<HubspotContextType | undefined>(undefined);
@@ -89,6 +101,11 @@ export const HubspotProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const { toast } = useToast();
+
+  const [contactOwnerStats, setContactOwnerStats] = useState<Record<string, number>>({});
+  const [contactLifecycleStats, setContactLifecycleStats] = useState<Record<string, Record<string, number>>>({});
+  const [jobTitleStats, setJobTitleStats] = useState<Record<string, number>>({});
+  const [engagementByOwner, setEngagementByOwner] = useState<Record<string, {high: number, medium: number, low: number}>>({});
 
   const connectToHubspot = () => {
     setIsConnecting(true);
@@ -165,7 +182,6 @@ export const HubspotProvider: React.FC<{ children: React.ReactNode }> = ({ child
           const data = lines[i].split(',');
           const obj: Record<string, string> = {};
           
-          // Only process lines that have the right number of values
           if (data.length === headers.length) {
             headers.forEach((header, index) => {
               obj[header] = data[index].trim();
@@ -183,11 +199,9 @@ export const HubspotProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   const processContactsData = (data: any[]): Contact[] => {
     return data.map((item, index) => {
-      // Map the CSV columns to our Contact model
-      // This mapping is based on the CSV format provided
       const contactScore = parseInt(item['HubSpot Score'] || '0', 10);
+      const timesContacted = parseInt(item['Number of times contacted'] || '0', 10);
       
-      // Determine priority level based on lead status or score
       let priorityLevel: "high" | "medium" | "low" = "medium";
       if (item['Lead Status']?.toLowerCase().includes('qualified') || contactScore > 75) {
         priorityLevel = "high";
@@ -197,12 +211,9 @@ export const HubspotProvider: React.FC<{ children: React.ReactNode }> = ({ child
         priorityLevel = "low";
       }
       
-      // Calculate engagement level based on available metrics
       const emailsClicked = parseInt(item['Marketing emails clicked'] || '0', 10);
-      const timesContacted = parseInt(item['Number of times contacted'] || '0', 10);
       const engagementLevel = Math.min(10, Math.ceil((emailsClicked + timesContacted) / 3));
       
-      // Generate intent signals based on activity
       const intentSignals: IntentSignal[] = [];
       
       if (item['Recent Sales Email Clicked Date'] && item['Recent Sales Email Clicked Date'].trim() !== '') {
@@ -226,25 +237,32 @@ export const HubspotProvider: React.FC<{ children: React.ReactNode }> = ({ child
       }
       
       return {
-        id: item['Record ID'] || `contact-${index}`,
+        id: item['Record ID - Contact'] || item['Record ID'] || `contact-${index}`,
         firstName: item['First Name'] || '',
         lastName: item['Last Name'] || '',
         email: item['Email'] || '',
-        company: item['Company Name'] || '',
+        company: item['Company name'] || '',
         title: item['Job Title'] || '',
         phone: item['Phone Number'] || '',
         score: contactScore,
         priorityLevel: priorityLevel,
-        lastActivity: item['Last Activity Date'] || item['Last Engagement Date'] || new Date().toISOString(),
+        lastActivity: item['Last Activity Date'] || new Date().toISOString(),
         engagementLevel: engagementLevel,
-        intentSignals: intentSignals
+        intentSignals: intentSignals,
+        owner: item['Contact owner'] || '',
+        lifecycleStage: item['Lifecycle Stage'] || '',
+        lastEngagementDate: item['Last Engagement Date'] || '',
+        timesContacted: timesContacted,
+        city: item['City'] || '',
+        country: item['Country/Region'] || '',
+        marketingStatus: item['Marketing contact status'] || '',
+        leadStatus: item['Lead Status'] || ''
       };
     });
   };
 
   const processAccountsData = (data: any[], processedContacts: Contact[]): Account[] => {
     return data.map((item, index) => {
-      // Find contacts that belong to this account
       const accountContacts = processedContacts.filter(
         contact => contact.company.toLowerCase() === (item.name || '').toLowerCase()
       );
@@ -265,6 +283,51 @@ export const HubspotProvider: React.FC<{ children: React.ReactNode }> = ({ child
     });
   };
 
+  const calculateAnalytics = (contactsData: Contact[]) => {
+    const ownerStats: Record<string, number> = {};
+    const lifecycleStats: Record<string, Record<string, number>> = {};
+    const jobStats: Record<string, number> = {};
+    const engagementStats: Record<string, {high: number, medium: number, low: number}> = {};
+
+    contactsData.forEach(contact => {
+      const owner = contact.owner || 'Unassigned';
+      ownerStats[owner] = (ownerStats[owner] || 0) + 1;
+      
+      if (!lifecycleStats[owner]) {
+        lifecycleStats[owner] = {};
+      }
+      const lifecycle = contact.lifecycleStage || 'Unknown';
+      lifecycleStats[owner][lifecycle] = (lifecycleStats[owner][lifecycle] || 0) + 1;
+      
+      const title = contact.title || 'Unknown';
+      jobStats[title] = (jobStats[title] || 0) + 1;
+      
+      if (!engagementStats[owner]) {
+        engagementStats[owner] = {high: 0, medium: 0, low: 0};
+      }
+      
+      const lastEngagement = contact.lastEngagementDate ? new Date(contact.lastEngagementDate) : null;
+      const now = new Date();
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+      
+      let engagementCategory: 'high' | 'medium' | 'low' = 'low';
+      
+      if (lastEngagement && lastEngagement > thirtyDaysAgo && contact.timesContacted > 5) {
+        engagementCategory = 'high';
+      } else if (lastEngagement && lastEngagement > thirtyDaysAgo) {
+        engagementCategory = 'medium';
+      }
+      
+      engagementStats[owner][engagementCategory]++;
+    });
+    
+    setContactOwnerStats(ownerStats);
+    setContactLifecycleStats(lifecycleStats);
+    setJobTitleStats(jobStats);
+    setEngagementByOwner(engagementStats);
+  };
+
   const processFileUpload = async (files: FileUploadItem[]): Promise<void> => {
     setIsProcessing(true);
     
@@ -280,10 +343,9 @@ export const HubspotProvider: React.FC<{ children: React.ReactNode }> = ({ child
           let accountData: any[] = [];
           let dealData: any[] = [];
           
-          // Process each file based on type
           for (const item of files) {
             const data = await parseCSV(item.file);
-            console.log(`Parsed ${item.type} data:`, data[0]); // Log first row for debugging
+            console.log(`Parsed ${item.type} data:`, data[0]);
             
             if (item.type === 'contacts') {
               contactData = data;
@@ -294,12 +356,12 @@ export const HubspotProvider: React.FC<{ children: React.ReactNode }> = ({ child
             }
           }
           
-          // Transform the CSV data into our application's data models
           const processedContacts = processContactsData(contactData);
           const processedAccounts = processAccountsData(accountData, processedContacts);
           
-          // Generate empty notifications array - in real app these would come from activity data
           const processedNotifications: Notification[] = [];
+          
+          calculateAnalytics(processedContacts);
           
           setIsAuthenticated(true);
           setContacts(processedContacts);
@@ -342,6 +404,10 @@ export const HubspotProvider: React.FC<{ children: React.ReactNode }> = ({ child
     markNotificationAsRead,
     refreshData,
     processFileUpload,
+    contactOwnerStats,
+    contactLifecycleStats,
+    jobTitleStats,
+    engagementByOwner,
   };
 
   return <HubspotContext.Provider value={value}>{children}</HubspotContext.Provider>;

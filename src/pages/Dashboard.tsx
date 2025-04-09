@@ -1,3 +1,4 @@
+
 import { useHubspot } from "@/context/HubspotContext";
 import Sidebar from "@/components/Sidebar";
 import PriorityLeads from "@/components/dashboard/PriorityLeads";
@@ -13,6 +14,11 @@ import HubspotConnect from "@/components/hubspot/HubspotConnect";
 import StageConversions from "@/components/dashboard/StageConversions";
 import LeadScoring from "@/components/dashboard/LeadScoring";
 import AccountPenetrationAnalysis from "@/components/dashboard/AccountPenetrationAnalysis";
+import ContactOwnerDistribution from "@/components/dashboard/ContactOwnerDistribution";
+import EngagementByOwner from "@/components/dashboard/EngagementByOwner";
+import LifecycleStages from "@/components/dashboard/LifecycleStages";
+import JobTitleAnalysis from "@/components/dashboard/JobTitleAnalysis";
+import OwnerLifecycleBreakdown from "@/components/dashboard/OwnerLifecycleBreakdown";
 
 const Dashboard = () => {
   const { isAuthenticated, contacts, accounts, isConnecting } = useHubspot();
@@ -86,8 +92,8 @@ const Dashboard = () => {
                     <p className="text-sm text-muted-foreground">Track lead progression through stages</p>
                   </div>
                   <div className="bg-card p-4 rounded-md border">
-                    <h4 className="font-medium">AI Lead Scoring</h4>
-                    <p className="text-sm text-muted-foreground">Get AI-powered scoring of your leads</p>
+                    <h4 className="font-medium">Contact Analytics</h4>
+                    <p className="text-sm text-muted-foreground">Analyze contact owners, lifecycle stages and job titles</p>
                   </div>
                 </div>
               </div>
@@ -130,6 +136,7 @@ const Dashboard = () => {
                   <TabsTrigger value="overview">Overview</TabsTrigger>
                   <TabsTrigger value="leads">Leads</TabsTrigger>
                   <TabsTrigger value="accounts">Accounts</TabsTrigger>
+                  <TabsTrigger value="contacts">Contacts</TabsTrigger>
                   <TabsTrigger value="conversions">Conversions</TabsTrigger>
                 </TabsList>
                 
@@ -158,107 +165,80 @@ const Dashboard = () => {
                   <AccountPenetrationAnalysis />
                 </TabsContent>
                 
+                <TabsContent value="contacts" className="mt-6">
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+                    <div className="lg:col-span-2">
+                      <ContactOwnerDistribution />
+                    </div>
+                    <div>
+                      <LifecycleStages />
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+                    <div className="lg:col-span-2">
+                      <EngagementByOwner />
+                    </div>
+                    <div>
+                      <OwnerLifecycleBreakdown />
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 gap-6">
+                    <JobTitleAnalysis />
+                  </div>
+                  
+                  <div className="mt-8">
+                    <h3 className="text-lg font-medium mb-4">All Contacts</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {contacts.map(contact => (
+                        <div key={contact.id} className="card-interactive">
+                          <a href={`/contacts/${contact.id}`}>
+                            <Card className="h-full">
+                              <CardContent className="p-4">
+                                <div className="flex items-center space-x-3">
+                                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+                                    {contact.firstName.charAt(0)}{contact.lastName.charAt(0)}
+                                  </div>
+                                  <div>
+                                    <h3 className="font-medium">{contact.firstName} {contact.lastName}</h3>
+                                    <p className="text-sm text-muted-foreground">{contact.title}</p>
+                                  </div>
+                                </div>
+                                <div className="mt-3">
+                                  <div className="flex justify-between mb-1">
+                                    <span className="text-xs text-muted-foreground">Priority Score</span>
+                                    <span className="text-xs font-medium">{contact.score}</span>
+                                  </div>
+                                  <div className="w-full bg-muted rounded-full h-1.5">
+                                    <div 
+                                      className="bg-primary h-1.5 rounded-full" 
+                                      style={{ width: `${contact.score}%` }}
+                                    ></div>
+                                  </div>
+                                </div>
+                                <div className="mt-3 flex justify-between">
+                                  <div className="text-xs text-muted-foreground">{contact.company}</div>
+                                  <div className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                                    contact.priorityLevel === "high" ? "bg-alert-100 text-alert-600" :
+                                    contact.priorityLevel === "medium" ? "bg-warning-100 text-warning-600" :
+                                    "bg-success-100 text-success-600"
+                                  }`}>
+                                    {contact.priorityLevel}
+                                  </div>
+                                </div>
+                              </CardContent>
+                            </Card>
+                          </a>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </TabsContent>
+                
                 <TabsContent value="conversions" className="mt-6">
                   <div className="grid grid-cols-1 gap-6">
                     <StageConversions />
-                  </div>
-                </TabsContent>
-                
-                <TabsContent value="contacts" className="mt-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {contacts.map(contact => (
-                      <div key={contact.id} className="card-interactive">
-                        <a href={`/contacts/${contact.id}`}>
-                          <Card className="h-full">
-                            <CardContent className="p-4">
-                              <div className="flex items-center space-x-3">
-                                <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary">
-                                  {contact.firstName.charAt(0)}{contact.lastName.charAt(0)}
-                                </div>
-                                <div>
-                                  <h3 className="font-medium">{contact.firstName} {contact.lastName}</h3>
-                                  <p className="text-sm text-muted-foreground">{contact.title}</p>
-                                </div>
-                              </div>
-                              <div className="mt-3">
-                                <div className="flex justify-between mb-1">
-                                  <span className="text-xs text-muted-foreground">Priority Score</span>
-                                  <span className="text-xs font-medium">{contact.score}</span>
-                                </div>
-                                <div className="w-full bg-muted rounded-full h-1.5">
-                                  <div 
-                                    className="bg-primary h-1.5 rounded-full" 
-                                    style={{ width: `${contact.score}%` }}
-                                  ></div>
-                                </div>
-                              </div>
-                              <div className="mt-3 flex justify-between">
-                                <div className="text-xs text-muted-foreground">{contact.company}</div>
-                                <div className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-                                  contact.priorityLevel === "high" ? "bg-alert-100 text-alert-600" :
-                                  contact.priorityLevel === "medium" ? "bg-warning-100 text-warning-600" :
-                                  "bg-success-100 text-success-600"
-                                }`}>
-                                  {contact.priorityLevel}
-                                </div>
-                              </div>
-                            </CardContent>
-                          </Card>
-                        </a>
-                      </div>
-                    ))}
-                  </div>
-                </TabsContent>
-                
-                <TabsContent value="accounts-list" className="mt-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {accounts.map(account => (
-                      <div key={account.id} className="card-interactive">
-                        <a href={`/accounts/${account.id}`}>
-                          <Card className="h-full">
-                            <CardContent className="p-4">
-                              <h3 className="text-lg font-medium mb-2">{account.name}</h3>
-                              <div className="flex justify-between mb-3">
-                                <div className="text-sm">{account.industry}</div>
-                                <div className="text-sm text-muted-foreground">{account.size}</div>
-                              </div>
-                              <div className="mb-3">
-                                <div className="flex justify-between mb-1">
-                                  <span className="text-xs text-muted-foreground">Penetration</span>
-                                  <span className="text-xs font-medium">{account.penetrationScore}%</span>
-                                </div>
-                                <div className="w-full bg-muted rounded-full h-1.5">
-                                  <div 
-                                    className="bg-primary h-1.5 rounded-full" 
-                                    style={{ width: `${account.penetrationScore}%` }}
-                                  ></div>
-                                </div>
-                              </div>
-                              <div className="flex justify-between text-sm">
-                                <div className="flex flex-col">
-                                  <span className="text-xs text-muted-foreground">Contacts</span>
-                                  <span className="font-medium">{account.contacts.length}</span>
-                                </div>
-                                <div className="flex flex-col">
-                                  <span className="text-xs text-muted-foreground">Deals</span>
-                                  <span className="font-medium">{account.activeDeals}</span>
-                                </div>
-                                <div className="flex flex-col">
-                                  <span className="text-xs text-muted-foreground">Stage</span>
-                                  <span className={`text-xs px-2 py-0.5 mt-0.5 rounded-full capitalize ${
-                                    account.stage === "closed_won" ? "bg-success-100 text-success-600" :
-                                    account.stage === "negotiation" ? "bg-warning-100 text-warning-600" :
-                                    "bg-neutral-100 text-neutral-600"
-                                  }`}>
-                                    {account.stage.replace("_", " ")}
-                                  </span>
-                                </div>
-                              </div>
-                            </CardContent>
-                          </Card>
-                        </a>
-                      </div>
-                    ))}
                   </div>
                 </TabsContent>
               </Tabs>
