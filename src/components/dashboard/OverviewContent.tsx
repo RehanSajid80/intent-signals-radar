@@ -1,6 +1,6 @@
 
 import React from 'react';
-import AccountPenetration from "@/components/dashboard/AccountPenetration";
+import AccountPenetration from "@/components/dashboard/account-penetration/AccountPenetration";
 import LifecycleStageBreakdown from "@/components/dashboard/LifecycleStageBreakdown";
 import IntentSignals from "@/components/dashboard/IntentSignals";
 import PriorityLeads from "@/components/dashboard/PriorityLeads";
