@@ -101,7 +101,7 @@ const Dashboard = () => {
             </div>
           ) : (
             <>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
                 <DataCard
                   title="High Priority Leads"
                   value={highPriorityCount}
@@ -132,7 +132,7 @@ const Dashboard = () => {
                 />
               </div>
               
-              <Tabs defaultValue="overview" className="mb-6">
+              <Tabs defaultValue="overview" className="mb-4">
                 <TabsList>
                   <TabsTrigger value="overview">Overview</TabsTrigger>
                   <TabsTrigger value="leads">Leads</TabsTrigger>
@@ -141,51 +141,51 @@ const Dashboard = () => {
                   <TabsTrigger value="conversions">Conversions</TabsTrigger>
                 </TabsList>
                 
-                <TabsContent value="overview" className="mt-6">
-                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <div className="lg:col-span-2 space-y-6">
+                <TabsContent value="overview" className="mt-4">
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                    <div className="lg:col-span-2 space-y-4">
                       <AccountPenetration className="w-full" />
                       <LifecycleStageBreakdown />
                       <IntentSignals />
                       <StageConversions />
                     </div>
-                    <div className="space-y-6">
+                    <div className="space-y-4">
                       <PriorityLeads />
                       <Notifications />
                     </div>
                   </div>
                 </TabsContent>
                 
-                <TabsContent value="leads" className="mt-6">
+                <TabsContent value="leads" className="mt-4">
                   <LeadScoring />
                 </TabsContent>
                 
-                <TabsContent value="accounts" className="mt-6">
+                <TabsContent value="accounts" className="mt-4">
                   <AccountPenetrationAnalysis />
                 </TabsContent>
                 
-                <TabsContent value="contacts" className="mt-6">
-                  <div className="space-y-6 mb-6">
+                <TabsContent value="contacts" className="mt-4">
+                  <div className="space-y-4 mb-4">
                     <ContactBreakdown />
                     <LifecycleBreakdown />
                     <LeadIntentBreakdown />
                   </div>
                   
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
                     <ContactOwnerDistribution />
                     <LifecycleStages />
                   </div>
                   
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
                     <EngagementByOwner />
                     <OwnerLifecycleBreakdown />
                   </div>
                   
-                  <div className="grid grid-cols-1 gap-6 mb-6">
+                  <div className="grid grid-cols-1 gap-4 mb-4">
                     <JobTitleAnalysis />
                   </div>
                   
-                  <div className="mt-8">
+                  <div className="mt-4">
                     <h3 className="text-lg font-medium mb-4">All Contacts</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                       {contacts.map(contact => (
@@ -233,8 +233,8 @@ const Dashboard = () => {
                   </div>
                 </TabsContent>
                 
-                <TabsContent value="conversions" className="mt-6">
-                  <div className="grid grid-cols-1 gap-6">
+                <TabsContent value="conversions" className="mt-4">
+                  <div className="grid grid-cols-1 gap-4">
                     <StageConversions />
                   </div>
                 </TabsContent>
