@@ -5,21 +5,19 @@ import AccountPenetration from "@/components/dashboard/AccountPenetration";
 import IntentSignals from "@/components/dashboard/IntentSignals";
 import Notifications from "@/components/dashboard/Notifications";
 import DataCard from "@/components/ui/DataCard";
-import { useNavigate } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import HubspotConnect from "@/components/hubspot/HubspotConnect";
-import StageConversions from "@/components/dashboard/StageConversions";
 import LeadScoring from "@/components/dashboard/LeadScoring";
 import AccountPenetrationAnalysis from "@/components/dashboard/AccountPenetrationAnalysis";
-import ContactOwnerDistribution from "@/components/dashboard/ContactOwnerDistribution";
-import EngagementByOwner from "@/components/dashboard/EngagementByOwner";
-import LifecycleStages from "@/components/dashboard/LifecycleStages";
-import JobTitleAnalysis from "@/components/dashboard/JobTitleAnalysis";
-import OwnerLifecycleBreakdown from "@/components/dashboard/OwnerLifecycleBreakdown";
 import ContactBreakdown from "@/components/dashboard/ContactBreakdown";
 import LifecycleBreakdown from "@/components/dashboard/LifecycleBreakdown";
 import LeadIntentBreakdown from "@/components/dashboard/LeadIntentBreakdown";
+import ContactOwnerDistribution from "@/components/dashboard/ContactOwnerDistribution";
+import LifecycleStages from "@/components/dashboard/LifecycleStages";
+import EngagementByOwner from "@/components/dashboard/EngagementByOwner";
+import OwnerLifecycleBreakdown from "@/components/dashboard/OwnerLifecycleBreakdown";
+import JobTitleAnalysis from "@/components/dashboard/JobTitleAnalysis";
 import LifecycleStageBreakdown from "@/components/dashboard/LifecycleStageBreakdown";
 
 const Dashboard = () => {
@@ -138,7 +136,6 @@ const Dashboard = () => {
                   <TabsTrigger value="leads">Leads</TabsTrigger>
                   <TabsTrigger value="accounts">Accounts</TabsTrigger>
                   <TabsTrigger value="contacts">Contacts</TabsTrigger>
-                  <TabsTrigger value="conversions">Conversions</TabsTrigger>
                 </TabsList>
                 
                 <TabsContent value="overview" className="mt-4">
@@ -147,7 +144,6 @@ const Dashboard = () => {
                       <AccountPenetration className="w-full" />
                       <LifecycleStageBreakdown />
                       <IntentSignals />
-                      <StageConversions />
                     </div>
                     <div className="space-y-4">
                       <PriorityLeads />
@@ -230,12 +226,6 @@ const Dashboard = () => {
                         </div>
                       ))}
                     </div>
-                  </div>
-                </TabsContent>
-                
-                <TabsContent value="conversions" className="mt-4">
-                  <div className="grid grid-cols-1 gap-4">
-                    <StageConversions />
                   </div>
                 </TabsContent>
               </Tabs>
