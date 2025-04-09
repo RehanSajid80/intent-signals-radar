@@ -34,7 +34,7 @@ const LeadIntentBreakdown = () => {
           </div>
         </div>
         <CardDescription>
-          Categorized by lead score: High (>20), Medium (10-20), Low (&lt;10)
+          Categorized by lead score: High (&gt;20), Medium (10-20), Low (&lt;10)
         </CardDescription>
       </CardHeader>
       <CardContent>
