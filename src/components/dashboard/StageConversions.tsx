@@ -19,7 +19,7 @@ const STAGE_LABELS: Record<string, string> = {
 };
 
 const StageConversions = () => {
-  const { contacts, accounts } = useHubspot();
+  const { contacts, accounts, isAuthenticated } = useHubspot();
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [timeframe, setTimeframe] = useState("month");
   
@@ -49,8 +49,12 @@ const StageConversions = () => {
       
       // Simulate conversion counts - in a real app would use actual conversion timestamps
       // Here we're using the day of the month modulo to create varied mock data
-      const conversionCount = (monthStart.getDate() + index) % 7 + (contacts.length / 3);
-      const conversionRate = ((conversionCount / (contacts.length || 1)) * 100).toFixed(1);
+      const conversionCount = isAuthenticated 
+        ? (monthStart.getDate() + index) % 7 + (contacts.length / 3)
+        : 0;
+      const conversionRate = isAuthenticated
+        ? ((conversionCount / (contacts.length || 1)) * 100).toFixed(1)
+        : "0.0";
       
       return {
         fromStage,
