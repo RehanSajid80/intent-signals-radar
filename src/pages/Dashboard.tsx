@@ -2,7 +2,6 @@ import { useHubspot } from "@/context/HubspotContext";
 import Sidebar from "@/components/Sidebar";
 import PriorityLeads from "@/components/dashboard/PriorityLeads";
 import AccountPenetration from "@/components/dashboard/AccountPenetration";
-import SalesFunnel from "@/components/dashboard/SalesFunnel";
 import IntentSignals from "@/components/dashboard/IntentSignals";
 import Notifications from "@/components/dashboard/Notifications";
 import DataCard from "@/components/ui/DataCard";
@@ -145,10 +144,7 @@ const Dashboard = () => {
                 <TabsContent value="overview" className="mt-6">
                   <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     <div className="lg:col-span-2 space-y-6">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <AccountPenetration />
-                        <SalesFunnel />
-                      </div>
+                      <AccountPenetration className="w-full" />
                       <LifecycleStageBreakdown />
                       <IntentSignals />
                       <StageConversions />
