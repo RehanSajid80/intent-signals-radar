@@ -49,7 +49,8 @@ const EngagementByOwner = () => {
                 <Tooltip 
                   formatter={(value, name) => [
                     `${value} contacts`, 
-                    name.charAt(0).toUpperCase() + name.slice(1) + ' Engagement'
+                    // Convert name to string before using string methods
+                    `${String(name).charAt(0).toUpperCase()}${String(name).slice(1)} Engagement`
                   ]}
                 />
                 <Legend />
