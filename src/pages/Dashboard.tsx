@@ -1,4 +1,3 @@
-
 import { useHubspot } from "@/context/HubspotContext";
 import Sidebar from "@/components/Sidebar";
 import PriorityLeads from "@/components/dashboard/PriorityLeads";
@@ -22,11 +21,11 @@ import OwnerLifecycleBreakdown from "@/components/dashboard/OwnerLifecycleBreakd
 import ContactBreakdown from "@/components/dashboard/ContactBreakdown";
 import LifecycleBreakdown from "@/components/dashboard/LifecycleBreakdown";
 import LeadIntentBreakdown from "@/components/dashboard/LeadIntentBreakdown";
+import LifecycleStageBreakdown from "@/components/dashboard/LifecycleStageBreakdown";
 
 const Dashboard = () => {
   const { isAuthenticated, contacts, accounts, isConnecting } = useHubspot();
   
-  // Calculate summary metrics if authenticated
   const highPriorityCount = isAuthenticated ? contacts.filter(c => c.priorityLevel === "high").length : 0;
   const highPriorityPercent = isAuthenticated && contacts.length > 0 
     ? Math.round((highPriorityCount / contacts.length) * 100) 
@@ -150,6 +149,7 @@ const Dashboard = () => {
                         <AccountPenetration />
                         <SalesFunnel />
                       </div>
+                      <LifecycleStageBreakdown />
                       <IntentSignals />
                       <StageConversions />
                     </div>
