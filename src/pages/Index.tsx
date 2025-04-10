@@ -1,4 +1,5 @@
 
+import React from 'react';
 import { useHubspot } from "@/context/HubspotContext";
 import HubspotConnect from "@/components/hubspot/HubspotConnect";
 import { useNavigate } from "react-router-dom";
@@ -231,7 +232,7 @@ const Index = () => {
               className="h-6" 
             />
           </div>
-          <p>© 2023 Zyter Lead Priority Radar. All rights reserved.</p>
+          <p>© 2025 Zyter Lead Priority Radar. All rights reserved.</p>
         </div>
       </footer>
     </div>
