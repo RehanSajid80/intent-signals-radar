@@ -7,7 +7,7 @@ import SummaryCards from "@/components/dashboard/SummaryCards";
 import OverviewContent from "@/components/dashboard/OverviewContent";
 import UnauthenticatedView from "@/components/dashboard/UnauthenticatedView";
 import LeadScoring from "@/components/dashboard/LeadScoring";
-import AccountPenetrationAnalysis from "@/components/dashboard/AccountPenetrationAnalysis";
+import AccountsTabContent from "@/components/dashboard/AccountsTabContent";
 import ContactsTabContent from "@/components/dashboard/ContactsTabContent";
 
 const Dashboard = () => {
@@ -62,7 +62,7 @@ const Dashboard = () => {
                 </TabsContent>
                 
                 <TabsContent value="accounts" className="mt-4">
-                  <AccountPenetrationAnalysis />
+                  <AccountsTabContent />
                 </TabsContent>
                 
                 <TabsContent value="contacts" className="mt-4">
