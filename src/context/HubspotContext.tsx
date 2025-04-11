@@ -37,6 +37,15 @@ export interface Account {
   totalDeals: number;
   totalRevenue: number;
   activeDeals: number;
+  city?: string;
+  country?: string;
+  lastActivity?: string;
+  timesContacted?: number;
+  buyingRoles?: number;
+  pageviews?: number;
+  sessions?: number;
+  leadStatus?: string;
+  lifecycleStage?: string;
 }
 
 export interface IntentSignal {
@@ -363,7 +372,16 @@ export const HubspotProvider: React.FC<{ children: React.ReactNode }> = ({ child
         penetrationScore: parseInt(item.penetrationScore || '0', 10),
         totalDeals: parseInt(item.totalDeals || '0', 10),
         totalRevenue: parseInt(item.totalRevenue || '0', 10),
-        activeDeals: parseInt(item.activeDeals || '0', 10)
+        activeDeals: parseInt(item.activeDeals || '0', 10),
+        city: item.City || '',
+        country: item.Country || item['Country/Region'] || '',
+        lastActivity: item['Last Activity Date'] || '',
+        timesContacted: parseInt(item['Number of times contacted'] || '0', 10),
+        buyingRoles: parseInt(item['Number of contacts with a buying role'] || '0', 10),
+        pageviews: parseInt(item['Number of Pageviews'] || '0', 10),
+        sessions: parseInt(item['Number of Sessions'] || '0', 10),
+        leadStatus: item['Lead Status'] || '',
+        lifecycleStage: item['Lifecycle Stage'] || '',
       };
     });
   };
