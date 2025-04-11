@@ -3,7 +3,6 @@ import React, { useState } from 'react';
 import { useHubspot, Account } from "@/context/HubspotContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Circle, ChevronRight, Users } from "lucide-react";
-import { useNavigate } from "react-router-dom";
 
 // Define engagement level types
 type EngagementLevel = 'not-engaged' | 'slightly-engaged' | 'highly-engaged';
@@ -49,9 +48,12 @@ const calculateAccountEngagement = (account: Account): EngagementLevel => {
   return 'not-engaged';
 };
 
-const AccountEngagementList = () => {
+interface AccountEngagementListProps {
+  onAccountSelected: (accountId: string) => void;
+}
+
+const AccountEngagementList = ({ onAccountSelected }: AccountEngagementListProps) => {
   const { accounts } = useHubspot();
-  const navigate = useNavigate();
   const [selectedLevel, setSelectedLevel] = useState<EngagementLevel | 'all'>('all');
   
   const accountsByEngagement = {
@@ -61,7 +63,7 @@ const AccountEngagementList = () => {
   };
   
   const handleAccountClick = (accountId: string) => {
-    navigate(`/accounts/${accountId}`);
+    onAccountSelected(accountId);
   };
   
   return (

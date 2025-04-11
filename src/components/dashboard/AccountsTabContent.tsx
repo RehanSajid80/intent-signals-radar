@@ -1,10 +1,12 @@
 
 import React, { useState } from 'react';
+import AccountsTable from "@/components/dashboard/accounts/AccountsTable";
 import AccountEngagementList from "@/components/dashboard/accounts/AccountEngagementList";
 import ContactRoleMapping from "@/components/dashboard/accounts/ContactRoleMapping";
 import { useHubspot } from "@/context/HubspotContext";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Layers, ListFilter } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const AccountsTabContent = () => {
   const [selectedAccountId, setSelectedAccountId] = useState<string | null>(null);
@@ -43,7 +45,26 @@ const AccountsTabContent = () => {
           <ContactRoleMapping accountId={selectedAccountId} />
         </div>
       ) : (
-        <AccountEngagementList />
+        <Tabs defaultValue="engagement" className="mb-4">
+          <TabsList>
+            <TabsTrigger value="engagement" className="flex items-center gap-1">
+              <ListFilter className="h-4 w-4" />
+              Engagement View
+            </TabsTrigger>
+            <TabsTrigger value="table" className="flex items-center gap-1">
+              <Layers className="h-4 w-4" />
+              Table View
+            </TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="engagement" className="mt-4">
+            <AccountEngagementList onAccountSelected={handleAccountSelected} />
+          </TabsContent>
+          
+          <TabsContent value="table" className="mt-4">
+            <AccountsTable onSelectAccount={handleAccountSelected} />
+          </TabsContent>
+        </Tabs>
       )}
     </div>
   );
