@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -46,6 +47,12 @@ export interface Account {
   sessions?: number;
   leadStatus?: string;
   lifecycleStage?: string;
+  cloudProviders?: {
+    aws?: boolean;
+    azure?: boolean;
+    googleCloud?: boolean;
+    oracle?: boolean;
+  };
 }
 
 export interface IntentSignal {
@@ -361,6 +368,14 @@ export const HubspotProvider: React.FC<{ children: React.ReactNode }> = ({ child
         contact => contact.company.toLowerCase() === (item.name || '').toLowerCase()
       );
       
+      // Extract cloud provider information from the CSV data
+      const cloudProviders = {
+        aws: item.isAWSClient === 'Yes' || item.isAWSClient === 'true' || item.isAWSClient === true,
+        azure: item.isAzureClient === 'Yes' || item.isAzureClient === 'true' || item.isAzureClient === true,
+        googleCloud: item.isGoogleCloudClient === 'Yes' || item.isGoogleCloudClient === 'true' || item.isGoogleCloudClient === true,
+        oracle: item.isOracleCloudClient === 'Yes' || item.isOracleCloudClient === 'true' || item.isOracleCloudClient === true
+      };
+      
       return {
         id: item.id || `account-${index}`,
         name: item.name || '',
@@ -382,6 +397,7 @@ export const HubspotProvider: React.FC<{ children: React.ReactNode }> = ({ child
         sessions: parseInt(item['Number of Sessions'] || '0', 10),
         leadStatus: item['Lead Status'] || '',
         lifecycleStage: item['Lifecycle Stage'] || '',
+        cloudProviders: cloudProviders
       };
     });
   };

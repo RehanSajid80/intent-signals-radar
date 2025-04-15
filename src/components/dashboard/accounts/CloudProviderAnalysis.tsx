@@ -3,7 +3,7 @@ import React from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useHubspot } from "@/context/HubspotContext";
-import { Cloud, Microsoft, Apple, Google } from "lucide-react";
+import { Cloud, CheckCircle2, XCircle } from "lucide-react";
 
 const CloudProviderAnalysis = () => {
   const { accounts } = useHubspot();
@@ -33,16 +33,32 @@ const CloudProviderAnalysis = () => {
                 <TableRow key={account.id}>
                   <TableCell className="font-medium">{account.name}</TableCell>
                   <TableCell className="text-center">
-                    {account.isAWSClient ? "Yes" : "No"}
+                    {account.cloudProviders?.aws ? (
+                      <CheckCircle2 className="h-5 w-5 text-green-500 mx-auto" />
+                    ) : (
+                      <XCircle className="h-5 w-5 text-gray-300 mx-auto" />
+                    )}
                   </TableCell>
                   <TableCell className="text-center">
-                    {account.isAzureClient ? "Yes" : "No"}
+                    {account.cloudProviders?.azure ? (
+                      <CheckCircle2 className="h-5 w-5 text-green-500 mx-auto" />
+                    ) : (
+                      <XCircle className="h-5 w-5 text-gray-300 mx-auto" />
+                    )}
                   </TableCell>
                   <TableCell className="text-center">
-                    {account.isGoogleCloudClient ? "Yes" : "No"}
+                    {account.cloudProviders?.googleCloud ? (
+                      <CheckCircle2 className="h-5 w-5 text-green-500 mx-auto" />
+                    ) : (
+                      <XCircle className="h-5 w-5 text-gray-300 mx-auto" />
+                    )}
                   </TableCell>
                   <TableCell className="text-center">
-                    {account.isOracleCloudClient ? "Yes" : "No"}
+                    {account.cloudProviders?.oracle ? (
+                      <CheckCircle2 className="h-5 w-5 text-green-500 mx-auto" />
+                    ) : (
+                      <XCircle className="h-5 w-5 text-gray-300 mx-auto" />
+                    )}
                   </TableCell>
                 </TableRow>
               ))}
