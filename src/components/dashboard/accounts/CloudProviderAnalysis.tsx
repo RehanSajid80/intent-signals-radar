@@ -8,12 +8,25 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 
+type AnalyzedAccount = {
+  id: string;
+  name: string;
+  url: string;
+  cloudProviders: {
+    aws: boolean;
+    azure: boolean;
+    googleCloud: boolean;
+    oracle: boolean;
+  }
+};
+
 const CloudProviderAnalysis = () => {
   const { accounts } = useHubspot();
   const { toast } = useToast();
   const [url, setUrl] = useState('');
   const [name, setName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [analyzedAccounts, setAnalyzedAccounts] = useState<AnalyzedAccount[]>([]);
 
   const handleLookup = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -30,7 +43,8 @@ const CloudProviderAnalysis = () => {
     try {
       // For demo purposes, we'll simulate the lookup with random results
       // In a real application, this would make an API call to analyze the website
-      const mockResult = {
+      const mockResult: AnalyzedAccount = {
+        id: Date.now().toString(), // Generate a unique ID
         name,
         url,
         cloudProviders: {
@@ -41,12 +55,15 @@ const CloudProviderAnalysis = () => {
         }
       };
 
+      // Add the analyzed account to our local state
+      setAnalyzedAccounts(prev => [mockResult, ...prev]);
+
       toast({
         title: "Success",
         description: "Cloud providers detected for " + name,
       });
 
-      // Here you would typically update the accounts list through your context
+      // Log for debugging
       console.log("Cloud provider analysis result:", mockResult);
     } catch (error) {
       toast({
@@ -60,6 +77,12 @@ const CloudProviderAnalysis = () => {
       setName('');
     }
   };
+
+  // Combine analyzed accounts with accounts from context that have cloudProviders data
+  const displayAccounts = [
+    ...analyzedAccounts,
+    ...accounts.filter(account => account.cloudProviders)
+  ];
 
   return (
     <Card>
@@ -107,39 +130,47 @@ const CloudProviderAnalysis = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {accounts.map((account) => (
-                <TableRow key={account.id}>
-                  <TableCell className="font-medium">{account.name}</TableCell>
-                  <TableCell className="text-center">
-                    {account.cloudProviders?.aws ? (
-                      <CheckCircle2 className="h-5 w-5 text-green-500 mx-auto" />
-                    ) : (
-                      <XCircle className="h-5 w-5 text-gray-300 mx-auto" />
-                    )}
-                  </TableCell>
-                  <TableCell className="text-center">
-                    {account.cloudProviders?.azure ? (
-                      <CheckCircle2 className="h-5 w-5 text-green-500 mx-auto" />
-                    ) : (
-                      <XCircle className="h-5 w-5 text-gray-300 mx-auto" />
-                    )}
-                  </TableCell>
-                  <TableCell className="text-center">
-                    {account.cloudProviders?.googleCloud ? (
-                      <CheckCircle2 className="h-5 w-5 text-green-500 mx-auto" />
-                    ) : (
-                      <XCircle className="h-5 w-5 text-gray-300 mx-auto" />
-                    )}
-                  </TableCell>
-                  <TableCell className="text-center">
-                    {account.cloudProviders?.oracle ? (
-                      <CheckCircle2 className="h-5 w-5 text-green-500 mx-auto" />
-                    ) : (
-                      <XCircle className="h-5 w-5 text-gray-300 mx-auto" />
-                    )}
+              {displayAccounts.length > 0 ? (
+                displayAccounts.map((account) => (
+                  <TableRow key={account.id}>
+                    <TableCell className="font-medium">{account.name}</TableCell>
+                    <TableCell className="text-center">
+                      {account.cloudProviders?.aws ? (
+                        <CheckCircle2 className="h-5 w-5 text-green-500 mx-auto" />
+                      ) : (
+                        <XCircle className="h-5 w-5 text-gray-300 mx-auto" />
+                      )}
+                    </TableCell>
+                    <TableCell className="text-center">
+                      {account.cloudProviders?.azure ? (
+                        <CheckCircle2 className="h-5 w-5 text-green-500 mx-auto" />
+                      ) : (
+                        <XCircle className="h-5 w-5 text-gray-300 mx-auto" />
+                      )}
+                    </TableCell>
+                    <TableCell className="text-center">
+                      {account.cloudProviders?.googleCloud ? (
+                        <CheckCircle2 className="h-5 w-5 text-green-500 mx-auto" />
+                      ) : (
+                        <XCircle className="h-5 w-5 text-gray-300 mx-auto" />
+                      )}
+                    </TableCell>
+                    <TableCell className="text-center">
+                      {account.cloudProviders?.oracle ? (
+                        <CheckCircle2 className="h-5 w-5 text-green-500 mx-auto" />
+                      ) : (
+                        <XCircle className="h-5 w-5 text-gray-300 mx-auto" />
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={5} className="text-center py-6 text-muted-foreground">
+                    No cloud provider analysis data yet. Enter an account name and URL to analyze.
                   </TableCell>
                 </TableRow>
-              ))}
+              )}
             </TableBody>
           </Table>
         </div>
