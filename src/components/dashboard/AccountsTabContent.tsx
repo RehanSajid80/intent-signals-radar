@@ -1,8 +1,8 @@
-
 import React, { useState } from 'react';
 import AccountsTable from "@/components/dashboard/accounts/AccountsTable";
 import AccountEngagementList from "@/components/dashboard/accounts/AccountEngagementList";
 import ContactRoleMapping from "@/components/dashboard/accounts/ContactRoleMapping";
+import CloudProviderAnalysis from "@/components/dashboard/accounts/CloudProviderAnalysis";
 import { useHubspot } from "@/context/HubspotContext";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Layers, ListFilter } from "lucide-react";
@@ -12,12 +12,10 @@ const AccountsTabContent = () => {
   const [selectedAccountId, setSelectedAccountId] = useState<string | null>(null);
   const { accounts } = useHubspot();
   
-  // Listen for navigation from the Account list
   const handleAccountSelected = React.useCallback((accountId: string) => {
     setSelectedAccountId(accountId);
   }, []);
   
-  // Find the selected account
   const selectedAccount = selectedAccountId ? accounts.find(a => a.id === selectedAccountId) : null;
   
   return (
@@ -58,11 +56,17 @@ const AccountsTabContent = () => {
           </TabsList>
           
           <TabsContent value="engagement" className="mt-4">
-            <AccountEngagementList onAccountSelected={handleAccountSelected} />
+            <div className="space-y-4">
+              <CloudProviderAnalysis />
+              <AccountEngagementList onAccountSelected={handleAccountSelected} />
+            </div>
           </TabsContent>
           
           <TabsContent value="table" className="mt-4">
-            <AccountsTable onSelectAccount={handleAccountSelected} />
+            <div className="space-y-4">
+              <CloudProviderAnalysis />
+              <AccountsTable onSelectAccount={handleAccountSelected} />
+            </div>
           </TabsContent>
         </Tabs>
       )}
