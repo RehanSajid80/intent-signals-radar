@@ -1,12 +1,65 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useHubspot } from "@/context/HubspotContext";
-import { Cloud, CheckCircle2, XCircle } from "lucide-react";
+import { Cloud, CheckCircle2, XCircle, Search, Plus } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { useToast } from "@/hooks/use-toast";
 
 const CloudProviderAnalysis = () => {
   const { accounts } = useHubspot();
+  const { toast } = useToast();
+  const [url, setUrl] = useState('');
+  const [name, setName] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleLookup = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!url || !name) {
+      toast({
+        title: "Error",
+        description: "Please enter both URL and account name",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      // For demo purposes, we'll simulate the lookup with random results
+      // In a real application, this would make an API call to analyze the website
+      const mockResult = {
+        name,
+        url,
+        cloudProviders: {
+          aws: Math.random() > 0.5,
+          azure: Math.random() > 0.5,
+          googleCloud: Math.random() > 0.5,
+          oracle: Math.random() > 0.5,
+        }
+      };
+
+      toast({
+        title: "Success",
+        description: "Cloud providers detected for " + name,
+      });
+
+      // Here you would typically update the accounts list through your context
+      console.log("Cloud provider analysis result:", mockResult);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to analyze cloud providers",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+      setUrl('');
+      setName('');
+    }
+  };
 
   return (
     <Card>
@@ -17,6 +70,31 @@ const CloudProviderAnalysis = () => {
         </CardTitle>
       </CardHeader>
       <CardContent>
+        <form onSubmit={handleLookup} className="flex gap-4 mb-6">
+          <Input
+            placeholder="Account name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            className="flex-1"
+          />
+          <Input
+            placeholder="Website URL"
+            value={url}
+            onChange={(e) => setUrl(e.target.value)}
+            className="flex-1"
+            type="url"
+          />
+          <Button type="submit" disabled={isLoading}>
+            {isLoading ? (
+              "Analyzing..."
+            ) : (
+              <>
+                <Search className="h-4 w-4 mr-2" />
+                Analyze
+              </>
+            )}
+          </Button>
+        </form>
         <div className="border rounded-md">
           <Table>
             <TableHeader>
