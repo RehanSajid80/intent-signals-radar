@@ -1,12 +1,17 @@
-
 import React, { useState } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useHubspot } from "@/context/HubspotContext";
-import { Cloud, CheckCircle2, XCircle, Search, Plus } from "lucide-react";
+import { Cloud, CheckCircle2, XCircle, Search, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 type AnalyzedAccount = {
   id: string;
@@ -17,7 +22,20 @@ type AnalyzedAccount = {
     azure: boolean;
     googleCloud: boolean;
     oracle: boolean;
+    details: {
+      aws: string;
+      azure: string;
+      googleCloud: string;
+      oracle: string;
+    };
   }
+};
+
+const ELEVANCE_DATA = {
+  aws: "Infrastructure and data engineering for scalable, secure environments.",
+  azure: "Hosting and network presence across geographical points-of-presence.",
+  googleCloud: "Data engineering and analytics, integrated with Snowflake for data warehousing.",
+  oracle: "Human Capital Management (HCM) for performance and goal management."
 };
 
 const CloudProviderAnalysis = () => {
@@ -41,30 +59,26 @@ const CloudProviderAnalysis = () => {
 
     setIsLoading(true);
     try {
-      // For demo purposes, we'll simulate the lookup with random results
-      // In a real application, this would make an API call to analyze the website
+      // For demo purposes, showing Elevance Health data
       const mockResult: AnalyzedAccount = {
-        id: Date.now().toString(), // Generate a unique ID
+        id: Date.now().toString(),
         name,
         url,
         cloudProviders: {
-          aws: Math.random() > 0.5,
-          azure: Math.random() > 0.5,
-          googleCloud: Math.random() > 0.5,
-          oracle: Math.random() > 0.5,
+          aws: true,
+          azure: true,
+          googleCloud: true,
+          oracle: true,
+          details: ELEVANCE_DATA
         }
       };
 
-      // Add the analyzed account to our local state
       setAnalyzedAccounts(prev => [mockResult, ...prev]);
 
       toast({
         title: "Success",
         description: "Cloud providers detected for " + name,
       });
-
-      // Log for debugging
-      console.log("Cloud provider analysis result:", mockResult);
     } catch (error) {
       toast({
         title: "Error",
@@ -78,7 +92,6 @@ const CloudProviderAnalysis = () => {
     }
   };
 
-  // Combine analyzed accounts with accounts from context that have cloudProviders data
   const displayAccounts = [
     ...analyzedAccounts,
     ...accounts.filter(account => account.cloudProviders)
@@ -135,32 +148,96 @@ const CloudProviderAnalysis = () => {
                   <TableRow key={account.id}>
                     <TableCell className="font-medium">{account.name}</TableCell>
                     <TableCell className="text-center">
-                      {account.cloudProviders?.aws ? (
-                        <CheckCircle2 className="h-5 w-5 text-green-500 mx-auto" />
-                      ) : (
-                        <XCircle className="h-5 w-5 text-gray-300 mx-auto" />
-                      )}
+                      <div className="flex items-center justify-center">
+                        {account.cloudProviders?.aws ? (
+                          <>
+                            <CheckCircle2 className="h-5 w-5 text-green-500" />
+                            {account.cloudProviders.details && (
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger>
+                                    <Info className="h-4 w-4 ml-1 text-muted-foreground" />
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p className="max-w-xs">{account.cloudProviders.details.aws}</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            )}
+                          </>
+                        ) : (
+                          <XCircle className="h-5 w-5 text-gray-300" />
+                        )}
+                      </div>
                     </TableCell>
                     <TableCell className="text-center">
-                      {account.cloudProviders?.azure ? (
-                        <CheckCircle2 className="h-5 w-5 text-green-500 mx-auto" />
-                      ) : (
-                        <XCircle className="h-5 w-5 text-gray-300 mx-auto" />
-                      )}
+                      <div className="flex items-center justify-center">
+                        {account.cloudProviders?.azure ? (
+                          <>
+                            <CheckCircle2 className="h-5 w-5 text-green-500" />
+                            {account.cloudProviders.details && (
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger>
+                                    <Info className="h-4 w-4 ml-1 text-muted-foreground" />
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p className="max-w-xs">{account.cloudProviders.details.azure}</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            )}
+                          </>
+                        ) : (
+                          <XCircle className="h-5 w-5 text-gray-300" />
+                        )}
+                      </div>
                     </TableCell>
                     <TableCell className="text-center">
-                      {account.cloudProviders?.googleCloud ? (
-                        <CheckCircle2 className="h-5 w-5 text-green-500 mx-auto" />
-                      ) : (
-                        <XCircle className="h-5 w-5 text-gray-300 mx-auto" />
-                      )}
+                      <div className="flex items-center justify-center">
+                        {account.cloudProviders?.googleCloud ? (
+                          <>
+                            <CheckCircle2 className="h-5 w-5 text-green-500" />
+                            {account.cloudProviders.details && (
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger>
+                                    <Info className="h-4 w-4 ml-1 text-muted-foreground" />
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p className="max-w-xs">{account.cloudProviders.details.googleCloud}</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            )}
+                          </>
+                        ) : (
+                          <XCircle className="h-5 w-5 text-gray-300" />
+                        )}
+                      </div>
                     </TableCell>
                     <TableCell className="text-center">
-                      {account.cloudProviders?.oracle ? (
-                        <CheckCircle2 className="h-5 w-5 text-green-500 mx-auto" />
-                      ) : (
-                        <XCircle className="h-5 w-5 text-gray-300 mx-auto" />
-                      )}
+                      <div className="flex items-center justify-center">
+                        {account.cloudProviders?.oracle ? (
+                          <>
+                            <CheckCircle2 className="h-5 w-5 text-green-500" />
+                            {account.cloudProviders.details && (
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger>
+                                    <Info className="h-4 w-4 ml-1 text-muted-foreground" />
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p className="max-w-xs">{account.cloudProviders.details.oracle}</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            )}
+                          </>
+                        ) : (
+                          <XCircle className="h-5 w-5 text-gray-300" />
+                        )}
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))
