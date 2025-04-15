@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,25 +14,29 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 
+type CloudProviderDetails = {
+  aws: string;
+  azure: string;
+  googleCloud: string;
+  oracle: string;
+};
+
+type CloudProviders = {
+  aws?: boolean;
+  azure?: boolean;
+  googleCloud?: boolean;
+  oracle?: boolean;
+  details?: CloudProviderDetails;
+};
+
 type AnalyzedAccount = {
   id: string;
   name: string;
   url: string;
-  cloudProviders: {
-    aws: boolean;
-    azure: boolean;
-    googleCloud: boolean;
-    oracle: boolean;
-    details: {
-      aws: string;
-      azure: string;
-      googleCloud: string;
-      oracle: string;
-    };
-  }
+  cloudProviders: CloudProviders;
 };
 
-const ELEVANCE_DATA = {
+const ELEVANCE_DATA: CloudProviderDetails = {
   aws: "Infrastructure and data engineering for scalable, secure environments.",
   azure: "Hosting and network presence across geographical points-of-presence.",
   googleCloud: "Data engineering and analytics, integrated with Snowflake for data warehousing.",
@@ -152,7 +157,7 @@ const CloudProviderAnalysis = () => {
                         {account.cloudProviders?.aws ? (
                           <>
                             <CheckCircle2 className="h-5 w-5 text-green-500" />
-                            {account.cloudProviders.details && (
+                            {account.cloudProviders?.details && (
                               <TooltipProvider>
                                 <Tooltip>
                                   <TooltipTrigger>
@@ -175,7 +180,7 @@ const CloudProviderAnalysis = () => {
                         {account.cloudProviders?.azure ? (
                           <>
                             <CheckCircle2 className="h-5 w-5 text-green-500" />
-                            {account.cloudProviders.details && (
+                            {account.cloudProviders?.details && (
                               <TooltipProvider>
                                 <Tooltip>
                                   <TooltipTrigger>
@@ -198,7 +203,7 @@ const CloudProviderAnalysis = () => {
                         {account.cloudProviders?.googleCloud ? (
                           <>
                             <CheckCircle2 className="h-5 w-5 text-green-500" />
-                            {account.cloudProviders.details && (
+                            {account.cloudProviders?.details && (
                               <TooltipProvider>
                                 <Tooltip>
                                   <TooltipTrigger>
@@ -221,7 +226,7 @@ const CloudProviderAnalysis = () => {
                         {account.cloudProviders?.oracle ? (
                           <>
                             <CheckCircle2 className="h-5 w-5 text-green-500" />
-                            {account.cloudProviders.details && (
+                            {account.cloudProviders?.details && (
                               <TooltipProvider>
                                 <Tooltip>
                                   <TooltipTrigger>
