@@ -9,10 +9,13 @@ import EngagementByOwner from "@/components/dashboard/EngagementByOwner";
 import OwnerLifecycleBreakdown from "@/components/dashboard/OwnerLifecycleBreakdown";
 import JobTitleAnalysis from "@/components/dashboard/JobTitleAnalysis";
 import ContactsList from "@/components/dashboard/ContactsList";
+import IntentUpload from "@/components/dashboard/IntentUpload";
 
 const ContactsTabContent = () => {
   return (
     <>
+      <IntentUpload />
+      
       <div className="space-y-4 mb-4">
         <ContactBreakdown />
         <LifecycleBreakdown />
