@@ -14,6 +14,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 
+// Updated CloudProviderDetails type to make it consistent
 type CloudProviderDetails = {
   aws: string;
   azure: string;
@@ -21,6 +22,7 @@ type CloudProviderDetails = {
   oracle: string;
 };
 
+// Updated CloudProviders type to include the optional details property
 type CloudProviders = {
   aws?: boolean;
   azure?: boolean;

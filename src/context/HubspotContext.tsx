@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -52,6 +51,7 @@ export interface Account {
     azure?: boolean;
     googleCloud?: boolean;
     oracle?: boolean;
+    details?: CloudProviderDetails;
   };
 }
 
@@ -87,6 +87,13 @@ export type FunnelStage =
   | "negotiation" 
   | "closed_won" 
   | "closed_lost";
+
+interface CloudProviderDetails {
+  aws: string;
+  azure: string;
+  googleCloud: string;
+  oracle: string;
+}
 
 interface HubspotContextType {
   isAuthenticated: boolean;
