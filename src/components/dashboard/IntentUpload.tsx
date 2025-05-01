@@ -1,11 +1,11 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { FileText, Upload, HelpCircle } from "lucide-react";
+import { FileText, Upload, HelpCircle, BarChart } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import IntentAnalysis from "@/components/dashboard/IntentAnalysis";
 
 // Define the structure for intent data
 export interface IntentData {
@@ -55,6 +55,8 @@ const IntentUpload = () => {
   const [error, setError] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [previewData, setPreviewData] = useState<IntentData[]>([]);
+  const [intentData, setIntentData] = useState<IntentData[]>([]);
+  const [showAnalysis, setShowAnalysis] = useState(false);
   
   const { toast } = useToast();
 
@@ -103,7 +105,7 @@ const IntentUpload = () => {
       reader.readAsText(file);
     }
   };
-
+  
   const transformRowToIntentData = (row: Record<string, string>): IntentData => {
     return {
       intentId: row['Intent ID'] || '',
@@ -147,6 +149,34 @@ const IntentUpload = () => {
     };
   };
 
+  const processCSVData = (text: string): IntentData[] => {
+    try {
+      const rows = text.split('\n');
+      
+      // Get headers
+      const headers = rows[0].split(',');
+      
+      // Process all rows for full analysis
+      const processedData = rows.slice(1).map(row => {
+        if (!row.trim()) return null;
+        
+        const values = row.split(',');
+        const rowData: Record<string, string> = {};
+        
+        headers.forEach((header, index) => {
+          rowData[header.trim()] = values[index]?.trim() || '';
+        });
+        
+        return transformRowToIntentData(rowData);
+      }).filter(Boolean) as IntentData[];
+      
+      return processedData;
+    } catch (err) {
+      console.error("Error parsing CSV:", err);
+      return [];
+    }
+  };
+
   const handleUpload = async () => {
     if (!selectedFile) {
       setError("Please select a file to upload");
@@ -157,196 +187,231 @@ const IntentUpload = () => {
     setError(null);
     
     try {
-      // Simulating file processing delay
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      // Process the file data
+      const reader = new FileReader();
       
-      // In a real implementation, you would send the file to the server
-      // const formData = new FormData();
-      // formData.append('file', selectedFile);
-      // const response = await fetch('/api/upload-intent', { method: 'POST', body: formData });
+      reader.onload = (e) => {
+        try {
+          const text = e.target?.result as string;
+          const processedData = processCSVData(text);
+          
+          if (processedData.length === 0) {
+            throw new Error("No valid data found in the file");
+          }
+          
+          setIntentData(processedData);
+          setUploadSuccess(true);
+          setShowAnalysis(true);
+          
+          toast({
+            title: "Upload Successful",
+            description: `Processed ${processedData.length} intent records from ${selectedFile.name}.`,
+          });
+        } catch (err) {
+          console.error("Error processing file:", err);
+          setError("Failed to process the file. Please check the format.");
+        } finally {
+          setIsProcessing(false);
+        }
+      };
       
-      setUploadSuccess(true);
-      toast({
-        title: "Upload Successful",
-        description: `Processed ${selectedFile.name} with intent data.`,
-      });
+      reader.onerror = () => {
+        setError("Failed to read the file");
+        setIsProcessing(false);
+      };
       
-      setTimeout(() => {
-        setSelectedFile(null);
-        setUploadSuccess(false);
-      }, 3000);
+      reader.readAsText(selectedFile);
+      
     } catch (err) {
       console.error("Error in upload:", err);
       setError("Failed to process the file. Please try again.");
-    } finally {
       setIsProcessing(false);
     }
   };
 
   return (
-    <Card className="mb-6">
-      <CardHeader className="pb-3">
-        <CardTitle className="text-lg flex items-center">
-          <Upload className="h-5 w-5 mr-2 text-teal-500" />
-          Upload Intent Data
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-4">
-          <div className="border-2 border-dashed rounded-md p-6 flex flex-col items-center justify-center">
-            {selectedFile ? (
-              <div className="flex items-center space-x-2">
-                <FileText className="h-8 w-8 text-teal-500" />
-                <div>
-                  <p className="font-medium">{selectedFile.name}</p>
-                  <p className="text-sm text-muted-foreground">
-                    {(selectedFile.size / 1024).toFixed(2)} KB
-                  </p>
+    <>
+      <Card className="mb-6">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-lg flex items-center">
+            <Upload className="h-5 w-5 mr-2 text-teal-500" />
+            Upload Intent Data
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <div className="border-2 border-dashed rounded-md p-6 flex flex-col items-center justify-center">
+              {selectedFile ? (
+                <div className="flex items-center space-x-2">
+                  <FileText className="h-8 w-8 text-teal-500" />
+                  <div>
+                    <p className="font-medium">{selectedFile.name}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {(selectedFile.size / 1024).toFixed(2)} KB
+                    </p>
+                  </div>
                 </div>
-              </div>
-            ) : (
-              <>
-                <input
-                  id="intent-file"
-                  type="file"
-                  accept=".csv"
-                  className="hidden"
-                  onChange={handleFileChange}
-                />
-                <label
-                  htmlFor="intent-file"
-                  className="flex flex-col items-center justify-center cursor-pointer"
-                >
-                  <Upload className="h-10 w-10 text-muted-foreground mb-2" />
-                  <p className="font-medium">Upload Intent CSV</p>
-                  <p className="text-sm text-muted-foreground">
-                    Drag & drop or click to browse
-                  </p>
-                </label>
-              </>
-            )}
-          </div>
-          
-          {error && (
-            <Alert className="bg-red-50 border-red-200">
-              <AlertDescription className="text-red-700">
-                {error}
-              </AlertDescription>
-            </Alert>
-          )}
-          
-          {uploadSuccess && (
-            <Alert className="bg-green-50 border-green-200">
-              <AlertDescription className="text-green-700">
-                File uploaded successfully! Processing your data...
-              </AlertDescription>
-            </Alert>
-          )}
-          
-          {previewData.length > 0 && (
-            <div className="mt-4">
-              <h3 className="text-sm font-medium mb-2">Preview:</h3>
-              <div className="overflow-x-auto">
-                <table className="w-full text-xs border-collapse">
-                  <thead>
-                    <tr className="bg-muted">
-                      <th className="p-2 text-left">Intent ID</th>
-                      <th className="p-2 text-left">Company</th>
-                      <th className="p-2 text-left">Topic</th>
-                      <th className="p-2 text-left">Category</th>
-                      <th className="p-2 text-left">Score</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {previewData.map((row, index) => (
-                      <tr key={index} className="border-t">
-                        <td className="p-2">{row.intentId}</td>
-                        <td className="p-2">{row.companyName}</td>
-                        <td className="p-2">{row.topic}</td>
-                        <td className="p-2">{row.category}</td>
-                        <td className="p-2">{row.score}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-              <p className="text-xs text-muted-foreground mt-1">
-                Showing first 3 rows of data
-              </p>
+              ) : (
+                <>
+                  <input
+                    id="intent-file"
+                    type="file"
+                    accept=".csv"
+                    className="hidden"
+                    onChange={handleFileChange}
+                  />
+                  <label
+                    htmlFor="intent-file"
+                    className="flex flex-col items-center justify-center cursor-pointer"
+                  >
+                    <Upload className="h-10 w-10 text-muted-foreground mb-2" />
+                    <p className="font-medium">Upload Intent CSV</p>
+                    <p className="text-sm text-muted-foreground">
+                      Drag & drop or click to browse
+                    </p>
+                  </label>
+                </>
+              )}
             </div>
-          )}
-          
-          <div className="flex justify-between items-center">
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button variant="link" className="flex items-center text-xs px-0">
-                  <HelpCircle className="h-3 w-3 mr-1" />
-                  Required CSV format
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Required CSV Format for Intent Data</DialogTitle>
-                  <DialogDescription>
-                    Your CSV file should have the following column headers:
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="mt-4 max-h-[400px] overflow-y-auto">
-                  <ul className="text-xs space-y-1">
-                    <li>Intent ID</li>
-                    <li>Date</li>
-                    <li>Company Name</li>
-                    <li>Topic</li>
-                    <li>Category</li>
-                    <li>Score</li>
-                    <li>Company ID</li>
-                    <li>Website</li>
-                    <li>Founded Year</li>
-                    <li>Company HQ Phone</li>
-                    <li>Revenue (in 000s USD)</li>
-                    <li>Primary Industry</li>
-                    <li>Primary Sub-Industry</li>
-                    <li>All Industries</li>
-                    <li>All Sub-Industries</li>
-                    <li>Industry Hierarchical Category</li>
-                    <li>Secondary Industry Hierarchical Category</li>
-                    <li>Alexa Rank</li>
-                    <li>Employees</li>
-                    <li>LinkedIn Company Profile URL</li>
-                    <li>Facebook Company Profile URL</li>
-                    <li>Twitter Company Profile URL</li>
-                    <li>Certified Active Company</li>
-                    <li>Certification Date</li>
-                    <li>Total Funding Amount (in 000s USD)</li>
-                    <li>Recent Funding Amount (in 000s USD)</li>
-                    <li>Recent Funding Round</li>
-                    <li>Recent Funding Date</li>
-                    <li>Recent Investors</li>
-                    <li>All Investors</li>
-                    <li>Company Street Address</li>
-                    <li>Company City</li>
-                    <li>Company State</li>
-                    <li>Company Zip Code</li>
-                    <li>Company Country</li>
-                    <li>Full Address</li>
-                    <li>Number of Locations</li>
-                    <li>Query Name</li>
-                  </ul>
-                </div>
-              </DialogContent>
-            </Dialog>
             
-            <Button 
-              className="bg-teal-500 hover:bg-teal-600"
-              onClick={handleUpload}
-              disabled={isProcessing || !selectedFile}
-            >
-              {isProcessing ? "Processing..." : "Process Intent Data"}
-            </Button>
+            {error && (
+              <Alert className="bg-red-50 border-red-200">
+                <AlertDescription className="text-red-700">
+                  {error}
+                </AlertDescription>
+              </Alert>
+            )}
+            
+            {uploadSuccess && (
+              <Alert className="bg-green-50 border-green-200">
+                <AlertDescription className="text-green-700">
+                  File uploaded successfully! Intent data processed.
+                </AlertDescription>
+              </Alert>
+            )}
+            
+            {previewData.length > 0 && (
+              <div className="mt-4">
+                <h3 className="text-sm font-medium mb-2">Preview:</h3>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-xs border-collapse">
+                    <thead>
+                      <tr className="bg-muted">
+                        <th className="p-2 text-left">Intent ID</th>
+                        <th className="p-2 text-left">Company</th>
+                        <th className="p-2 text-left">Topic</th>
+                        <th className="p-2 text-left">Category</th>
+                        <th className="p-2 text-left">Score</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {previewData.map((row, index) => (
+                        <tr key={index} className="border-t">
+                          <td className="p-2">{row.intentId}</td>
+                          <td className="p-2">{row.companyName}</td>
+                          <td className="p-2">{row.topic}</td>
+                          <td className="p-2">{row.category}</td>
+                          <td className="p-2">{row.score}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Showing first 3 rows of data
+                </p>
+              </div>
+            )}
+            
+            <div className="flex justify-between items-center">
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button variant="link" className="flex items-center text-xs px-0">
+                    <HelpCircle className="h-3 w-3 mr-1" />
+                    Required CSV format
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Required CSV Format for Intent Data</DialogTitle>
+                    <DialogDescription>
+                      Your CSV file should have the following column headers:
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="mt-4 max-h-[400px] overflow-y-auto">
+                    <ul className="text-xs space-y-1">
+                      <li>Intent ID</li>
+                      <li>Date</li>
+                      <li>Company Name</li>
+                      <li>Topic</li>
+                      <li>Category</li>
+                      <li>Score</li>
+                      <li>Company ID</li>
+                      <li>Website</li>
+                      <li>Founded Year</li>
+                      <li>Company HQ Phone</li>
+                      <li>Revenue (in 000s USD)</li>
+                      <li>Primary Industry</li>
+                      <li>Primary Sub-Industry</li>
+                      <li>All Industries</li>
+                      <li>All Sub-Industries</li>
+                      <li>Industry Hierarchical Category</li>
+                      <li>Secondary Industry Hierarchical Category</li>
+                      <li>Alexa Rank</li>
+                      <li>Employees</li>
+                      <li>LinkedIn Company Profile URL</li>
+                      <li>Facebook Company Profile URL</li>
+                      <li>Twitter Company Profile URL</li>
+                      <li>Certified Active Company</li>
+                      <li>Certification Date</li>
+                      <li>Total Funding Amount (in 000s USD)</li>
+                      <li>Recent Funding Amount (in 000s USD)</li>
+                      <li>Recent Funding Round</li>
+                      <li>Recent Funding Date</li>
+                      <li>Recent Investors</li>
+                      <li>All Investors</li>
+                      <li>Company Street Address</li>
+                      <li>Company City</li>
+                      <li>Company State</li>
+                      <li>Company Zip Code</li>
+                      <li>Company Country</li>
+                      <li>Full Address</li>
+                      <li>Number of Locations</li>
+                      <li>Query Name</li>
+                    </ul>
+                  </div>
+                </DialogContent>
+              </Dialog>
+              
+              <div className="flex space-x-2">
+                {intentData.length > 0 && (
+                  <Button 
+                    variant="outline" 
+                    className="flex items-center"
+                    onClick={() => setShowAnalysis(!showAnalysis)}
+                  >
+                    <BarChart className="h-4 w-4 mr-1" />
+                    {showAnalysis ? "Hide Analysis" : "Show Analysis"}
+                  </Button>
+                )}
+                
+                <Button 
+                  className="bg-teal-500 hover:bg-teal-600"
+                  onClick={handleUpload}
+                  disabled={isProcessing || !selectedFile}
+                >
+                  {isProcessing ? "Processing..." : "Process Intent Data"}
+                </Button>
+              </div>
+            </div>
           </div>
-        </div>
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+      
+      {showAnalysis && intentData.length > 0 && (
+        <IntentAnalysis data={intentData} />
+      )}
+    </>
   );
 };
 
