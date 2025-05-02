@@ -1,0 +1,73 @@
+
+import React from "react";
+import { TableCell, TableRow } from "@/components/ui/table";
+import { cn } from "@/lib/utils";
+import { IntentData } from "../../types/intentTypes";
+import { format } from "date-fns";
+
+interface TableExpandedRowProps {
+  item: IntentData;
+}
+
+const TableExpandedRow: React.FC<TableExpandedRowProps> = ({ item }) => {
+  // Format date safely
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return "Invalid date";
+    try {
+      const date = new Date(dateString);
+      return !isNaN(date.getTime()) ? format(date, 'MM/dd/yyyy') : "Invalid date";
+    } catch (error) {
+      return "Invalid date";
+    }
+  };
+
+  return (
+    <TableRow className="bg-muted/20">
+      <TableCell colSpan={6} className="py-3">
+        <div className="grid sm:grid-cols-2 gap-4 px-2">
+          <div>
+            <h4 className="text-sm font-medium mb-1">Company Details</h4>
+            <div className="bg-white p-3 rounded border text-sm">
+              <p><span className="font-medium">Company:</span> {item.companyName}</p>
+              <p><span className="font-medium">Intent Score:</span> {item.score}</p>
+              <p><span className="font-medium">Topic:</span> {item.topic}</p>
+              <p><span className="font-medium">Category:</span> {item.category}</p>
+              <p><span className="font-medium">Date:</span> {formatDate(item.date)}</p>
+            </div>
+          </div>
+          <div>
+            <h4 className="text-sm font-medium mb-1">Intent Analysis</h4>
+            <div className="bg-white p-3 rounded border text-sm">
+              <div className="mb-3">
+                <p className="text-xs text-muted-foreground mb-1">Intent Strength</p>
+                <div className="h-2 w-full bg-gray-200 rounded-full">
+                  <div 
+                    className={cn(
+                      "h-full rounded-full",
+                      item.score >= 90 ? "bg-purple-500" :
+                      item.score >= 80 ? "bg-blue-500" :
+                      item.score >= 70 ? "bg-green-500" :
+                      item.score >= 60 ? "bg-yellow-500" :
+                      "bg-orange-500"
+                    )}
+                    style={{ width: `${item.score}%` }}
+                  ></div>
+                </div>
+              </div>
+              <p>
+                <span className="font-medium">Recommendation:</span>{' '}
+                {item.score >= 90 ? "Immediate follow-up recommended" :
+                 item.score >= 80 ? "High priority follow-up" :
+                 item.score >= 70 ? "Schedule follow-up" :
+                 item.score >= 60 ? "Monitor interest" :
+                 "Low priority"}
+              </p>
+            </div>
+          </div>
+        </div>
+      </TableCell>
+    </TableRow>
+  );
+};
+
+export default TableExpandedRow;
