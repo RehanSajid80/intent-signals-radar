@@ -12,6 +12,7 @@ import {
   ReferenceLine
 } from "recharts";
 import { IntentData } from "../IntentUpload";
+import { ChartContainer, ChartTooltipContent } from "@/components/ui/chart";
 
 interface ScoreDistributionChartProps {
   data: IntentData[];
@@ -36,25 +37,34 @@ const ScoreDistributionChart: React.FC<ScoreDistributionChartProps> = ({ data })
       color: range.color
     }));
 
-    // Count scores in each range
-    data.forEach(item => {
-      const score = item.score;
-      for (let i = 0; i < ranges.length; i++) {
-        if (score >= ranges[i].min && score <= ranges[i].max) {
-          distribution[i].count++;
-          break;
-        }
-      }
-    });
+    // Filter out invalid scores and count scores in each range
+    data.filter(item => !isNaN(item.score) && item.score !== null && item.score !== undefined)
+        .forEach(item => {
+          const score = item.score;
+          for (let i = 0; i < ranges.length; i++) {
+            if (score >= ranges[i].min && score <= ranges[i].max) {
+              distribution[i].count++;
+              break;
+            }
+          }
+        });
 
     return distribution;
   }, [data]);
 
-  // Calculate average score
+  // Calculate average score - handling NaN values
   const averageScore = useMemo(() => {
     if (data.length === 0) return 0;
-    const sum = data.reduce((total, item) => total + item.score, 0);
-    return Math.round(sum / data.length);
+    
+    // Filter out invalid scores
+    const validScores = data.filter(item => 
+      !isNaN(item.score) && item.score !== null && item.score !== undefined
+    );
+    
+    if (validScores.length === 0) return 0;
+    
+    const sum = validScores.reduce((total, item) => total + item.score, 0);
+    return Math.round(sum / validScores.length);
   }, [data]);
 
   return (
@@ -68,23 +78,33 @@ const ScoreDistributionChart: React.FC<ScoreDistributionChartProps> = ({ data })
         </div>
       </div>
       
-      <ResponsiveContainer width="100%" height="85%">
-        <BarChart data={scoreDistribution}>
+      <ChartContainer 
+        className="h-[85%]" 
+        config={{
+          low: { label: "Low (0-59)", color: "#F97316" },
+          medium: { label: "Medium (60-79)", color: "#FFBB28" },
+          high: { label: "High (80-89)", color: "#0088FE" },
+          critical: { label: "Critical (90-100)", color: "#8B5CF6" },
+        }}
+      >
+        <BarChart data={scoreDistribution} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
           <CartesianGrid strokeDasharray="3 3" vertical={false} />
           <XAxis dataKey="range" />
           <YAxis />
-          <Tooltip 
-            formatter={(value) => [`${value} signals`, "Count"]}
-            labelFormatter={(label) => `Score range: ${label}`}
+          <Tooltip content={<ChartTooltipContent />} />
+          <ReferenceLine 
+            y={Math.round(data.length / 5)} 
+            stroke="#666" 
+            strokeDasharray="3 3" 
+            label={{ value: 'Average', position: 'insideBottomRight' }} 
           />
-          <ReferenceLine y={data.length / 5} stroke="#666" strokeDasharray="3 3" label={{ value: 'Average', position: 'insideBottomRight' }} />
           <Bar dataKey="count" name="Signals">
             {scoreDistribution.map((entry, index) => (
               <Cell key={`cell-${index}`} fill={entry.color} />
             ))}
           </Bar>
         </BarChart>
-      </ResponsiveContainer>
+      </ChartContainer>
     </div>
   );
 };

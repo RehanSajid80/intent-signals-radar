@@ -12,10 +12,19 @@ interface ScoreStatsCardProps {
 const ScoreStatsCard: React.FC<ScoreStatsCardProps> = ({ data }) => {
   const scoreStats = useMemo(() => {
     if (data.length === 0) {
-      return { avg: 0, high: 0, low: 0, count: 0, highScoreCount: 0 };
+      return { avg: 0, high: 0, low: 0, count: 0, highScoreCount: 0, highScorePercentage: 0 };
     }
     
-    const scores = data.map(item => item.score);
+    // Filter out invalid scores
+    const validData = data.filter(item => 
+      !isNaN(item.score) && item.score !== null && item.score !== undefined
+    );
+    
+    if (validData.length === 0) {
+      return { avg: 0, high: 0, low: 0, count: 0, highScoreCount: 0, highScorePercentage: 0 };
+    }
+    
+    const scores = validData.map(item => item.score);
     const sum = scores.reduce((a, b) => a + b, 0);
     const avg = Math.round(sum / scores.length);
     const high = Math.max(...scores);
@@ -29,8 +38,33 @@ const ScoreStatsCard: React.FC<ScoreStatsCardProps> = ({ data }) => {
       low, 
       count: scores.length,
       highScoreCount,
-      highScorePercentage
+      highScorePercentage,
+      validDataCount: validData.length,
+      invalidDataCount: data.length - validData.length
     };
+  }, [data]);
+
+  // Create a score distribution for visualization
+  const scoreDistribution = useMemo(() => {
+    const validData = data.filter(item => 
+      !isNaN(item.score) && item.score !== null && item.score !== undefined
+    );
+    
+    if (validData.length === 0) return [];
+    
+    // Create 10 buckets for scores 0-9, 10-19, etc.
+    const buckets = Array(10).fill(0);
+    
+    validData.forEach(item => {
+      // Handle edge case of score = 100
+      const bucketIndex = item.score === 100 ? 9 : Math.floor(item.score / 10);
+      if (bucketIndex >= 0 && bucketIndex < 10) {
+        buckets[bucketIndex]++;
+      }
+    });
+    
+    // Calculate percentages
+    return buckets.map(count => (count / validData.length) * 100);
   }, [data]);
 
   return (
@@ -38,9 +72,16 @@ const ScoreStatsCard: React.FC<ScoreStatsCardProps> = ({ data }) => {
       <CardHeader className="pb-2">
         <CardTitle className="text-base flex justify-between items-center">
           <span>Intent Score Analytics</span>
-          <span className="text-sm bg-purple-100 text-purple-800 px-2 py-0.5 rounded-full">
-            Total: {scoreStats.count}
-          </span>
+          <div className="flex gap-2">
+            <span className="text-sm bg-purple-100 text-purple-800 px-2 py-0.5 rounded-full">
+              Total: {scoreStats.count}
+            </span>
+            {scoreStats.invalidDataCount > 0 && (
+              <span className="text-sm bg-orange-100 text-orange-800 px-2 py-0.5 rounded-full">
+                Invalid: {scoreStats.invalidDataCount}
+              </span>
+            )}
+          </div>
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -71,22 +112,23 @@ const ScoreStatsCard: React.FC<ScoreStatsCardProps> = ({ data }) => {
         
         <div className="mt-4">
           <div className="text-sm font-medium mb-2">Score Distribution</div>
-          <div className="h-2 w-full bg-gray-200 rounded-full overflow-hidden">
-            {Array.from({ length: 10 }, (_, i) => {
-              const min = i * 10;
-              const max = (i + 1) * 10 - 1;
-              const count = data.filter(item => item.score >= min && item.score <= max).length;
-              const percentage = (count / data.length) * 100;
+          <div className="h-2 w-full bg-gray-200 rounded-full overflow-hidden flex">
+            {scoreDistribution.map((percentage, i) => {
+              // Get color based on score range
+              const color = i < 6 
+                ? "bg-orange-400" 
+                : i < 8 
+                  ? "bg-yellow-400" 
+                  : i < 9 
+                    ? "bg-blue-400" 
+                    : "bg-purple-500";
               
               return (
                 <div 
                   key={i} 
-                  className={cn(
-                    "h-full float-left transition-all",
-                    i < 6 ? "bg-orange-400" : i < 8 ? "bg-yellow-400" : i < 9 ? "bg-blue-400" : "bg-purple-500"
-                  )}
+                  className={cn("h-full transition-all", color)}
                   style={{ width: `${percentage}%` }}
-                  title={`${min}-${max}: ${count} signals (${percentage.toFixed(1)}%)`}
+                  title={`${i*10}-${(i+1)*10-1}: ${Math.round(percentage)}%`}
                 />
               );
             })}
