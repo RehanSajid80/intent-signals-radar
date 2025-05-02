@@ -7,6 +7,7 @@ import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Settings } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
+import { toast } from "@/components/ui/use-toast";
 
 const Index = () => {
   const { isAuthenticated } = useHubspot();
@@ -20,7 +21,18 @@ const Index = () => {
   
   const handleSettingsClick = () => {
     console.log("Settings button clicked");
-    navigate("/settings");
+    // Force navigation with a window.location change if react-router isn't working
+    try {
+      navigate("/settings", { replace: true });
+      toast({
+        title: "Navigating to settings",
+        description: "Taking you to the settings page..."
+      });
+    } catch (error) {
+      console.error("Navigation error:", error);
+      // Fallback if navigate fails
+      window.location.href = "/settings";
+    }
   };
   
   return (
@@ -256,6 +268,10 @@ const Index = () => {
               <Settings className="h-3 w-3 mr-1" />
               Settings
             </Button>
+            {/* Add a direct link as a fallback */}
+            <a href="/settings" className="ml-3 text-muted-foreground text-sm hover:underline">
+              Settings Page
+            </a>
           </div>
         </div>
       </footer>
