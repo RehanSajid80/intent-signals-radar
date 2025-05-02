@@ -1,11 +1,13 @@
+
 import React, { useState } from 'react';
 import AccountsTable from "@/components/dashboard/accounts/AccountsTable";
 import AccountEngagementList from "@/components/dashboard/accounts/AccountEngagementList";
 import ContactRoleMapping from "@/components/dashboard/accounts/ContactRoleMapping";
 import CloudProviderAnalysis from "@/components/dashboard/accounts/CloudProviderAnalysis";
+import IntentUpload from "@/components/dashboard/IntentUpload";
 import { useHubspot } from "@/context/HubspotContext";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Layers, ListFilter } from "lucide-react";
+import { ArrowLeft, Layers, ListFilter, ChevronRight, BarChart } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const AccountsTabContent = () => {
@@ -53,6 +55,10 @@ const AccountsTabContent = () => {
               <Layers className="h-4 w-4" />
               Table View
             </TabsTrigger>
+            <TabsTrigger value="intent" className="flex items-center gap-1">
+              <BarChart className="h-4 w-4" />
+              Intent Analysis
+            </TabsTrigger>
           </TabsList>
           
           <TabsContent value="engagement" className="mt-4">
@@ -66,6 +72,12 @@ const AccountsTabContent = () => {
             <div className="space-y-4">
               <CloudProviderAnalysis />
               <AccountsTable onSelectAccount={handleAccountSelected} />
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="intent" className="mt-4">
+            <div className="space-y-4">
+              <IntentUpload />
             </div>
           </TabsContent>
         </Tabs>
