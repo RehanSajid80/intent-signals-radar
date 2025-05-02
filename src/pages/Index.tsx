@@ -18,6 +18,11 @@ const Index = () => {
     }
   }, [isAuthenticated, navigate]);
   
+  const handleSettingsClick = () => {
+    console.log("Settings button clicked");
+    navigate("/settings");
+  };
+  
   return (
     <div className="min-h-screen flex flex-col">
       <header className="bg-white border-b py-4">
@@ -37,7 +42,7 @@ const Index = () => {
               <Button 
                 variant="outline" 
                 className="flex items-center gap-2"
-                onClick={() => navigate("/settings")}
+                onClick={handleSettingsClick}
               >
                 <Settings className="h-4 w-4" />
                 Settings
@@ -246,7 +251,7 @@ const Index = () => {
               variant="link" 
               size="sm" 
               className="text-muted-foreground"
-              onClick={() => navigate("/settings")}
+              onClick={handleSettingsClick}
             >
               <Settings className="h-3 w-3 mr-1" />
               Settings
