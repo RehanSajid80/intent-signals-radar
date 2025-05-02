@@ -14,7 +14,8 @@ const Header: React.FC = () => {
       title: "Settings",
       description: "Opening settings page..."
     });
-    navigate('/settings');
+    // Force navigation with window.location instead of using React Router
+    window.location.href = '/settings';
   };
   
   return (
