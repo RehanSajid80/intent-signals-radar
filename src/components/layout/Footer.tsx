@@ -1,23 +1,19 @@
 
 import React from 'react';
-import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Settings } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 const Footer: React.FC = () => {
   const { toast } = useToast();
-  const navigate = useNavigate();
   
   const handleSettingsClick = () => {
     toast({
       title: "Settings",
       description: "Opening settings page..."
     });
-    // Navigate to settings using React Router
-    setTimeout(() => {
-      navigate('/settings');
-    }, 100); // Small delay to ensure toast is visible
+    // Direct link to settings for more reliable navigation
+    window.location.href = '/settings';
   };
   
   return (
