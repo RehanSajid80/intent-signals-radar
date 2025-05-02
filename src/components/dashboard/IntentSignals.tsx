@@ -1,143 +1,122 @@
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useHubspot, IntentSignal } from "@/context/HubspotContext";
-import { 
-  PieChart, 
-  Pie, 
-  Cell, 
-  ResponsiveContainer, 
-  Tooltip, 
-  Legend 
-} from "recharts";
-import { Signal } from "lucide-react";
-
-type SignalType = IntentSignal["type"];
-
-interface SignalTypeInfo {
-  name: string;
-  color: string;
-}
-
-const signalTypeInfo: Record<SignalType, SignalTypeInfo> = {
-  email_open: { name: "Email Opens", color: "#E4E7EB" },
-  website_visit: { name: "Website Visits", color: "#6B778C" },
-  form_submission: { name: "Form Submissions", color: "#0747A6" },
-  content_download: { name: "Content Downloads", color: "#5243AA" },
-  pricing_visit: { name: "Pricing Page Views", color: "#FF5630" },
-  demo_request: { name: "Demo Requests", color: "#36B37E" }
-};
+import React, { useState } from "react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { BarChart, Upload, ChevronDown } from "lucide-react";
+import IntentUpload from "./IntentUpload";
+import IntentAnalysis from "./IntentAnalysis";
+import { sampleIntentData } from "@/data/sampleIntentData";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
 const IntentSignals = () => {
-  const { contacts } = useHubspot();
-  
-  // Gather all signals from all contacts
-  const allSignals = contacts.flatMap(contact => contact.intentSignals);
-  
-  // Count signals by type
-  const signalsByType = allSignals.reduce((acc, signal) => {
-    acc[signal.type] = (acc[signal.type] || 0) + 1;
-    return acc;
-  }, {} as Record<SignalType, number>);
-  
-  // Format data for chart
-  const chartData = Object.entries(signalsByType).map(([type, count]) => ({
-    type: type as SignalType,
-    name: signalTypeInfo[type as SignalType].name,
-    value: count,
-    color: signalTypeInfo[type as SignalType].color
-  }));
-  
-  // Find recent significant signals
-  const recentSignificantSignals = [...allSignals]
-    .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
-    .filter(signal => signal.strength >= 80)
-    .slice(0, 5);
-  
-  // Format timestamp to a readable format
-  const formatTimestamp = (timestamp: string) => {
-    const date = new Date(timestamp);
-    return new Intl.DateTimeFormat('en-US', {
-      month: 'short',
-      day: 'numeric',
-      hour: 'numeric',
-      minute: 'numeric'
-    }).format(date);
-  };
+  const [showUpload, setShowUpload] = useState(false);
+  const [showSampleData, setShowSampleData] = useState(false);
   
   return (
-    <Card className="h-full">
-      <CardHeader className="flex flex-row items-center pb-2">
-        <Signal className="h-5 w-5 mr-2 text-teal-500" />
-        <CardTitle className="text-lg">Intent Signals</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="h-[250px]">
-          {chartData.length > 0 ? (
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={chartData}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={60}
-                  outerRadius={80}
-                  paddingAngle={2}
-                  dataKey="value"
-                  label={(entry) => entry.name}
-                  labelLine={false}
+    <Card>
+      <CardHeader>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between">
+          <div>
+            <CardTitle>Intent Signals</CardTitle>
+            <CardDescription>
+              Track intent signals across accounts to identify buying behavior
+            </CardDescription>
+          </div>
+          <div className="flex gap-2 mt-2 sm:mt-0">
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  className="flex items-center"
                 >
-                  {chartData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Pie>
-                <Tooltip formatter={(value) => [`${value} signals`, ""]} />
-              </PieChart>
-            </ResponsiveContainer>
-          ) : (
-            <div className="h-full flex items-center justify-center">
-              <p className="text-muted-foreground">No signal data available</p>
-            </div>
-          )}
-        </div>
-        
-        <div className="mt-4">
-          <h4 className="text-sm font-medium mb-3">Recent High-Intent Signals</h4>
-          {recentSignificantSignals.length > 0 ? (
-            <div className="space-y-3">
-              {recentSignificantSignals.map((signal, index) => (
-                <div key={index} className="flex items-start p-2 rounded-md bg-muted/50">
-                  <div 
-                    className="w-2 h-2 rounded-full mt-1.5 mr-2"
-                    style={{ backgroundColor: signalTypeInfo[signal.type].color }}
-                  />
-                  <div className="flex-1">
-                    <p className="text-sm">{signal.description}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {formatTimestamp(signal.timestamp)}
-                    </p>
-                  </div>
-                  <div 
-                    className="text-xs font-medium px-1.5 py-0.5 rounded"
-                    style={{ 
-                      backgroundColor: signal.strength >= 90 
-                        ? "#ffe5df" 
-                        : "#fff0d6",
-                      color: signal.strength >= 90 
-                        ? "#cc4526" 
-                        : "#cc8900"
-                    }}
-                  >
-                    {signal.strength}%
-                  </div>
+                  <ChevronDown className="h-4 w-4 mr-1" />
+                  Learn More
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>About Intent Signals</DialogTitle>
+                  <DialogDescription>
+                    Intent signals help you identify which companies are actively researching topics related to your products or services. Higher intent scores indicate stronger buying signals.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4 mt-4">
+                  <p>Intent data is collected from:</p>
+                  <ul className="list-disc pl-5 space-y-2">
+                    <li>Content downloads and engagement</li>
+                    <li>Website visits and page views</li>
+                    <li>Search behavior and keyword analysis</li>
+                    <li>Third-party intent data providers</li>
+                    <li>Event and webinar participation</li>
+                  </ul>
                 </div>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-4 text-muted-foreground">
-              <p>No high intent signals found</p>
-            </div>
-          )}
+              </DialogContent>
+            </Dialog>
+            
+            <Button 
+              variant="outline" 
+              size="sm"
+              className="flex items-center"
+              onClick={() => {
+                setShowUpload(!showUpload);
+                setShowSampleData(false);
+              }}
+            >
+              <Upload className="h-4 w-4 mr-1" />
+              Upload Intent Data
+            </Button>
+            
+            <Button 
+              variant="default" 
+              size="sm"
+              className="flex items-center bg-teal-500 hover:bg-teal-600"
+              onClick={() => {
+                setShowSampleData(!showSampleData);
+                setShowUpload(false);
+              }}
+            >
+              <BarChart className="h-4 w-4 mr-1" />
+              {showSampleData ? "Hide Sample Data" : "View Sample Data"}
+            </Button>
+          </div>
         </div>
+      </CardHeader>
+      <CardContent className="p-0">
+        {showUpload && <IntentUpload />}
+        {showSampleData && <IntentAnalysis data={sampleIntentData} />}
+        
+        {!showUpload && !showSampleData && (
+          <div className="flex flex-col items-center justify-center py-12 text-center px-4">
+            <BarChart className="h-12 w-12 mb-4 text-muted-foreground" />
+            <h3 className="text-lg font-medium mb-2">No Intent Data Available</h3>
+            <p className="text-muted-foreground max-w-md mb-6">
+              Intent data helps you identify which companies are actively researching topics related to your products or services.
+            </p>
+            <div className="flex flex-wrap gap-3 justify-center">
+              <Button 
+                onClick={() => {
+                  setShowSampleData(true);
+                  setShowUpload(false);
+                }}
+                className="bg-teal-500 hover:bg-teal-600"
+              >
+                <BarChart className="h-4 w-4 mr-2" />
+                View Sample Data
+              </Button>
+              <Button 
+                variant="outline"
+                onClick={() => {
+                  setShowUpload(true);
+                  setShowSampleData(false);
+                }}
+              >
+                <Upload className="h-4 w-4 mr-2" />
+                Upload Intent Data
+              </Button>
+            </div>
+          </div>
+        )}
       </CardContent>
     </Card>
   );

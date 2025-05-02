@@ -11,6 +11,7 @@ import Dashboard from "./pages/Dashboard";
 import AccountDetails from "./pages/AccountDetails";
 import ContactDetails from "./pages/ContactDetails";
 import Settings from "./pages/Settings";
+import IntentPage from "./pages/IntentPage";
 
 const queryClient = new QueryClient();
 
@@ -28,6 +29,7 @@ const App = () => (
             <Route path="/accounts/:accountId" element={<AccountDetails />} />
             <Route path="/contacts/:contactId" element={<ContactDetails />} />
             <Route path="/contacts" element={<Dashboard />} />
+            <Route path="/intent" element={<IntentPage />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
