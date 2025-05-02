@@ -3,8 +3,11 @@ import React from 'react';
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Settings } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 const Footer: React.FC = () => {
+  const { toast } = useToast();
+  
   return (
     <footer className="bg-neutral-50 py-6 border-t">
       <div className="container mx-auto px-4 text-center text-sm text-muted-foreground">
@@ -22,6 +25,12 @@ const Footer: React.FC = () => {
               variant="link" 
               size="sm" 
               className="text-muted-foreground"
+              onClick={() => {
+                toast({
+                  title: "Settings",
+                  description: "Opening settings page..."
+                });
+              }}
             >
               <Settings className="h-3 w-3 mr-1" />
               Settings

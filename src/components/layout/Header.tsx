@@ -3,9 +3,11 @@ import React from 'react';
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Settings } from "lucide-react";
-import { toast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 
 const Header: React.FC = () => {
+  const { toast } = useToast();
+  
   return (
     <header className="bg-white border-b py-4">
       <div className="container mx-auto px-4">
@@ -25,6 +27,12 @@ const Header: React.FC = () => {
               <Button 
                 variant="outline" 
                 className="flex items-center gap-2"
+                onClick={() => {
+                  toast({
+                    title: "Settings",
+                    description: "Opening settings page..."
+                  });
+                }}
               >
                 <Settings className="h-4 w-4" />
                 Settings
