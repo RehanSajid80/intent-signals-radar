@@ -1,6 +1,6 @@
 
 import React from "react";
-import { IntentData } from "./IntentUpload";
+import { IntentData } from "./types/intentTypes";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import TopCompaniesChart from "./intent/TopCompaniesChart";
