@@ -14,8 +14,10 @@ const Header: React.FC = () => {
       title: "Settings",
       description: "Opening settings page..."
     });
-    // Force navigation with window.location instead of using React Router
-    window.location.href = '/settings';
+    // Navigate to settings using React Router
+    setTimeout(() => {
+      navigate('/settings');
+    }, 100); // Small delay to ensure toast is visible
   };
   
   return (
