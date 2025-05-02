@@ -1,29 +1,11 @@
 
 import React from 'react';
-import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Settings } from "lucide-react";
 import { toast } from "@/components/ui/use-toast";
 
 const Header: React.FC = () => {
-  const navigate = useNavigate();
-
-  const handleSettingsClick = () => {
-    console.log("Settings button clicked");
-    // Force navigation with a window.location change if react-router isn't working
-    try {
-      navigate("/settings", { replace: true });
-      toast({
-        title: "Navigating to settings",
-        description: "Taking you to the settings page..."
-      });
-    } catch (error) {
-      console.error("Navigation error:", error);
-      // Fallback if navigate fails
-      window.location.href = "/settings";
-    }
-  };
-
   return (
     <header className="bg-white border-b py-4">
       <div className="container mx-auto px-4">
@@ -39,14 +21,15 @@ const Header: React.FC = () => {
             </h1>
           </div>
           <div className="flex items-center gap-3">
-            <Button 
-              variant="outline" 
-              className="flex items-center gap-2"
-              onClick={handleSettingsClick}
-            >
-              <Settings className="h-4 w-4" />
-              Settings
-            </Button>
+            <Link to="/settings">
+              <Button 
+                variant="outline" 
+                className="flex items-center gap-2"
+              >
+                <Settings className="h-4 w-4" />
+                Settings
+              </Button>
+            </Link>
             <Button className="bg-teal-500 hover:bg-teal-600">
               <a 
                 href="https://app.hubspot.com" 
