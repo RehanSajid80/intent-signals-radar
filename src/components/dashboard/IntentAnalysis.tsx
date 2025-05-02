@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import TopCompaniesChart from "./intent/TopCompaniesChart";
 import TopCompaniesTable from "./intent/TopCompaniesTable";
-import { TopicsAnalysisChart } from "./intent/TopicsAnalysisChart";
+import TopicsAnalysisChart from "./intent/TopicsAnalysisChart";
 import CategoryDistributionChart from "./intent/CategoryDistributionChart";
 import IntentDataTable from "./intent/IntentDataTable";
 
