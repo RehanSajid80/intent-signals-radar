@@ -6,11 +6,24 @@ import { useHubspot } from "@/context/HubspotContext";
 import { Loader2 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import FileUpload from "./FileUpload";
+import { useNavigate } from "react-router-dom";
 
 const HubspotConnect = () => {
-  const { isConnecting, connectToHubspot } = useHubspot();
+  const { isConnecting, connectToHubspot, isAuthenticated } = useHubspot();
   const [showDetails, setShowDetails] = useState(false);
   const [activeTab, setActiveTab] = useState("connect");
+  const navigate = useNavigate();
+
+  const handleConnect = () => {
+    // Check for API key
+    const savedApiKey = localStorage.getItem("hubspot_api_key");
+    if (!savedApiKey) {
+      navigate("/settings");
+      return;
+    }
+    
+    connectToHubspot();
+  };
 
   return (
     <div className="w-full max-w-md mx-auto">
@@ -71,7 +84,7 @@ const HubspotConnect = () => {
             <CardFooter className="flex flex-col space-y-2">
               <Button 
                 className="w-full bg-hubspot hover:bg-hubspot/90"
-                onClick={connectToHubspot}
+                onClick={handleConnect}
                 disabled={isConnecting}
               >
                 {isConnecting ? (
@@ -79,10 +92,21 @@ const HubspotConnect = () => {
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     Connecting...
                   </>
+                ) : isAuthenticated ? (
+                  "Connected to HubSpot"
                 ) : (
                   "Connect to HubSpot"
                 )}
               </Button>
+              {!isAuthenticated && (
+                <Button
+                  variant="link"
+                  className="text-sm"
+                  onClick={() => navigate("/settings")}
+                >
+                  Set API Key in Settings
+                </Button>
+              )}
               <Button
                 variant="link"
                 className="text-sm"

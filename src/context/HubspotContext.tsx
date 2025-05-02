@@ -120,6 +120,7 @@ export const HubspotProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [apiKey, setApiKey] = useState<string | null>(null);
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [notifications, setNotifications] = useState<Notification[]>([]);
@@ -130,11 +131,33 @@ export const HubspotProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [jobTitleStats, setJobTitleStats] = useState<Record<string, number>>({});
   const [engagementByOwner, setEngagementByOwner] = useState<Record<string, {high: number, medium: number, low: number}>>({});
 
+  useEffect(() => {
+    // Check for saved API key on component mount
+    const savedApiKey = localStorage.getItem("hubspot_api_key");
+    if (savedApiKey) {
+      setApiKey(savedApiKey);
+      setIsAuthenticated(true);
+    }
+  }, []);
+
   const connectToHubspot = () => {
+    // Get the API key from localStorage
+    const savedApiKey = localStorage.getItem("hubspot_api_key");
+    
+    if (!savedApiKey) {
+      toast({
+        title: "API Key Required",
+        description: "Please set your HubSpot API key in Settings first.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     setIsConnecting(true);
     
-    // Simulate connection process without mock data
+    // Simulate connection process
     setTimeout(() => {
+      setApiKey(savedApiKey);
       setIsAuthenticated(true);
       setIsConnecting(false);
       toast({
@@ -146,6 +169,7 @@ export const HubspotProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   const disconnectFromHubspot = () => {
     setIsAuthenticated(false);
+    setApiKey(null);
     // Clear all data when disconnecting
     setContacts([]);
     setAccounts([]);
@@ -166,14 +190,26 @@ export const HubspotProvider: React.FC<{ children: React.ReactNode }> = ({ child
   };
 
   const refreshData = async () => {
-    // Simulate API refresh
+    if (!apiKey) {
+      toast({
+        title: "API Key Required",
+        description: "Please set your HubSpot API key in Settings first.",
+        variant: "destructive",
+      });
+      return Promise.reject(new Error("API key not found"));
+    }
+    
+    // Simulate API refresh with the API key
     toast({
       title: "Refreshing data",
       description: "Syncing latest data from HubSpot",
     });
     
-    return new Promise<void>(resolve => {
+    console.log("Using API key to fetch data:", apiKey.substring(0, 5) + "...");
+    
+    return new Promise<void>((resolve, reject) => {
       setTimeout(() => {
+        // In a real implementation, you would use the apiKey to make actual API calls to HubSpot
         toast({
           title: "Data refreshed",
           description: "Latest data has been synced from HubSpot",
