@@ -5,7 +5,7 @@ import HubspotConnect from "@/components/hubspot/HubspotConnect";
 import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Settings } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 
 const Index = () => {
@@ -33,7 +33,15 @@ const Index = () => {
                 Lead Priority Radar
               </h1>
             </div>
-            <div>
+            <div className="flex items-center gap-3">
+              <Button 
+                variant="outline" 
+                className="flex items-center gap-2"
+                onClick={() => navigate("/settings")}
+              >
+                <Settings className="h-4 w-4" />
+                Settings
+              </Button>
               <Button className="bg-teal-500 hover:bg-teal-600">
                 <a 
                   href="https://app.hubspot.com" 
@@ -233,6 +241,17 @@ const Index = () => {
             />
           </div>
           <p>© 2025 Zyter Lead Priority Radar. All rights reserved.</p>
+          <div className="mt-3">
+            <Button 
+              variant="link" 
+              size="sm" 
+              className="text-muted-foreground"
+              onClick={() => navigate("/settings")}
+            >
+              <Settings className="h-3 w-3 mr-1" />
+              Settings
+            </Button>
+          </div>
         </div>
       </footer>
     </div>
