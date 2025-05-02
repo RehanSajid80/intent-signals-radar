@@ -1,12 +1,21 @@
 
 import React from 'react';
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Settings } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 const Header: React.FC = () => {
   const { toast } = useToast();
+  const navigate = useNavigate();
+  
+  const handleSettingsClick = () => {
+    toast({
+      title: "Settings",
+      description: "Opening settings page..."
+    });
+    navigate('/settings');
+  };
   
   return (
     <header className="bg-white border-b py-4">
@@ -23,21 +32,14 @@ const Header: React.FC = () => {
             </h1>
           </div>
           <div className="flex items-center gap-3">
-            <Link to="/settings">
-              <Button 
-                variant="outline" 
-                className="flex items-center gap-2"
-                onClick={() => {
-                  toast({
-                    title: "Settings",
-                    description: "Opening settings page..."
-                  });
-                }}
-              >
-                <Settings className="h-4 w-4" />
-                Settings
-              </Button>
-            </Link>
+            <Button 
+              variant="outline" 
+              className="flex items-center gap-2"
+              onClick={handleSettingsClick}
+            >
+              <Settings className="h-4 w-4" />
+              Settings
+            </Button>
             <Button className="bg-teal-500 hover:bg-teal-600">
               <a 
                 href="https://app.hubspot.com" 

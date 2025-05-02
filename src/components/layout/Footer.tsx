@@ -1,12 +1,21 @@
 
 import React from 'react';
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Settings } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 const Footer: React.FC = () => {
   const { toast } = useToast();
+  const navigate = useNavigate();
+  
+  const handleSettingsClick = () => {
+    toast({
+      title: "Settings",
+      description: "Opening settings page..."
+    });
+    navigate('/settings');
+  };
   
   return (
     <footer className="bg-neutral-50 py-6 border-t">
@@ -20,22 +29,15 @@ const Footer: React.FC = () => {
         </div>
         <p>© 2025 Zyter Lead Priority Radar. All rights reserved.</p>
         <div className="mt-3">
-          <Link to="/settings">
-            <Button 
-              variant="link" 
-              size="sm" 
-              className="text-muted-foreground"
-              onClick={() => {
-                toast({
-                  title: "Settings",
-                  description: "Opening settings page..."
-                });
-              }}
-            >
-              <Settings className="h-3 w-3 mr-1" />
-              Settings
-            </Button>
-          </Link>
+          <Button 
+            variant="link" 
+            size="sm" 
+            className="text-muted-foreground"
+            onClick={handleSettingsClick}
+          >
+            <Settings className="h-3 w-3 mr-1" />
+            Settings
+          </Button>
         </div>
       </div>
     </footer>
