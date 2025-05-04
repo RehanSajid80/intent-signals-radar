@@ -170,7 +170,7 @@ export const useIntentUpload = () => {
       } else {
         toast({
           title: "No Data Found",
-          description: date ? `No data found for ${date}` : "No data found in the database`,
+          description: date ? `No data found for ${date}` : "No data found in the database",
           variant: "default", // Changed from "warning" to "default"
         });
         return [];
