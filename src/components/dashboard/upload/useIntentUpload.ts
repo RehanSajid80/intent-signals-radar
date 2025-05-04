@@ -131,9 +131,9 @@ export const useIntentUpload = () => {
             });
           } else if (!isAuthenticated) {
             toast({
-              title: "Processing Successful",
+              title: "Login Required",
               description: `Processed ${processedData.length} records. Please login to save data to the database.`,
-              variant: "warning",
+              variant: "default", // Changed from "warning" to "default"
             });
           }
         } catch (err: any) {
@@ -170,8 +170,8 @@ export const useIntentUpload = () => {
       } else {
         toast({
           title: "No Data Found",
-          description: date ? `No data found for ${date}` : "No data found in the database",
-          variant: "warning",
+          description: date ? `No data found for ${date}` : "No data found in the database`,
+          variant: "default", // Changed from "warning" to "default"
         });
         return [];
       }
