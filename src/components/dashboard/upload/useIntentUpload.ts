@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { IntentData } from "../types/intentTypes";
+import { IntentData, DbIntentData } from "../types/intentTypes";
 import { supabase } from "@/integrations/supabase/client";
 
 export const useIntentUpload = () => {
@@ -307,8 +307,8 @@ export const useIntentUpload = () => {
         topic: item.topic,
         category: item.category,
         score: item.score,
-        website: item.website,
-        secondary_industry_hierarchical_category: item.secondaryIndustryHierarchicalCategory,
+        website: item.website || null,
+        secondary_industry_hierarchical_category: item.secondaryIndustryHierarchicalCategory || null,
         alexa_rank: item.alexaRank ? parseInt(item.alexaRank) : null,
         employees: item.employees ? parseInt(item.employees) : null
       }));
@@ -363,7 +363,7 @@ export const useIntentUpload = () => {
       
       if (data && data.length > 0) {
         // Convert to our frontend format
-        const convertedData: IntentData[] = data.map(item => ({
+        const convertedData: IntentData[] = data.map((item: DbIntentData) => ({
           intentId: item.id,
           date: item.date,
           companyName: item.company_name,

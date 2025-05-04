@@ -40,3 +40,19 @@ export interface IntentData {
   numberOfLocations: string;
   queryName: string;
 }
+
+// Define the database intent data structure
+export interface DbIntentData {
+  id: string;
+  date: string;
+  company_name: string;
+  topic: string;
+  category: string;
+  score: number;
+  created_at: string;
+  user_id: string | null;
+  website?: string | null;
+  secondary_industry_hierarchical_category?: string | null;
+  alexa_rank?: number | null;
+  employees?: number | null;
+}
