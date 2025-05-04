@@ -7,8 +7,11 @@ export interface IntentData {
   topic: string;
   category: string;
   score: number;
-  companyId: string;
   website: string;
+  secondaryIndustryHierarchicalCategory: string;
+  alexaRank: string;
+  employees: string;
+  companyId: string;
   foundedYear: string;
   companyHQPhone: string;
   revenue: string;
@@ -17,9 +20,6 @@ export interface IntentData {
   allIndustries: string;
   allSubIndustries: string;
   industryHierarchicalCategory: string;
-  secondaryIndustryHierarchicalCategory: string;
-  alexaRank: string;
-  employees: string;
   linkedInUrl: string;
   facebookUrl: string;
   twitterUrl: string;

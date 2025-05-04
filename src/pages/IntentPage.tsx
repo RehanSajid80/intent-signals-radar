@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import Sidebar from "@/components/Sidebar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -36,9 +35,12 @@ const IntentPage = () => {
             topic: item.topic,
             category: item.category,
             score: item.score,
+            website: item.website || '',
+            secondaryIndustryHierarchicalCategory: item.secondary_industry_hierarchical_category || '',
+            alexaRank: item.alexa_rank?.toString() || '',
+            employees: item.employees?.toString() || '',
             // Fill other fields as empty strings
             companyId: '',
-            website: '',
             foundedYear: '',
             companyHQPhone: '',
             revenue: '',
@@ -47,9 +49,6 @@ const IntentPage = () => {
             allIndustries: '',
             allSubIndustries: '',
             industryHierarchicalCategory: '',
-            secondaryIndustryHierarchicalCategory: '',
-            alexaRank: '',
-            employees: '',
             linkedInUrl: '',
             facebookUrl: '',
             twitterUrl: '',

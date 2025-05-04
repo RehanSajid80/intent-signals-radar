@@ -29,8 +29,23 @@ const TableExpandedRow: React.FC<TableExpandedRowProps> = ({ item }) => {
             <h4 className="text-sm font-medium mb-1">Company Details</h4>
             <div className="bg-white p-3 rounded border text-sm">
               <p><span className="font-medium">Company:</span> {item.companyName}</p>
-              <p><span className="font-medium">Intent Score:</span> {item.score}</p>
-              <p><span className="font-medium">Topic:</span> {item.topic}</p>
+              {item.website && (
+                <p>
+                  <span className="font-medium">Website:</span>{' '}
+                  <a href={item.website.startsWith('http') ? item.website : `https://${item.website}`} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-blue-600 hover:underline">
+                    {item.website}
+                  </a>
+                </p>
+              )}
+              {item.employees && <p><span className="font-medium">Employees:</span> {item.employees}</p>}
+              {item.secondaryIndustryHierarchicalCategory && (
+                <p><span className="font-medium">Industry:</span> {item.secondaryIndustryHierarchicalCategory}</p>
+              )}
+              {item.alexaRank && <p><span className="font-medium">Alexa Rank:</span> {item.alexaRank}</p>}
+              <p><span className="font-medium">Intent Topic:</span> {item.topic}</p>
               <p><span className="font-medium">Category:</span> {item.category}</p>
               <p><span className="font-medium">Date:</span> {formatDate(item.date)}</p>
             </div>

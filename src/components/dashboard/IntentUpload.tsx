@@ -50,7 +50,7 @@ const IntentUpload: React.FC = () => {
               selectedFile={selectedFile}
               onFileChange={handleFileChange}
               label="Upload Intent CSV"
-              sublabel="CSV must include: Date, Company Name, Topic, Category, Score"
+              sublabel="Required fields: Date, Company Name, Topic, Category, Score"
             />
             
             <StatusNotifications 

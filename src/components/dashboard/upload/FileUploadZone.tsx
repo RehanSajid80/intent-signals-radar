@@ -47,6 +47,9 @@ const FileUploadZone: React.FC<FileUploadZoneProps> = ({
             <p className="text-sm text-muted-foreground">
               {sublabel}
             </p>
+            <p className="text-xs text-muted-foreground mt-1">
+              Supports additional fields: Website, Industry, Alexa Rank, Employees
+            </p>
           </label>
         </>
       )}
