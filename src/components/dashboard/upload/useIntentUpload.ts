@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { IntentData, DbIntentData } from "../types/intentTypes";
@@ -310,6 +309,10 @@ export const useIntentUpload = () => {
 
   const saveToSupabase = async (intentDataArray: IntentData[]) => {
     try {
+      // Get the user ID first, outside of the map function
+      const { data: authData } = await supabase.auth.getUser();
+      const userId = authData?.user?.id || null;
+      
       // Convert to Supabase format - keeping only fields that exist in the database
       const supabaseRows = intentDataArray.map(item => ({
         date: item.date,
@@ -317,9 +320,8 @@ export const useIntentUpload = () => {
         topic: item.topic,
         category: item.category,
         score: item.score,
-        // This ensures RLS policies won't block the insert if user_id is required
-        // If user is logged in, this will be their ID; otherwise it will be null
-        user_id: (await supabase.auth.getUser()).data?.user?.id || null
+        // Use the userId variable we got above
+        user_id: userId
       }));
       
       // Log what we're trying to insert to help with debugging
