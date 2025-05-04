@@ -2,7 +2,7 @@
 import React, { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { BarChart, Database, Upload, Check } from "lucide-react";
+import { BarChart, Database, Upload, Check, Download } from "lucide-react";
 import IntentAnalysis from "@/components/dashboard/IntentAnalysis";
 import FileUploadZone from "./upload/FileUploadZone";
 import StatusNotifications from "./upload/StatusNotifications";
@@ -24,7 +24,8 @@ const IntentUpload: React.FC = () => {
     handleFileChange,
     handleUpload,
     toggleAnalysis,
-    fetchSupabaseData
+    fetchSupabaseData,
+    downloadData
   } = useIntentUpload();
 
   useEffect(() => {
@@ -57,6 +58,7 @@ const IntentUpload: React.FC = () => {
             <StatusNotifications 
               error={error}
               uploadSuccess={uploadSuccess}
+              onDownload={intentData.length > 0 ? downloadData : undefined}
             />
             
             <IntentDataPreview previewData={previewData} />
@@ -94,12 +96,26 @@ const IntentUpload: React.FC = () => {
                 )}
               </div>
               
-              {savedToSupabase && (
-                <div className="flex items-center text-green-600">
-                  <Check className="h-4 w-4 mr-1" />
-                  <span>Data saved to database</span>
-                </div>
-              )}
+              <div className="flex items-center gap-2">
+                {intentData.length > 0 && (
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="flex items-center"
+                    onClick={downloadData}
+                  >
+                    <Download className="h-3 w-3 mr-1" />
+                    Save Data
+                  </Button>
+                )}
+                
+                {savedToSupabase && (
+                  <div className="flex items-center text-green-600">
+                    <Check className="h-4 w-4 mr-1" />
+                    <span>Data saved to database</span>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </CardContent>
