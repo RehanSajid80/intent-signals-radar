@@ -2,72 +2,53 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { HelpCircle } from "lucide-react";
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogDescription, 
-  DialogHeader, 
-  DialogTitle, 
-  DialogTrigger 
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
 const CsvFormatHelp: React.FC = () => {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="link" className="flex items-center text-xs px-0">
+        <Button variant="ghost" size="sm" className="text-xs flex items-center text-muted-foreground">
           <HelpCircle className="h-3 w-3 mr-1" />
-          Required CSV format
+          CSV Format Help
         </Button>
       </DialogTrigger>
-      <DialogContent>
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Required CSV Format for Intent Data</DialogTitle>
+          <DialogTitle>CSV File Format</DialogTitle>
           <DialogDescription>
-            Your CSV file should have the following column headers:
+            Your CSV file should include the following columns with exactly these names:
           </DialogDescription>
         </DialogHeader>
-        <div className="mt-4 max-h-[400px] overflow-y-auto">
-          <ul className="text-xs space-y-1">
-            <li>Intent ID</li>
-            <li>Date</li>
-            <li>Company Name</li>
-            <li>Topic</li>
-            <li>Category</li>
-            <li>Score</li>
-            <li>Company ID</li>
-            <li>Website</li>
-            <li>Founded Year</li>
-            <li>Company HQ Phone</li>
-            <li>Revenue (in 000s USD)</li>
-            <li>Primary Industry</li>
-            <li>Primary Sub-Industry</li>
-            <li>All Industries</li>
-            <li>All Sub-Industries</li>
-            <li>Industry Hierarchical Category</li>
-            <li>Secondary Industry Hierarchical Category</li>
-            <li>Alexa Rank</li>
-            <li>Employees</li>
-            <li>LinkedIn Company Profile URL</li>
-            <li>Facebook Company Profile URL</li>
-            <li>Twitter Company Profile URL</li>
-            <li>Certified Active Company</li>
-            <li>Certification Date</li>
-            <li>Total Funding Amount (in 000s USD)</li>
-            <li>Recent Funding Amount (in 000s USD)</li>
-            <li>Recent Funding Round</li>
-            <li>Recent Funding Date</li>
-            <li>Recent Investors</li>
-            <li>All Investors</li>
-            <li>Company Street Address</li>
-            <li>Company City</li>
-            <li>Company State</li>
-            <li>Company Zip Code</li>
-            <li>Company Country</li>
-            <li>Full Address</li>
-            <li>Number of Locations</li>
-            <li>Query Name</li>
-          </ul>
+        
+        <div className="mt-4 space-y-4">
+          <div>
+            <h4 className="font-medium text-sm mb-2">Required Columns:</h4>
+            <ul className="list-disc pl-5 space-y-1 text-sm">
+              <li><code className="bg-muted p-1 rounded">Date</code> - Format: MM/DD/YYYY</li>
+              <li><code className="bg-muted p-1 rounded">Company Name</code> - Company displaying intent</li>
+              <li><code className="bg-muted p-1 rounded">Topic</code> - The specific topic of interest</li>
+              <li><code className="bg-muted p-1 rounded">Category</code> - General category for the topic</li>
+              <li><code className="bg-muted p-1 rounded">Score</code> - Intent score (0-100)</li>
+            </ul>
+          </div>
+          
+          <div>
+            <h4 className="font-medium text-sm mb-2">Example:</h4>
+            <pre className="text-xs bg-muted p-2 rounded overflow-x-auto">
+              <code>
+                Date,Company Name,Topic,Category,Score{'\n'}
+                4/26/2025,Principal,Applicant Tracking Systems,Talent Acquisition,70{'\n'}
+                4/26/2025,Voya Financial,Salesforce Marketing Cloud,Cloud,74{'\n'}
+                4/26/2025,Northwestern Mutual,Utilization Management,Healthcare Operations,87
+              </code>
+            </pre>
+          </div>
+          
+          <div className="text-xs text-muted-foreground">
+            <p>Make sure your CSV file is UTF-8 encoded and uses commas as separators.</p>
+            <p className="mt-2">Additional columns will be ignored.</p>
+          </div>
         </div>
       </DialogContent>
     </Dialog>

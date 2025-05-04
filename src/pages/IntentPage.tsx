@@ -1,14 +1,87 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Sidebar from "@/components/Sidebar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import IntentAnalysis from "@/components/dashboard/IntentAnalysis";
 import IntentUpload from "@/components/dashboard/IntentUpload";
 import { sampleIntentData } from "@/data/sampleIntentData";
+import { supabase } from "@/integrations/supabase/client";
+import { IntentData } from "@/components/dashboard/types/intentTypes";
 
 const IntentPage = () => {
-  const [activeTab, setActiveTab] = useState("sample");
+  const [activeTab, setActiveTab] = useState("database");
+  const [databaseData, setDatabaseData] = useState<IntentData[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  
+  useEffect(() => {
+    const fetchIntentData = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('intent_data')
+          .select('*')
+          .order('date', { ascending: false });
+        
+        if (error) {
+          console.error("Error fetching intent data:", error);
+          return;
+        }
+        
+        if (data && data.length > 0) {
+          // Convert to our frontend format
+          const convertedData: IntentData[] = data.map(item => ({
+            intentId: item.id,
+            date: item.date,
+            companyName: item.company_name,
+            topic: item.topic,
+            category: item.category,
+            score: item.score,
+            // Fill other fields as empty strings
+            companyId: '',
+            website: '',
+            foundedYear: '',
+            companyHQPhone: '',
+            revenue: '',
+            primaryIndustry: '',
+            primarySubIndustry: '',
+            allIndustries: '',
+            allSubIndustries: '',
+            industryHierarchicalCategory: '',
+            secondaryIndustryHierarchicalCategory: '',
+            alexaRank: '',
+            employees: '',
+            linkedInUrl: '',
+            facebookUrl: '',
+            twitterUrl: '',
+            certifiedActiveCompany: '',
+            certificationDate: '',
+            totalFundingAmount: '',
+            recentFundingAmount: '',
+            recentFundingRound: '',
+            recentFundingDate: '',
+            recentInvestors: '',
+            allInvestors: '',
+            companyStreetAddress: '',
+            companyCity: '',
+            companyState: '',
+            companyZipCode: '',
+            companyCountry: '',
+            fullAddress: '',
+            numberOfLocations: '',
+            queryName: '',
+          }));
+          
+          setDatabaseData(convertedData);
+        }
+      } catch (err) {
+        console.error("Error fetching data:", err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchIntentData();
+  }, []);
   
   return (
     <div className="flex min-h-screen bg-background">
@@ -32,11 +105,43 @@ const IntentPage = () => {
         </header>
         
         <main className="p-4 md:p-6">
-          <Tabs defaultValue="sample" value={activeTab} onValueChange={setActiveTab}>
+          <Tabs defaultValue="database" value={activeTab} onValueChange={setActiveTab}>
             <TabsList>
+              <TabsTrigger value="database">Database Data</TabsTrigger>
               <TabsTrigger value="sample">Sample Data</TabsTrigger>
-              <TabsTrigger value="upload">Upload Your Data</TabsTrigger>
+              <TabsTrigger value="upload">Upload Data</TabsTrigger>
             </TabsList>
+            
+            <TabsContent value="database" className="mt-4">
+              <Card className="mb-4">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-lg">Intent Data from Database</CardTitle>
+                </CardHeader>
+                <CardContent className="text-sm text-muted-foreground">
+                  <p>
+                    This data is stored in your Supabase database. It shows real intent signals 
+                    from various companies, indicating their interest in specific topics.
+                  </p>
+                </CardContent>
+              </Card>
+              
+              {isLoading ? (
+                <div className="flex items-center justify-center p-12">
+                  <div className="animate-spin h-8 w-8 border-4 border-teal-500 border-t-transparent rounded-full"></div>
+                </div>
+              ) : databaseData.length > 0 ? (
+                <IntentAnalysis data={databaseData} />
+              ) : (
+                <Card className="py-12">
+                  <CardContent className="text-center">
+                    <p className="mb-4 text-muted-foreground">No intent data found in the database.</p>
+                    <p className="text-sm">
+                      Use the "Upload Data" tab to add intent data to your database.
+                    </p>
+                  </CardContent>
+                </Card>
+              )}
+            </TabsContent>
             
             <TabsContent value="sample" className="mt-4">
               <Card className="mb-4">

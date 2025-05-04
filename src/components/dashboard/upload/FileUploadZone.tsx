@@ -5,11 +5,17 @@ import { FileText, Upload } from "lucide-react";
 interface FileUploadZoneProps {
   selectedFile: File | null;
   onFileChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  acceptedFileTypes?: string;
+  label?: string;
+  sublabel?: string;
 }
 
 const FileUploadZone: React.FC<FileUploadZoneProps> = ({ 
   selectedFile, 
-  onFileChange 
+  onFileChange,
+  acceptedFileTypes = ".csv",
+  label = "Upload Intent CSV",
+  sublabel = "Drag & drop or click to browse"
 }) => {
   return (
     <div className="border-2 border-dashed rounded-md p-6 flex flex-col items-center justify-center">
@@ -28,7 +34,7 @@ const FileUploadZone: React.FC<FileUploadZoneProps> = ({
           <input
             id="intent-file"
             type="file"
-            accept=".csv"
+            accept={acceptedFileTypes}
             className="hidden"
             onChange={onFileChange}
           />
@@ -37,9 +43,9 @@ const FileUploadZone: React.FC<FileUploadZoneProps> = ({
             className="flex flex-col items-center justify-center cursor-pointer"
           >
             <Upload className="h-10 w-10 text-muted-foreground mb-2" />
-            <p className="font-medium">Upload Intent CSV</p>
+            <p className="font-medium">{label}</p>
             <p className="text-sm text-muted-foreground">
-              Drag & drop or click to browse
+              {sublabel}
             </p>
           </label>
         </>

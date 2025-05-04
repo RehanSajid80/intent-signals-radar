@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { IntentData } from "../types/intentTypes";
+import { supabase } from "@/integrations/supabase/client";
 
 export const useIntentUpload = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -76,22 +77,79 @@ export const useIntentUpload = () => {
       reader.onload = (e) => {
         try {
           const text = e.target?.result as string;
-          const rows = text.split('\n');
           
-          // Get headers
-          const headers = rows[0].split(',');
+          // First, try to detect the format of the CSV
+          const rows = text.split('\n');
+          if (rows.length < 2) {
+            throw new Error("CSV file is empty or invalid");
+          }
+          
+          // Get headers - check if they match expected format
+          const headers = rows[0].split(',').map(h => h.trim());
+          const requiredHeaders = ['Date', 'Company Name', 'Topic', 'Category', 'Score'];
+          const hasRequiredHeaders = requiredHeaders.every(h => headers.includes(h));
+          
+          if (!hasRequiredHeaders) {
+            console.log("Expected headers: ", requiredHeaders);
+            console.log("Found headers: ", headers);
+            setError("CSV file must contain these columns: Date, Company Name, Topic, Category, Score");
+            return;
+          }
           
           // Process a few rows for preview
           const previewRows = rows.slice(1, 4).map(row => {
+            if (!row.trim()) return null; // Skip empty rows
+            
             const values = row.split(',');
             const rowData: Record<string, string> = {};
             
             headers.forEach((header, index) => {
-              rowData[header.trim()] = values[index]?.trim() || '';
+              rowData[header] = values[index]?.trim() || '';
             });
             
-            return transformRowToIntentData(rowData);
-          });
+            // Map to our expected format
+            return {
+              intentId: '', // Generate later
+              date: rowData['Date'] || '',
+              companyName: rowData['Company Name'] || '',
+              topic: rowData['Topic'] || '',
+              category: rowData['Category'] || '',
+              score: parseInt(rowData['Score'] || '0'),
+              // Fill other fields as empty strings
+              companyId: '',
+              website: '',
+              foundedYear: '',
+              companyHQPhone: '',
+              revenue: '',
+              primaryIndustry: '',
+              primarySubIndustry: '',
+              allIndustries: '',
+              allSubIndustries: '',
+              industryHierarchicalCategory: '',
+              secondaryIndustryHierarchicalCategory: '',
+              alexaRank: '',
+              employees: '',
+              linkedInUrl: '',
+              facebookUrl: '',
+              twitterUrl: '',
+              certifiedActiveCompany: '',
+              certificationDate: '',
+              totalFundingAmount: '',
+              recentFundingAmount: '',
+              recentFundingRound: '',
+              recentFundingDate: '',
+              recentInvestors: '',
+              allInvestors: '',
+              companyStreetAddress: '',
+              companyCity: '',
+              companyState: '',
+              companyZipCode: '',
+              companyCountry: '',
+              fullAddress: '',
+              numberOfLocations: '',
+              queryName: '',
+            };
+          }).filter(Boolean) as IntentData[];
           
           setPreviewData(previewRows);
         } catch (err) {
@@ -106,28 +164,78 @@ export const useIntentUpload = () => {
   const processCSVData = (text: string): IntentData[] => {
     try {
       const rows = text.split('\n');
+      if (rows.length < 2) {
+        throw new Error("CSV file is empty or invalid");
+      }
       
       // Get headers
-      const headers = rows[0].split(',');
+      const headers = rows[0].split(',').map(h => h.trim());
+      const requiredHeaders = ['Date', 'Company Name', 'Topic', 'Category', 'Score'];
+      const hasRequiredHeaders = requiredHeaders.every(h => headers.includes(h));
+      
+      if (!hasRequiredHeaders) {
+        throw new Error("CSV file must contain these columns: Date, Company Name, Topic, Category, Score");
+      }
       
       // Process all rows for full analysis
       const processedData = rows.slice(1).map(row => {
-        if (!row.trim()) return null;
+        if (!row.trim()) return null; // Skip empty rows
         
         const values = row.split(',');
         const rowData: Record<string, string> = {};
         
         headers.forEach((header, index) => {
-          rowData[header.trim()] = values[index]?.trim() || '';
+          rowData[header] = values[index]?.trim() || '';
         });
         
-        return transformRowToIntentData(rowData);
+        // Map to our expected format
+        return {
+          intentId: '', // Generate later
+          date: rowData['Date'] || '',
+          companyName: rowData['Company Name'] || '',
+          topic: rowData['Topic'] || '',
+          category: rowData['Category'] || '',
+          score: parseInt(rowData['Score'] || '0'),
+          // Fill other fields as empty strings
+          companyId: '',
+          website: '',
+          foundedYear: '',
+          companyHQPhone: '',
+          revenue: '',
+          primaryIndustry: '',
+          primarySubIndustry: '',
+          allIndustries: '',
+          allSubIndustries: '',
+          industryHierarchicalCategory: '',
+          secondaryIndustryHierarchicalCategory: '',
+          alexaRank: '',
+          employees: '',
+          linkedInUrl: '',
+          facebookUrl: '',
+          twitterUrl: '',
+          certifiedActiveCompany: '',
+          certificationDate: '',
+          totalFundingAmount: '',
+          recentFundingAmount: '',
+          recentFundingRound: '',
+          recentFundingDate: '',
+          recentInvestors: '',
+          allInvestors: '',
+          companyStreetAddress: '',
+          companyCity: '',
+          companyState: '',
+          companyZipCode: '',
+          companyCountry: '',
+          fullAddress: '',
+          numberOfLocations: '',
+          queryName: '',
+        };
       }).filter(Boolean) as IntentData[];
       
       return processedData;
     } catch (err) {
       console.error("Error parsing CSV:", err);
-      return [];
+      throw err;
     }
   };
 
@@ -144,13 +252,20 @@ export const useIntentUpload = () => {
       // Process the file data
       const reader = new FileReader();
       
-      reader.onload = (e) => {
+      reader.onload = async (e) => {
         try {
           const text = e.target?.result as string;
           const processedData = processCSVData(text);
           
           if (processedData.length === 0) {
             throw new Error("No valid data found in the file");
+          }
+          
+          // Save to Supabase
+          const { data: supabaseData, error: supabaseError } = await saveToSupabase(processedData);
+          
+          if (supabaseError) {
+            throw new Error(`Failed to save data: ${supabaseError.message}`);
           }
           
           setIntentData(processedData);
@@ -161,9 +276,9 @@ export const useIntentUpload = () => {
             title: "Upload Successful",
             description: `Processed ${processedData.length} intent records from ${selectedFile.name}.`,
           });
-        } catch (err) {
+        } catch (err: any) {
           console.error("Error processing file:", err);
-          setError("Failed to process the file. Please check the format.");
+          setError(err.message || "Failed to process the file. Please check the format.");
         } finally {
           setIsProcessing(false);
         }
@@ -176,15 +291,125 @@ export const useIntentUpload = () => {
       
       reader.readAsText(selectedFile);
       
-    } catch (err) {
+    } catch (err: any) {
       console.error("Error in upload:", err);
-      setError("Failed to process the file. Please try again.");
+      setError(err.message || "Failed to process the file. Please try again.");
       setIsProcessing(false);
+    }
+  };
+
+  const saveToSupabase = async (intentDataArray: IntentData[]) => {
+    try {
+      // Convert to Supabase format
+      const supabaseRows = intentDataArray.map(item => ({
+        date: item.date,
+        company_name: item.companyName,
+        topic: item.topic,
+        category: item.category,
+        score: item.score
+      }));
+      
+      // Insert data in batches to avoid request size limitations
+      const batchSize = 50;
+      const batches = [];
+      
+      for (let i = 0; i < supabaseRows.length; i += batchSize) {
+        const batch = supabaseRows.slice(i, i + batchSize);
+        batches.push(batch);
+      }
+      
+      let errors = [];
+      
+      for (const batch of batches) {
+        const { error } = await supabase
+          .from('intent_data')
+          .insert(batch);
+        
+        if (error) {
+          errors.push(error);
+          console.error("Error inserting batch:", error);
+        }
+      }
+      
+      if (errors.length > 0) {
+        return { data: null, error: new Error(`${errors.length} batches failed to insert`) };
+      }
+      
+      return { data: true, error: null };
+    } catch (err) {
+      console.error("Error in saveToSupabase:", err);
+      return { data: null, error: err as Error };
     }
   };
 
   const toggleAnalysis = () => {
     setShowAnalysis(!showAnalysis);
+  };
+  
+  const fetchSupabaseData = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('intent_data')
+        .select('*')
+        .order('date', { ascending: false });
+      
+      if (error) {
+        throw error;
+      }
+      
+      if (data && data.length > 0) {
+        // Convert to our frontend format
+        const convertedData: IntentData[] = data.map(item => ({
+          intentId: item.id,
+          date: item.date,
+          companyName: item.company_name,
+          topic: item.topic,
+          category: item.category,
+          score: item.score,
+          // Fill other fields as empty strings
+          companyId: '',
+          website: '',
+          foundedYear: '',
+          companyHQPhone: '',
+          revenue: '',
+          primaryIndustry: '',
+          primarySubIndustry: '',
+          allIndustries: '',
+          allSubIndustries: '',
+          industryHierarchicalCategory: '',
+          secondaryIndustryHierarchicalCategory: '',
+          alexaRank: '',
+          employees: '',
+          linkedInUrl: '',
+          facebookUrl: '',
+          twitterUrl: '',
+          certifiedActiveCompany: '',
+          certificationDate: '',
+          totalFundingAmount: '',
+          recentFundingAmount: '',
+          recentFundingRound: '',
+          recentFundingDate: '',
+          recentInvestors: '',
+          allInvestors: '',
+          companyStreetAddress: '',
+          companyCity: '',
+          companyState: '',
+          companyZipCode: '',
+          companyCountry: '',
+          fullAddress: '',
+          numberOfLocations: '',
+          queryName: '',
+        }));
+        
+        setIntentData(convertedData);
+        return convertedData;
+      }
+      
+      return [];
+    } catch (err) {
+      console.error("Error fetching from Supabase:", err);
+      return [];
+    }
   };
 
   return {
@@ -197,6 +422,7 @@ export const useIntentUpload = () => {
     showAnalysis,
     handleFileChange,
     handleUpload,
-    toggleAnalysis
+    toggleAnalysis,
+    fetchSupabaseData
   };
 };

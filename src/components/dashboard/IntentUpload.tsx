@@ -1,8 +1,8 @@
 
-import React from "react";
+import React, { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { BarChart, Upload } from "lucide-react";
+import { BarChart, Database, Upload } from "lucide-react";
 import IntentAnalysis from "@/components/dashboard/IntentAnalysis";
 import FileUploadZone from "./upload/FileUploadZone";
 import StatusNotifications from "./upload/StatusNotifications";
@@ -22,8 +22,18 @@ const IntentUpload: React.FC = () => {
     showAnalysis,
     handleFileChange,
     handleUpload,
-    toggleAnalysis
+    toggleAnalysis,
+    fetchSupabaseData
   } = useIntentUpload();
+
+  useEffect(() => {
+    // Load intent data from Supabase when component mounts
+    const loadData = async () => {
+      await fetchSupabaseData();
+    };
+    
+    loadData();
+  }, []);
 
   return (
     <>
@@ -39,6 +49,8 @@ const IntentUpload: React.FC = () => {
             <FileUploadZone 
               selectedFile={selectedFile}
               onFileChange={handleFileChange}
+              label="Upload Intent CSV"
+              sublabel="CSV must include: Date, Company Name, Topic, Category, Score"
             />
             
             <StatusNotifications 
@@ -72,6 +84,13 @@ const IntentUpload: React.FC = () => {
                 </Button>
               </div>
             </div>
+            
+            {intentData.length > 0 && (
+              <div className="mt-4 text-sm flex items-center text-muted-foreground">
+                <Database className="h-4 w-4 mr-1" />
+                {intentData.length} records in database
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
