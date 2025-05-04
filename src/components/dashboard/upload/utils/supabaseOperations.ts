@@ -10,6 +10,10 @@ export const saveToSupabase = async (intentDataArray: IntentData[]) => {
     const { data: authData } = await supabase.auth.getUser();
     const userId = authData?.user?.id || null;
     
+    if (!userId) {
+      return { data: null, error: new Error("User is not authenticated") };
+    }
+    
     // Convert to Supabase format - keeping only fields that exist in the database
     const supabaseRows = intentDataArray.map(item => ({
       date: item.date,
@@ -17,6 +21,10 @@ export const saveToSupabase = async (intentDataArray: IntentData[]) => {
       topic: item.topic,
       category: item.category,
       score: item.score,
+      website: item.website || null,
+      secondary_industry_hierarchical_category: item.secondaryIndustryHierarchicalCategory || null,
+      alexa_rank: item.alexaRank ? parseInt(item.alexaRank) : null,
+      employees: item.employees ? parseInt(item.employees) : null,
       user_id: userId
     }));
     
@@ -69,13 +77,21 @@ export const saveToSupabase = async (intentDataArray: IntentData[]) => {
 
 /**
  * Fetch intent data from Supabase
+ * @param dateFilter Optional date to filter data by
  */
-export const fetchSupabaseData = async (): Promise<IntentData[]> => {
+export const fetchSupabaseData = async (dateFilter?: string): Promise<IntentData[]> => {
   try {
-    const { data, error } = await supabase
+    let query = supabase
       .from('intent_data')
-      .select('*')
-      .order('date', { ascending: false });
+      .select('*');
+    
+    // Apply date filter if provided
+    if (dateFilter) {
+      query = query.eq('date', dateFilter);
+    }
+    
+    // Execute the query
+    const { data, error } = await query.order('date', { ascending: false });
     
     if (error) {
       throw error;

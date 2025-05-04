@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import Sidebar from "@/components/Sidebar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -6,16 +7,33 @@ import IntentAnalysis from "@/components/dashboard/IntentAnalysis";
 import IntentUpload from "@/components/dashboard/IntentUpload";
 import { sampleIntentData } from "@/data/sampleIntentData";
 import { supabase } from "@/integrations/supabase/client";
-import { IntentData, DbIntentData } from "@/components/dashboard/types/intentTypes";
+import { IntentData } from "@/components/dashboard/types/intentTypes";
+import { format } from "date-fns";
 
 const IntentPage = () => {
   const [activeTab, setActiveTab] = useState("database");
   const [databaseData, setDatabaseData] = useState<IntentData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  
+  // Format current date for display
+  const currentDate = format(new Date(), "MMMM d, yyyy");
+  
+  useEffect(() => {
+    // Check authentication status
+    const checkAuth = async () => {
+      const { data } = await supabase.auth.getSession();
+      setIsAuthenticated(!!data.session);
+    };
+    
+    checkAuth();
+  }, []);
   
   useEffect(() => {
     const fetchIntentData = async () => {
       try {
+        setIsLoading(true);
+        
         const { data, error } = await supabase
           .from('intent_data')
           .select('*')
@@ -28,7 +46,7 @@ const IntentPage = () => {
         
         if (data && data.length > 0) {
           // Convert to our frontend format
-          const convertedData: IntentData[] = data.map((item: DbIntentData) => ({
+          const convertedData: IntentData[] = data.map((item) => ({
             intentId: item.id,
             date: item.date,
             companyName: item.company_name,
@@ -79,8 +97,12 @@ const IntentPage = () => {
       }
     };
     
-    fetchIntentData();
-  }, []);
+    if (isAuthenticated) {
+      fetchIntentData();
+    } else {
+      setIsLoading(false);
+    }
+  }, [isAuthenticated]);
   
   return (
     <div className="flex min-h-screen bg-background">
@@ -98,7 +120,7 @@ const IntentPage = () => {
               <h1 className="text-2xl font-bold">Intent Signals</h1>
             </div>
             <div className="text-sm text-muted-foreground">
-              Last updated: {new Date().toLocaleDateString()} {new Date().toLocaleTimeString()}
+              {currentDate}
             </div>
           </div>
         </header>
@@ -128,6 +150,15 @@ const IntentPage = () => {
                 <div className="flex items-center justify-center p-12">
                   <div className="animate-spin h-8 w-8 border-4 border-teal-500 border-t-transparent rounded-full"></div>
                 </div>
+              ) : !isAuthenticated ? (
+                <Card className="py-12">
+                  <CardContent className="text-center">
+                    <p className="mb-4 text-muted-foreground">Please log in to view saved intent data.</p>
+                    <p className="text-sm">
+                      You need to be authenticated to access data stored in the database.
+                    </p>
+                  </CardContent>
+                </Card>
               ) : databaseData.length > 0 ? (
                 <IntentAnalysis data={databaseData} />
               ) : (

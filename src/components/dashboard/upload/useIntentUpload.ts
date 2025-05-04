@@ -1,10 +1,11 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { IntentData } from "../types/intentTypes";
 import { processCSVData, createCSVPreview } from "./utils/csvParser";
 import { saveToSupabase, fetchSupabaseData } from "./utils/supabaseOperations";
 import { downloadIntentData, isValidCSVFile } from "./utils/fileOperations";
+import { supabase } from "@/integrations/supabase/client";
 
 export const useIntentUpload = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -15,8 +16,34 @@ export const useIntentUpload = () => {
   const [intentData, setIntentData] = useState<IntentData[]>([]);
   const [showAnalysis, setShowAnalysis] = useState(false);
   const [savedToSupabase, setSavedToSupabase] = useState(false);
+  const [saveToDatabase, setSaveToDatabase] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [dateFilter, setDateFilter] = useState<string | null>(null);
   
   const { toast } = useToast();
+
+  // Check if user is authenticated with Supabase
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data } = await supabase.auth.getSession();
+      setIsAuthenticated(!!data.session);
+      
+      // Set up auth state change listener
+      const { data: authListener } = supabase.auth.onAuthStateChange(
+        (event, session) => {
+          setIsAuthenticated(!!session);
+        }
+      );
+      
+      return () => {
+        if (authListener && authListener.subscription) {
+          authListener.subscription.unsubscribe();
+        }
+      };
+    };
+    
+    checkAuth();
+  }, []);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setError(null);
@@ -77,21 +104,36 @@ export const useIntentUpload = () => {
           setUploadSuccess(true);
           setShowAnalysis(true);
           
-          // Try to save to Supabase
-          const { data: saveData, error: saveError } = await saveToSupabase(processedData);
-          
-          if (saveError) {
-            console.error("Error saving to Supabase:", saveError);
+          // Save to Supabase if option is selected and user is authenticated
+          if (saveToDatabase && isAuthenticated) {
+            const { data: saveData, error: saveError } = await saveToSupabase(processedData);
+            
+            if (saveError) {
+              console.error("Error saving to Supabase:", saveError);
+              toast({
+                title: "Processing Successful",
+                description: `Processed ${processedData.length} records. Data loaded for visualization but could not be saved to database: ${saveError.message}`,
+                variant: "destructive",
+              });
+            } else {
+              setSavedToSupabase(true);
+              toast({
+                title: "Processing Successful",
+                description: `Processed and saved ${processedData.length} intent records from ${selectedFile.name}.`,
+                variant: "default",
+              });
+            }
+          } else if (!saveToDatabase) {
             toast({
               title: "Processing Successful",
-              description: `Processed ${processedData.length} records. Data loaded for visualization but could not be saved to database: ${saveError.message}`,
-            });
-          } else {
-            setSavedToSupabase(true);
-            toast({
-              title: "Processing Successful",
-              description: `Processed and saved ${processedData.length} intent records from ${selectedFile.name}.`,
+              description: `Processed ${processedData.length} records. Data loaded for visualization only (not saved to database).`,
               variant: "default",
+            });
+          } else if (!isAuthenticated) {
+            toast({
+              title: "Processing Successful",
+              description: `Processed ${processedData.length} records. Please login to save data to the database.`,
+              variant: "warning",
             });
           }
         } catch (err: any) {
@@ -116,12 +158,51 @@ export const useIntentUpload = () => {
     }
   };
 
+  // Enhanced fetch function with date filtering
+  const fetchFilteredData = async (date?: string) => {
+    try {
+      const data = await fetchSupabaseData(date);
+      if (data && data.length > 0) {
+        setIntentData(data);
+        setUploadSuccess(true);
+        setShowAnalysis(true);
+        return data;
+      } else {
+        toast({
+          title: "No Data Found",
+          description: date ? `No data found for ${date}` : "No data found in the database",
+          variant: "warning",
+        });
+        return [];
+      }
+    } catch (err) {
+      console.error("Error fetching data:", err);
+      toast({
+        title: "Error Loading Data",
+        description: "Could not load data from database",
+        variant: "destructive",
+      });
+      return [];
+    }
+  };
+
   const downloadData = () => {
     downloadIntentData(intentData);
   };
 
   const toggleAnalysis = () => {
     setShowAnalysis(!showAnalysis);
+  };
+
+  const toggleSaveOption = () => {
+    setSaveToDatabase(!saveToDatabase);
+  };
+
+  const handleDateFilterChange = (date: string | null) => {
+    setDateFilter(date);
+    if (date) {
+      fetchFilteredData(date);
+    }
   };
 
   return {
@@ -133,10 +214,15 @@ export const useIntentUpload = () => {
     intentData,
     showAnalysis,
     savedToSupabase,
+    saveToDatabase,
+    isAuthenticated,
+    dateFilter,
     handleFileChange,
     handleUpload,
     toggleAnalysis,
-    fetchSupabaseData,
-    downloadData
+    fetchFilteredData,
+    downloadData,
+    toggleSaveOption,
+    handleDateFilterChange
   };
 };

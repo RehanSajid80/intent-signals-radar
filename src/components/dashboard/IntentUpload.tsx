@@ -2,7 +2,7 @@
 import React, { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { BarChart, Database, Upload, Check, Download } from "lucide-react";
+import { BarChart, Database, Upload, Check, Download, Calendar, LogIn } from "lucide-react";
 import IntentAnalysis from "@/components/dashboard/IntentAnalysis";
 import FileUploadZone from "./upload/FileUploadZone";
 import StatusNotifications from "./upload/StatusNotifications";
@@ -10,6 +10,10 @@ import IntentDataPreview from "./upload/IntentDataPreview";
 import CsvFormatHelp from "./upload/CsvFormatHelp";
 import { useIntentUpload } from "./upload/useIntentUpload";
 import { IntentData } from "./types/intentTypes";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { DatePicker } from "./upload/DatePicker";
+import { format, parseISO } from "date-fns";
 
 const IntentUpload: React.FC = () => {
   const {
@@ -21,21 +25,35 @@ const IntentUpload: React.FC = () => {
     intentData,
     showAnalysis,
     savedToSupabase,
+    saveToDatabase,
+    isAuthenticated,
+    dateFilter,
     handleFileChange,
     handleUpload,
     toggleAnalysis,
-    fetchSupabaseData,
-    downloadData
+    fetchFilteredData,
+    downloadData,
+    toggleSaveOption,
+    handleDateFilterChange
   } = useIntentUpload();
 
   useEffect(() => {
     // Load intent data from Supabase when component mounts
     const loadData = async () => {
-      await fetchSupabaseData();
+      await fetchFilteredData();
     };
     
-    loadData();
-  }, []);
+    if (isAuthenticated) {
+      loadData();
+    }
+  }, [isAuthenticated]);
+
+  // Format current date for display
+  const formattedDate = new Date().toLocaleDateString("en-US", {
+    year: 'numeric',
+    month: 'long', 
+    day: 'numeric'
+  });
 
   return (
     <>
@@ -64,7 +82,27 @@ const IntentUpload: React.FC = () => {
             <IntentDataPreview previewData={previewData} />
             
             <div className="flex justify-between items-center">
-              <CsvFormatHelp />
+              <div className="flex items-center gap-4">
+                <CsvFormatHelp />
+                
+                {isAuthenticated ? (
+                  <div className="flex items-center space-x-2">
+                    <Switch 
+                      id="save-to-database" 
+                      checked={saveToDatabase} 
+                      onCheckedChange={toggleSaveOption}
+                    />
+                    <Label htmlFor="save-to-database" className="text-sm">
+                      Save to Database
+                    </Label>
+                  </div>
+                ) : (
+                  <div className="flex items-center text-amber-600 text-sm">
+                    <LogIn className="h-4 w-4 mr-1" />
+                    <span>Login to save data</span>
+                  </div>
+                )}
+              </div>
               
               <div className="flex space-x-2">
                 {intentData.length > 0 && (
@@ -87,6 +125,30 @@ const IntentUpload: React.FC = () => {
                 </Button>
               </div>
             </div>
+            
+            {isAuthenticated && (
+              <div className="border border-gray-200 rounded-md p-4 bg-gray-50 mt-4">
+                <h3 className="text-sm font-medium mb-2 flex items-center">
+                  <Calendar className="h-4 w-4 mr-1" />
+                  Filter Saved Data by Date
+                </h3>
+                <div className="flex items-center gap-4">
+                  <DatePicker 
+                    date={dateFilter ? parseISO(dateFilter) : undefined} 
+                    onSelect={(date) => handleDateFilterChange(date ? format(date, 'yyyy-MM-dd') : null)} 
+                  />
+                  {dateFilter && (
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={() => handleDateFilterChange(null)}
+                    >
+                      Clear
+                    </Button>
+                  )}
+                </div>
+              </div>
+            )}
             
             <div className="mt-4 text-sm flex items-center justify-between">
               <div className="flex items-center text-muted-foreground">
@@ -116,6 +178,10 @@ const IntentUpload: React.FC = () => {
                   </div>
                 )}
               </div>
+            </div>
+
+            <div className="text-right text-xs text-muted-foreground">
+              Current date: {formattedDate}
             </div>
           </div>
         </CardContent>

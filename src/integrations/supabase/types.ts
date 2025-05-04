@@ -11,34 +11,46 @@ export type Database = {
     Tables: {
       intent_data: {
         Row: {
+          alexa_rank: number | null
           category: string
           company_name: string
           created_at: string
           date: string
+          employees: number | null
           id: string
           score: number
+          secondary_industry_hierarchical_category: string | null
           topic: string
           user_id: string | null
+          website: string | null
         }
         Insert: {
+          alexa_rank?: number | null
           category: string
           company_name: string
           created_at?: string
           date: string
+          employees?: number | null
           id?: string
           score: number
+          secondary_industry_hierarchical_category?: string | null
           topic: string
           user_id?: string | null
+          website?: string | null
         }
         Update: {
+          alexa_rank?: number | null
           category?: string
           company_name?: string
           created_at?: string
           date?: string
+          employees?: number | null
           id?: string
           score?: number
+          secondary_industry_hierarchical_category?: string | null
           topic?: string
           user_id?: string | null
+          website?: string | null
         }
         Relationships: []
       }
