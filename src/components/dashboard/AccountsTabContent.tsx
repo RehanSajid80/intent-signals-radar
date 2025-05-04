@@ -45,15 +45,15 @@ const AccountsTabContent = () => {
           <ContactRoleMapping accountId={selectedAccountId} />
         </div>
       ) : (
-        <Tabs defaultValue="engagement" className="mb-4">
+        <Tabs defaultValue="table" className="mb-4">
           <TabsList>
-            <TabsTrigger value="engagement" className="flex items-center gap-1">
-              <ListFilter className="h-4 w-4" />
-              Engagement View
-            </TabsTrigger>
             <TabsTrigger value="table" className="flex items-center gap-1">
               <Layers className="h-4 w-4" />
               Table View
+            </TabsTrigger>
+            <TabsTrigger value="engagement" className="flex items-center gap-1">
+              <ListFilter className="h-4 w-4" />
+              Engagement View
             </TabsTrigger>
             <TabsTrigger value="intent" className="flex items-center gap-1">
               <BarChart className="h-4 w-4" />
@@ -61,17 +61,17 @@ const AccountsTabContent = () => {
             </TabsTrigger>
           </TabsList>
           
-          <TabsContent value="engagement" className="mt-4">
-            <div className="space-y-4">
-              <CloudProviderAnalysis />
-              <AccountEngagementList onAccountSelected={handleAccountSelected} />
-            </div>
-          </TabsContent>
-          
           <TabsContent value="table" className="mt-4">
             <div className="space-y-4">
               <CloudProviderAnalysis />
               <AccountsTable onSelectAccount={handleAccountSelected} />
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="engagement" className="mt-4">
+            <div className="space-y-4">
+              <CloudProviderAnalysis />
+              <AccountEngagementList onAccountSelected={handleAccountSelected} />
             </div>
           </TabsContent>
           

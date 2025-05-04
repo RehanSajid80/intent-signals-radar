@@ -15,7 +15,7 @@ const Footer: React.FC = () => {
       title: "Settings",
       description: "Opening settings page..."
     });
-    navigate('/settings', { replace: true });
+    navigate('/settings');
   };
   
   return (

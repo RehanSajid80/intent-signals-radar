@@ -1,4 +1,3 @@
-
 import { Link, useLocation } from "react-router-dom";
 import { 
   Contact2, 
@@ -33,7 +32,7 @@ interface NavItemProps {
 
 const NavItem = ({ to, icon, label, badge, onClick }: NavItemProps) => {
   const location = useLocation();
-  const isActive = location.pathname === to;
+  const isActive = location.pathname === to || (to !== '/' && location.pathname.startsWith(to));
 
   return (
     <Link 
@@ -105,16 +104,9 @@ export const MobileSidebar = () => {
             onClick={handleNavClick}
           />
           <NavItem 
-            to="/team" 
-            icon={<Users className="h-5 w-5" />} 
-            label="Team" 
-            onClick={handleNavClick}
-          />
-          <NavItem 
-            to="/notifications" 
+            to="/intent" 
             icon={<Bell className="h-5 w-5" />} 
-            label="Notifications" 
-            badge={unreadCount > 0 ? unreadCount : undefined}
+            label="Intent" 
             onClick={handleNavClick}
           />
           <NavItem 
@@ -157,13 +149,7 @@ export const DesktopSidebar = () => {
         <NavItem to="/dashboard" icon={<BarChart3 className="h-5 w-5" />} label="Dashboard" />
         <NavItem to="/contacts" icon={<Contact2 className="h-5 w-5" />} label="Contacts" />
         <NavItem to="/accounts" icon={<Building2 className="h-5 w-5" />} label="Accounts" />
-        <NavItem to="/team" icon={<Users className="h-5 w-5" />} label="Team" />
-        <NavItem 
-          to="/notifications" 
-          icon={<Bell className="h-5 w-5" />} 
-          label="Notifications" 
-          badge={unreadCount > 0 ? unreadCount : undefined}
-        />
+        <NavItem to="/intent" icon={<Bell className="h-5 w-5" />} label="Intent" />
         <NavItem to="/settings" icon={<Settings className="h-5 w-5" />} label="Settings" />
       </div>
       <div className="mt-auto p-3 border-t border-sidebar-border">
