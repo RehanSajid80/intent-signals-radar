@@ -260,20 +260,15 @@ export const useIntentUpload = () => {
             throw new Error("No valid data found in the file");
           }
           
-          // Save to Supabase
-          const { data: supabaseData, error: supabaseError } = await saveToSupabase(processedData);
-          
-          if (supabaseError) {
-            throw new Error(`Failed to save data: ${supabaseError.message}`);
-          }
-          
+          // Instead of trying to save to Supabase directly, we'll save locally
+          // and inform the user of the RLS issue
           setIntentData(processedData);
           setUploadSuccess(true);
           setShowAnalysis(true);
           
           toast({
-            title: "Upload Successful",
-            description: `Processed ${processedData.length} intent records from ${selectedFile.name}.`,
+            title: "Processing Successful",
+            description: `Processed ${processedData.length} intent records from ${selectedFile.name}. Data loaded for visualization. Note: Database insert requires authentication.`,
           });
         } catch (err: any) {
           console.error("Error processing file:", err);
@@ -306,8 +301,10 @@ export const useIntentUpload = () => {
         topic: item.topic,
         category: item.category,
         score: item.score
-        // Removed the fields that are causing errors
       }));
+      
+      // Log what we're trying to insert to help with debugging
+      console.log("Attempting to insert data:", supabaseRows[0]);
       
       // Insert data in batches to avoid request size limitations
       const batchSize = 50;
