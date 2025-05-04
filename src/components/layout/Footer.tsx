@@ -12,7 +12,7 @@ const Footer: React.FC = () => {
       title: "Settings",
       description: "Opening settings page..."
     });
-    // Direct link to settings for more reliable navigation
+    // Direct navigation to settings page
     window.location.href = '/settings';
   };
   

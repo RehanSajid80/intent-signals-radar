@@ -13,7 +13,7 @@ const Header: React.FC = () => {
       title: "Settings",
       description: "Opening settings page..."
     });
-    // Direct link to settings for more reliable navigation
+    // Direct navigation to settings page
     window.location.href = '/settings';
   };
   
@@ -22,11 +22,13 @@ const Header: React.FC = () => {
       <div className="container mx-auto px-4">
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-3">
-            <img 
-              src="https://www.zyter.com/wp-content/uploads/2023/04/ZTC_LOGO_FINAL1.png" 
-              alt="Zyter Logo" 
-              className="h-10" 
-            />
+            <Link to="/">
+              <img 
+                src="https://www.zyter.com/wp-content/uploads/2023/04/ZTC_LOGO_FINAL1.png" 
+                alt="Zyter Logo" 
+                className="h-10" 
+              />
+            </Link>
             <h1 className="text-2xl font-bold text-teal-500">
               Lead Priority Radar
             </h1>
