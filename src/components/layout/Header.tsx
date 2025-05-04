@@ -1,20 +1,21 @@
 
 import React from 'react';
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Settings } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 const Header: React.FC = () => {
   const { toast } = useToast();
+  const navigate = useNavigate();
   
-  const handleSettingsClick = () => {
+  const handleSettingsClick = (e: React.MouseEvent) => {
+    e.preventDefault();
     toast({
       title: "Settings",
       description: "Opening settings page..."
     });
-    // Direct navigation to settings page
-    window.location.href = '/settings';
+    navigate('/settings', { replace: true });
   };
   
   return (
