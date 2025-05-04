@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo } from "react";
 import { IntentData } from "./types/intentTypes";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -128,7 +127,7 @@ const IntentAnalysis: React.FC<IntentAnalysisProps> = ({ data }) => {
             <CardHeader className="pb-2">
               <CardTitle className="text-base">Companies Detail</CardTitle>
               <CardDescription className="text-sm">
-                Top 10 Companies by Intent Score
+                Top Companies by Intent Score
               </CardDescription>
             </CardHeader>
             <CardContent>

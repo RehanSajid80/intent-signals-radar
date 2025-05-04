@@ -1,13 +1,22 @@
 
-import React, { useMemo } from "react";
-import { IntentData } from "../IntentUpload";
+import React, { useMemo, useState } from "react";
+import { IntentData } from "../types/intentTypes";
 import { cn } from "@/lib/utils";
+import { 
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from "@/components/ui/select";
 
 interface TopCompaniesTableProps {
   data: IntentData[];
 }
 
 const TopCompaniesTable: React.FC<TopCompaniesTableProps> = ({ data }) => {
+  const [displayCount, setDisplayCount] = useState<number>(10);
+  
   const topCompanies = useMemo(() => {
     // Group by company and calculate average scores
     const companyScores = data.reduce((acc, item) => {
@@ -38,12 +47,37 @@ const TopCompaniesTable: React.FC<TopCompaniesTableProps> = ({ data }) => {
         categories: Array.from(stats.categories)
       }))
       .sort((a, b) => b.avgScore - a.avgScore)
-      .slice(0, 10);
-  }, [data]);
+      .slice(0, displayCount);
+  }, [data, displayCount]);
+
+  const handleDisplayCountChange = (value: string) => {
+    setDisplayCount(Number(value));
+  };
 
   return (
     <div>
-      <h3 className="text-sm font-medium mb-2">Top 10 Companies by Intent</h3>
+      <div className="flex justify-between items-center mb-2">
+        <h3 className="text-sm font-medium">Top Companies by Intent</h3>
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-gray-500">Show:</span>
+          <Select 
+            value={displayCount.toString()} 
+            onValueChange={handleDisplayCountChange}
+          >
+            <SelectTrigger className="h-8 w-[90px]">
+              <SelectValue placeholder="10" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="5">5</SelectItem>
+              <SelectItem value="10">10</SelectItem>
+              <SelectItem value="20">20</SelectItem>
+              <SelectItem value="50">50</SelectItem>
+              <SelectItem value="100">100</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+      
       <div className="rounded-md border">
         <table className="w-full text-sm">
           <thead>
