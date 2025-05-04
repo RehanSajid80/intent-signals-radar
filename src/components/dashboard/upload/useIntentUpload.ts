@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { IntentData, DbIntentData } from "../types/intentTypes";
@@ -300,17 +299,14 @@ export const useIntentUpload = () => {
 
   const saveToSupabase = async (intentDataArray: IntentData[]) => {
     try {
-      // Convert to Supabase format
+      // Convert to Supabase format - keeping only fields that exist in the database
       const supabaseRows = intentDataArray.map(item => ({
         date: item.date,
         company_name: item.companyName,
         topic: item.topic,
         category: item.category,
-        score: item.score,
-        website: item.website || null,
-        secondary_industry_hierarchical_category: item.secondaryIndustryHierarchicalCategory || null,
-        alexa_rank: item.alexaRank ? parseInt(item.alexaRank) : null,
-        employees: item.employees ? parseInt(item.employees) : null
+        score: item.score
+        // Removed the fields that are causing errors
       }));
       
       // Insert data in batches to avoid request size limitations
