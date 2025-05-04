@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { IntentData, DbIntentData } from "../types/intentTypes";
@@ -11,6 +12,7 @@ export const useIntentUpload = () => {
   const [previewData, setPreviewData] = useState<IntentData[]>([]);
   const [intentData, setIntentData] = useState<IntentData[]>([]);
   const [showAnalysis, setShowAnalysis] = useState(false);
+  const [savedToSupabase, setSavedToSupabase] = useState(false);
   
   const { toast } = useToast();
 
@@ -60,6 +62,7 @@ export const useIntentUpload = () => {
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setError(null);
     setPreviewData([]);
+    setSavedToSupabase(false);
     
     if (event.target.files && event.target.files[0]) {
       const file = event.target.files[0];
@@ -246,6 +249,7 @@ export const useIntentUpload = () => {
     
     setIsProcessing(true);
     setError(null);
+    setSavedToSupabase(false);
     
     try {
       // Process the file data
@@ -260,16 +264,28 @@ export const useIntentUpload = () => {
             throw new Error("No valid data found in the file");
           }
           
-          // Instead of trying to save to Supabase directly, we'll save locally
-          // and inform the user of the RLS issue
+          // Set the data for visualization
           setIntentData(processedData);
           setUploadSuccess(true);
           setShowAnalysis(true);
           
-          toast({
-            title: "Processing Successful",
-            description: `Processed ${processedData.length} intent records from ${selectedFile.name}. Data loaded for visualization. Note: Database insert requires authentication.`,
-          });
+          // Try to save to Supabase
+          const { data: saveData, error: saveError } = await saveToSupabase(processedData);
+          
+          if (saveError) {
+            console.error("Error saving to Supabase:", saveError);
+            toast({
+              title: "Processing Successful",
+              description: `Processed ${processedData.length} records. Data loaded for visualization but could not be saved to database: ${saveError.message}`,
+            });
+          } else {
+            setSavedToSupabase(true);
+            toast({
+              title: "Processing Successful",
+              description: `Processed and saved ${processedData.length} intent records from ${selectedFile.name}.`,
+              variant: "default",
+            });
+          }
         } catch (err: any) {
           console.error("Error processing file:", err);
           setError(err.message || "Failed to process the file. Please check the format.");
@@ -300,7 +316,10 @@ export const useIntentUpload = () => {
         company_name: item.companyName,
         topic: item.topic,
         category: item.category,
-        score: item.score
+        score: item.score,
+        // This ensures RLS policies won't block the insert if user_id is required
+        // If user is logged in, this will be their ID; otherwise it will be null
+        user_id: (await supabase.auth.getUser()).data?.user?.id || null
       }));
       
       // Log what we're trying to insert to help with debugging
@@ -316,23 +335,34 @@ export const useIntentUpload = () => {
       }
       
       let errors = [];
+      let totalInserted = 0;
       
       for (const batch of batches) {
-        const { error } = await supabase
+        const { data, error } = await supabase
           .from('intent_data')
-          .insert(batch);
+          .insert(batch)
+          .select('id');
         
         if (error) {
           errors.push(error);
           console.error("Error inserting batch:", error);
+        } else if (data) {
+          totalInserted += data.length;
         }
       }
       
       if (errors.length > 0) {
-        return { data: null, error: new Error(`${errors.length} batches failed to insert`) };
+        // If we had some successful inserts but some failed
+        if (totalInserted > 0) {
+          return { 
+            data: { inserted: totalInserted }, 
+            error: new Error(`${errors.length} batches failed to insert, but ${totalInserted} rows were saved.`) 
+          };
+        }
+        return { data: null, error: new Error(`Failed to insert data: ${errors[0].message}`) };
       }
       
-      return { data: true, error: null };
+      return { data: { inserted: totalInserted }, error: null };
     } catch (err) {
       console.error("Error in saveToSupabase:", err);
       return { data: null, error: err as Error };
@@ -417,6 +447,7 @@ export const useIntentUpload = () => {
     previewData,
     intentData,
     showAnalysis,
+    savedToSupabase,
     handleFileChange,
     handleUpload,
     toggleAnalysis,

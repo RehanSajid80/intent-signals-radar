@@ -2,7 +2,7 @@
 import React, { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { BarChart, Database, Upload } from "lucide-react";
+import { BarChart, Database, Upload, Check } from "lucide-react";
 import IntentAnalysis from "@/components/dashboard/IntentAnalysis";
 import FileUploadZone from "./upload/FileUploadZone";
 import StatusNotifications from "./upload/StatusNotifications";
@@ -20,6 +20,7 @@ const IntentUpload: React.FC = () => {
     previewData,
     intentData,
     showAnalysis,
+    savedToSupabase,
     handleFileChange,
     handleUpload,
     toggleAnalysis,
@@ -85,12 +86,21 @@ const IntentUpload: React.FC = () => {
               </div>
             </div>
             
-            {intentData.length > 0 && (
-              <div className="mt-4 text-sm flex items-center text-muted-foreground">
+            <div className="mt-4 text-sm flex items-center justify-between">
+              <div className="flex items-center text-muted-foreground">
                 <Database className="h-4 w-4 mr-1" />
-                {intentData.length} records in database
+                {intentData.length > 0 && (
+                  <span>{intentData.length} records loaded</span>
+                )}
               </div>
-            )}
+              
+              {savedToSupabase && (
+                <div className="flex items-center text-green-600">
+                  <Check className="h-4 w-4 mr-1" />
+                  <span>Data saved to database</span>
+                </div>
+              )}
+            </div>
           </div>
         </CardContent>
       </Card>
