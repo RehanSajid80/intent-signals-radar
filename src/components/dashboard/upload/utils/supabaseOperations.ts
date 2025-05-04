@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { IntentData, DbIntentData } from "../../types/intentTypes";
 
@@ -10,7 +11,10 @@ export const saveToSupabase = async (intentDataArray: IntentData[]) => {
     const { data: authData } = await supabase.auth.getUser();
     const userId = authData?.user?.id || null;
     
+    console.log("Auth status:", !!userId, "User ID:", userId);
+    
     if (!userId) {
+      console.error("Authentication error: User is not authenticated");
       return { data: null, error: new Error("User is not authenticated") };
     }
     
@@ -29,7 +33,8 @@ export const saveToSupabase = async (intentDataArray: IntentData[]) => {
     }));
     
     // Log what we're trying to insert to help with debugging
-    console.log("Attempting to insert data:", supabaseRows[0]);
+    console.log("Attempting to insert data count:", supabaseRows.length);
+    console.log("Sample data:", supabaseRows[0]);
     
     // Insert data in batches to avoid request size limitations
     const batchSize = 50;
@@ -40,10 +45,15 @@ export const saveToSupabase = async (intentDataArray: IntentData[]) => {
       batches.push(batch);
     }
     
+    console.log("Processing data in", batches.length, "batches");
+    
     let errors = [];
     let totalInserted = 0;
     
-    for (const batch of batches) {
+    for (let i = 0; i < batches.length; i++) {
+      const batch = batches[i];
+      console.log(`Inserting batch ${i+1}/${batches.length}, size: ${batch.length}`);
+      
       const { data, error } = await supabase
         .from('intent_data')
         .insert(batch)
@@ -51,23 +61,27 @@ export const saveToSupabase = async (intentDataArray: IntentData[]) => {
       
       if (error) {
         errors.push(error);
-        console.error("Error inserting batch:", error);
+        console.error(`Batch ${i+1} error:`, error.message, error.details, error.hint);
       } else if (data) {
         totalInserted += data.length;
+        console.log(`Batch ${i+1} success: inserted ${data.length} rows`);
       }
     }
     
     if (errors.length > 0) {
       // If we had some successful inserts but some failed
       if (totalInserted > 0) {
+        console.log(`Partial success: ${totalInserted} rows inserted, ${errors.length} batches failed`);
         return { 
           data: { inserted: totalInserted }, 
           error: new Error(`${errors.length} batches failed to insert, but ${totalInserted} rows were saved.`) 
         };
       }
+      console.error("Complete failure to insert data:", errors[0]);
       return { data: null, error: new Error(`Failed to insert data: ${errors[0].message}`) };
     }
     
+    console.log("Full success: all data inserted, total:", totalInserted);
     return { data: { inserted: totalInserted }, error: null };
   } catch (err) {
     console.error("Error in saveToSupabase:", err);
