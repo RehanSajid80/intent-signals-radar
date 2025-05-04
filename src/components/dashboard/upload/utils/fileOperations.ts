@@ -62,7 +62,7 @@ export const downloadIntentData = (intentData: IntentData[]) => {
     
     // Clean up
     document.body.removeChild(link);
-    URL.revoObjectURL(url);
+    URL.revokeObjectURL(url);
     
     toast({
       title: "Download Started",
