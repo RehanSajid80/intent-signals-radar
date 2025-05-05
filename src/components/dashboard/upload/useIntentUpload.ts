@@ -3,7 +3,11 @@ import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { IntentData } from "../types/intentTypes";
 import { processCSVData, createCSVPreview } from "./utils/csvParser";
-import { saveToSupabase, fetchSupabaseData, fetchAvailableWeeks } from "./utils/supabaseOperations";
+import { 
+  saveToSupabase, 
+  fetchSupabaseData, 
+  fetchAvailableWeeks 
+} from "./utils/supabase"; // Updated import
 import { downloadIntentData, isValidCSVFile } from "./utils/fileOperations";
 import { supabase } from "@/integrations/supabase/client";
 

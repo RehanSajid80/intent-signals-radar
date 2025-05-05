@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import Sidebar from "@/components/Sidebar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -9,7 +10,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { IntentData } from "@/components/dashboard/types/intentTypes";
 import { format } from "date-fns";
 import { Skeleton } from '@/components/ui/skeleton';
-import { fetchAvailableWeeks, fetchSupabaseData } from '@/components/dashboard/upload/utils/supabaseOperations';
+import { 
+  fetchAvailableWeeks, 
+  fetchSupabaseData 
+} from '@/components/dashboard/upload/utils/supabase'; // Updated import
 import { WeekSelector } from '@/components/dashboard/upload/WeekSelector';
 import { Button } from '@/components/ui/button';
 
