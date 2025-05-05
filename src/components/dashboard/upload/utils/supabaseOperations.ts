@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { IntentData, DbIntentData } from "../../types/intentTypes";
 
@@ -97,35 +98,37 @@ export const saveToSupabase = async (intentDataArray: IntentData[], weekLabel?: 
  */
 export const fetchSupabaseData = async (dateFilter?: string, weekLabel?: string): Promise<IntentData[]> => {
   try {
-    let query;
+    // Break down the query into simpler parts to avoid TypeScript recursion issues
+    let queryResult;
     
+    // Handle different filter combinations explicitly to avoid complex type inference
     if (dateFilter && weekLabel) {
-      query = supabase
+      queryResult = await supabase
         .from('intent_data')
         .select('*')
         .eq('date', dateFilter)
         .eq('week_label', weekLabel)
         .order('date', { ascending: false });
     } else if (dateFilter) {
-      query = supabase
+      queryResult = await supabase
         .from('intent_data')
         .select('*')
         .eq('date', dateFilter)
         .order('date', { ascending: false });
     } else if (weekLabel) {
-      query = supabase
+      queryResult = await supabase
         .from('intent_data')
         .select('*')
         .eq('week_label', weekLabel)
         .order('date', { ascending: false });
     } else {
-      query = supabase
+      queryResult = await supabase
         .from('intent_data')
         .select('*')
         .order('date', { ascending: false });
     }
     
-    const { data, error } = await query;
+    const { data, error } = queryResult;
     
     if (error) {
       console.error("Error fetching data:", error);
@@ -207,6 +210,7 @@ const convertDbRowsToIntentData = (rows: any[]): IntentData[] => {
  */
 export const fetchAvailableWeeks = async (): Promise<string[]> => {
   try {
+    // Execute query directly with explicit typing to avoid TypeScript errors
     const { data, error } = await supabase
       .from('intent_data')
       .select('week_label')
@@ -221,9 +225,9 @@ export const fetchAvailableWeeks = async (): Promise<string[]> => {
       return [];
     }
     
-    // Extract unique week labels using Set
+    // Use type assertion for week_label to help TypeScript
     const weekLabels = data
-      .map(item => item.week_label as string)
+      .map(item => (item as any).week_label as string)
       .filter(Boolean);
     
     const uniqueWeeks = [...new Set(weekLabels)];
