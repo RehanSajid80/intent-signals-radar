@@ -10,37 +10,20 @@ import { convertDbRowsToIntentData } from "./dataConverters";
  */
 export const fetchSupabaseData = async (dateFilter?: string, weekLabel?: string): Promise<IntentData[]> => {
   try {
-    // Break down the query into simpler parts to avoid TypeScript recursion issues
-    let queryResult;
+    // Use simple query structure to avoid TypeScript recursion issues
+    let query = supabase.from('intent_data').select('*');
     
-    // Handle different filter combinations explicitly to avoid complex type inference
-    if (dateFilter && weekLabel) {
-      queryResult = await supabase
-        .from('intent_data')
-        .select('*')
-        .eq('date', dateFilter)
-        .eq('week_label', weekLabel)
-        .order('date', { ascending: false });
-    } else if (dateFilter) {
-      queryResult = await supabase
-        .from('intent_data')
-        .select('*')
-        .eq('date', dateFilter)
-        .order('date', { ascending: false });
-    } else if (weekLabel) {
-      queryResult = await supabase
-        .from('intent_data')
-        .select('*')
-        .eq('week_label', weekLabel)
-        .order('date', { ascending: false });
-    } else {
-      queryResult = await supabase
-        .from('intent_data')
-        .select('*')
-        .order('date', { ascending: false });
+    // Apply filters if provided
+    if (dateFilter) {
+      query = query.eq('date', dateFilter);
     }
     
-    const { data, error } = queryResult;
+    if (weekLabel) {
+      query = query.eq('week_label', weekLabel);
+    }
+    
+    // Execute the query
+    const { data, error } = await query.order('date', { ascending: false });
     
     if (error) {
       console.error("Error fetching data:", error);
@@ -74,11 +57,10 @@ export const fetchSupabaseData = async (dateFilter?: string, weekLabel?: string)
  */
 export const fetchAvailableWeeks = async (): Promise<string[]> => {
   try {
-    // Execute query directly with explicit typing to avoid TypeScript errors
+    // Simplified query that should work without TypeScript recursion issues
     const { data, error } = await supabase
       .from('intent_data')
-      .select('week_label')
-      .not('week_label', 'is', null);
+      .select('week_label');
     
     if (error) {
       console.error("Error fetching weeks:", error);

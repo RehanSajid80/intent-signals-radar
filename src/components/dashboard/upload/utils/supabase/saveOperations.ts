@@ -6,17 +6,7 @@ import { IntentData } from "../../../types/intentTypes";
  */
 export const saveToSupabase = async (intentDataArray: IntentData[], weekLabel?: string) => {
   try {
-    // Get the user ID first, outside of the map function
-    const { data: authData } = await supabase.auth.getUser();
-    const userId = authData?.user?.id || null;
-    
-    console.log("Auth status:", !!userId, "User ID:", userId);
     console.log("Saving data for week:", weekLabel || "Not specified");
-    
-    if (!userId) {
-      console.error("Authentication error: User is not authenticated");
-      return { data: null, error: new Error("User is not authenticated") };
-    }
     
     // Convert to Supabase format - keeping only fields that exist in the database
     const supabaseRows = intentDataArray.map(item => ({
@@ -29,7 +19,6 @@ export const saveToSupabase = async (intentDataArray: IntentData[], weekLabel?: 
       secondary_industry_hierarchical_category: item.secondaryIndustryHierarchicalCategory || null,
       alexa_rank: item.alexaRank ? parseInt(item.alexaRank) : null,
       employees: item.employees ? parseInt(item.employees) : null,
-      user_id: userId,
       week_label: weekLabel || null
     }));
     

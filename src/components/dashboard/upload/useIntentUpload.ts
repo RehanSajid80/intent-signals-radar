@@ -7,9 +7,8 @@ import {
   saveToSupabase, 
   fetchSupabaseData, 
   fetchAvailableWeeks 
-} from "./utils/supabase"; // Updated import
+} from "./utils/supabase";
 import { downloadIntentData, isValidCSVFile } from "./utils/fileOperations";
-import { supabase } from "@/integrations/supabase/client";
 
 export const useIntentUpload = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -21,7 +20,6 @@ export const useIntentUpload = () => {
   const [showAnalysis, setShowAnalysis] = useState(false);
   const [savedToSupabase, setSavedToSupabase] = useState(false);
   const [saveToDatabase, setSaveToDatabase] = useState(true);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [dateFilter, setDateFilter] = useState<string | null>(null);
   const [weekLabel, setWeekLabel] = useState<string>("");
   const [availableWeeks, setAvailableWeeks] = useState<string[]>([]);
@@ -29,40 +27,15 @@ export const useIntentUpload = () => {
   
   const { toast } = useToast();
 
-  // Check if user is authenticated with Supabase
+  // Load available weeks when component mounts
   useEffect(() => {
-    const checkAuth = async () => {
-      const { data } = await supabase.auth.getSession();
-      setIsAuthenticated(!!data.session);
-      
-      // Set up auth state change listener
-      const { data: authListener } = supabase.auth.onAuthStateChange(
-        (event, session) => {
-          setIsAuthenticated(!!session);
-        }
-      );
-      
-      return () => {
-        if (authListener && authListener.subscription) {
-          authListener.subscription.unsubscribe();
-        }
-      };
+    const loadWeeks = async () => {
+      const weeks = await fetchAvailableWeeks();
+      setAvailableWeeks(weeks);
     };
     
-    checkAuth();
+    loadWeeks();
   }, []);
-
-  // Load available weeks when authenticated
-  useEffect(() => {
-    if (isAuthenticated) {
-      const loadWeeks = async () => {
-        const weeks = await fetchAvailableWeeks();
-        setAvailableWeeks(weeks);
-      };
-      
-      loadWeeks();
-    }
-  }, [isAuthenticated]);
 
   // Generate the current week label
   useEffect(() => {
@@ -144,8 +117,8 @@ export const useIntentUpload = () => {
           setUploadSuccess(true);
           setShowAnalysis(true);
           
-          // Save to Supabase if option is selected and user is authenticated
-          if (saveToDatabase && isAuthenticated) {
+          // Save to Supabase if option is selected
+          if (saveToDatabase) {
             const { data: saveData, error: saveError } = await saveToSupabase(processedData, weekLabel);
             
             if (saveError) {
@@ -168,16 +141,10 @@ export const useIntentUpload = () => {
                 variant: "default",
               });
             }
-          } else if (!saveToDatabase) {
+          } else {
             toast({
               title: "Processing Successful",
               description: `Processed ${processedData.length} records. Data loaded for visualization only (not saved to database).`,
-              variant: "default",
-            });
-          } else if (!isAuthenticated) {
-            toast({
-              title: "Login Required",
-              description: `Processed ${processedData.length} records. Please login to save data to the database.`,
               variant: "default",
             });
           }
@@ -277,7 +244,7 @@ export const useIntentUpload = () => {
     showAnalysis,
     savedToSupabase,
     saveToDatabase,
-    isAuthenticated,
+    isAuthenticated: true, // Always return true to skip authentication checks in UI
     dateFilter,
     weekLabel,
     weekFilter,

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import Sidebar from "@/components/Sidebar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -6,22 +5,19 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import IntentAnalysis from "@/components/dashboard/IntentAnalysis";
 import IntentUpload from "@/components/dashboard/IntentUpload";
 import { sampleIntentData } from "@/data/sampleIntentData";
-import { supabase } from "@/integrations/supabase/client";
 import { IntentData } from "@/components/dashboard/types/intentTypes";
 import { format } from "date-fns";
 import { Skeleton } from '@/components/ui/skeleton';
 import { 
   fetchAvailableWeeks, 
   fetchSupabaseData 
-} from '@/components/dashboard/upload/utils/supabase'; // Updated import
+} from '@/components/dashboard/upload/utils/supabase';
 import { WeekSelector } from '@/components/dashboard/upload/WeekSelector';
-import { Button } from '@/components/ui/button';
 
 const IntentPage = () => {
   const [activeTab, setActiveTab] = useState("database");
   const [databaseData, setDatabaseData] = useState<IntentData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [availableWeeks, setAvailableWeeks] = useState<string[]>([]);
   const [selectedWeek, setSelectedWeek] = useState<string>("");
   
@@ -29,35 +25,23 @@ const IntentPage = () => {
   const currentDate = format(new Date(), "MMMM d, yyyy");
   
   useEffect(() => {
-    // Check authentication status
-    const checkAuth = async () => {
-      const { data } = await supabase.auth.getSession();
-      setIsAuthenticated(!!data.session);
-    };
-    
-    checkAuth();
-  }, []);
-  
-  useEffect(() => {
     const fetchIntentData = async () => {
       try {
         setIsLoading(true);
         
         // Fetch available weeks first
-        if (isAuthenticated) {
-          const weeks = await fetchAvailableWeeks();
-          setAvailableWeeks(weeks);
-          
-          // If there are weeks available, fetch data for the most recent week
-          if (weeks.length > 0) {
-            setSelectedWeek(weeks[0]);
-            const data = await fetchSupabaseData(undefined, weeks[0]);
-            setDatabaseData(data);
-          } else {
-            // Otherwise fetch all data
-            const data = await fetchSupabaseData();
-            setDatabaseData(data);
-          }
+        const weeks = await fetchAvailableWeeks();
+        setAvailableWeeks(weeks);
+        
+        // If there are weeks available, fetch data for the most recent week
+        if (weeks.length > 0) {
+          setSelectedWeek(weeks[0]);
+          const data = await fetchSupabaseData(undefined, weeks[0]);
+          setDatabaseData(data);
+        } else {
+          // Otherwise fetch all data
+          const data = await fetchSupabaseData();
+          setDatabaseData(data);
         }
       } catch (err) {
         console.error("Error fetching data:", err);
@@ -66,12 +50,8 @@ const IntentPage = () => {
       }
     };
     
-    if (isAuthenticated) {
-      fetchIntentData();
-    } else {
-      setIsLoading(false);
-    }
-  }, [isAuthenticated]);
+    fetchIntentData();
+  }, []);
 
   const handleWeekChange = async (week: string) => {
     setSelectedWeek(week);
@@ -121,7 +101,7 @@ const IntentPage = () => {
                 <CardHeader className="pb-2">
                   <CardTitle className="text-lg flex justify-between">
                     <span>Intent Data from Database</span>
-                    {isAuthenticated && availableWeeks.length > 0 && (
+                    {availableWeeks.length > 0 && (
                       <div className="flex items-center space-x-2">
                         <span className="text-sm font-normal text-muted-foreground">Week:</span>
                         <div className="w-[240px]">
@@ -154,15 +134,6 @@ const IntentPage = () => {
                     <Skeleton className="h-[300px]" />
                   </div>
                 </div>
-              ) : !isAuthenticated ? (
-                <Card className="py-12">
-                  <CardContent className="text-center">
-                    <p className="mb-4 text-muted-foreground">Please log in to view saved intent data.</p>
-                    <p className="text-sm">
-                      You need to be authenticated to access data stored in the database.
-                    </p>
-                  </CardContent>
-                </Card>
               ) : databaseData.length > 0 ? (
                 <IntentAnalysis data={databaseData} />
               ) : (

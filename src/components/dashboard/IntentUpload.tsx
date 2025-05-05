@@ -2,14 +2,13 @@
 import React, { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { BarChart, Database, Upload, Check, Download, Calendar, LogIn, ListFilter } from "lucide-react";
+import { BarChart, Database, Upload, Check, Download, Calendar } from "lucide-react";
 import IntentAnalysis from "@/components/dashboard/IntentAnalysis";
 import FileUploadZone from "./upload/FileUploadZone";
 import StatusNotifications from "./upload/StatusNotifications";
 import IntentDataPreview from "./upload/IntentDataPreview";
 import CsvFormatHelp from "./upload/CsvFormatHelp";
 import { useIntentUpload } from "./upload/useIntentUpload";
-import { IntentData } from "./types/intentTypes";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { DatePicker } from "./upload/DatePicker";
@@ -28,7 +27,6 @@ const IntentUpload: React.FC = () => {
     showAnalysis,
     savedToSupabase,
     saveToDatabase,
-    isAuthenticated,
     dateFilter,
     weekLabel,
     weekFilter,
@@ -50,10 +48,8 @@ const IntentUpload: React.FC = () => {
       await fetchFilteredData();
     };
     
-    if (isAuthenticated) {
-      loadData();
-    }
-  }, [isAuthenticated]);
+    loadData();
+  }, []);
 
   // Format current date for display
   const formattedDate = new Date().toLocaleDateString("en-US", {
@@ -88,46 +84,37 @@ const IntentUpload: React.FC = () => {
             
             <IntentDataPreview previewData={previewData} />
             
-            {isAuthenticated && selectedFile && (
-              <div className="border border-gray-200 rounded-md p-4 bg-gray-50">
-                <h3 className="text-sm font-medium mb-2 flex items-center">
-                  <ListFilter className="h-4 w-4 mr-1" />
-                  Assign to Week
-                </h3>
-                <div className="flex flex-col space-y-2">
-                  <WeekSelector 
-                    value={weekLabel}
-                    onChange={handleWeekLabelChange}
-                    availableWeeks={availableWeeks}
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Select which week these intent signals belong to
-                  </p>
-                </div>
+            <div className="border border-gray-200 rounded-md p-4 bg-gray-50">
+              <h3 className="text-sm font-medium mb-2 flex items-center">
+                <Calendar className="h-4 w-4 mr-1" />
+                Assign to Week
+              </h3>
+              <div className="flex flex-col space-y-2">
+                <WeekSelector 
+                  value={weekLabel}
+                  onChange={handleWeekLabelChange}
+                  availableWeeks={availableWeeks}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Select which week these intent signals belong to
+                </p>
               </div>
-            )}
+            </div>
             
             <div className="flex justify-between items-center">
               <div className="flex items-center gap-4">
                 <CsvFormatHelp />
                 
-                {isAuthenticated ? (
-                  <div className="flex items-center space-x-2">
-                    <Switch 
-                      id="save-to-database" 
-                      checked={saveToDatabase} 
-                      onCheckedChange={toggleSaveOption}
-                    />
-                    <Label htmlFor="save-to-database" className="text-sm">
-                      Save to Database
-                    </Label>
-                  </div>
-                ) : (
-                  <div className="flex items-center text-amber-600 text-sm">
-                    <LogIn className="h-4 w-4 mr-1" />
-                    <span>Login to save data</span>
-                  </div>
-                )}
+                <div className="flex items-center space-x-2">
+                  <Switch 
+                    id="save-to-database" 
+                    checked={saveToDatabase} 
+                    onCheckedChange={toggleSaveOption}
+                  />
+                  <Label htmlFor="save-to-database" className="text-sm">
+                    Save to Database
+                  </Label>
+                </div>
               </div>
               
               <div className="flex space-x-2">
@@ -152,60 +139,58 @@ const IntentUpload: React.FC = () => {
               </div>
             </div>
             
-            {isAuthenticated && (
-              <div className="border border-gray-200 rounded-md p-4 bg-gray-50 mt-4">
-                <h3 className="text-sm font-medium mb-2 flex items-center">
-                  <Calendar className="h-4 w-4 mr-1" />
-                  Filter Saved Data
-                </h3>
+            <div className="border border-gray-200 rounded-md p-4 bg-gray-50 mt-4">
+              <h3 className="text-sm font-medium mb-2 flex items-center">
+                <Calendar className="h-4 w-4 mr-1" />
+                Filter Saved Data
+              </h3>
+              
+              <Tabs defaultValue="date" className="w-full">
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="date">Filter by Date</TabsTrigger>
+                  <TabsTrigger value="week">Filter by Week</TabsTrigger>
+                </TabsList>
                 
-                <Tabs defaultValue="date" className="w-full">
-                  <TabsList className="grid w-full grid-cols-2">
-                    <TabsTrigger value="date">Filter by Date</TabsTrigger>
-                    <TabsTrigger value="week">Filter by Week</TabsTrigger>
-                  </TabsList>
-                  
-                  <TabsContent value="date" className="pt-4">
-                    <div className="flex items-center gap-4">
-                      <DatePicker 
-                        date={dateFilter ? parseISO(dateFilter) : undefined} 
-                        onSelect={(date) => handleDateFilterChange(date ? format(date, 'yyyy-MM-dd') : null)} 
+                <TabsContent value="date" className="pt-4">
+                  <div className="flex items-center gap-4">
+                    <DatePicker 
+                      date={dateFilter ? parseISO(dateFilter) : undefined} 
+                      onSelect={(date) => handleDateFilterChange(date ? format(date, 'yyyy-MM-dd') : null)} 
+                    />
+                    {dateFilter && (
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        onClick={() => handleDateFilterChange(null)}
+                      >
+                        Clear
+                      </Button>
+                    )}
+                  </div>
+                </TabsContent>
+                
+                <TabsContent value="week" className="pt-4">
+                  <div className="flex items-center gap-4">
+                    <div className="w-[240px]">
+                      <WeekSelector
+                        value={weekFilter || ""}
+                        onChange={handleWeekFilterChange}
+                        availableWeeks={availableWeeks}
                       />
-                      {dateFilter && (
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          onClick={() => handleDateFilterChange(null)}
-                        >
-                          Clear
-                        </Button>
-                      )}
                     </div>
-                  </TabsContent>
-                  
-                  <TabsContent value="week" className="pt-4">
-                    <div className="flex items-center gap-4">
-                      <div className="w-[240px]">
-                        <WeekSelector
-                          value={weekFilter || ""}
-                          onChange={handleWeekFilterChange}
-                          availableWeeks={availableWeeks}
-                        />
-                      </div>
-                      {weekFilter && (
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          onClick={() => handleWeekFilterChange(null)}
-                        >
-                          Clear
-                        </Button>
-                      )}
-                    </div>
-                  </TabsContent>
-                </Tabs>
-              </div>
-            )}
+                    {weekFilter && (
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        onClick={() => handleWeekFilterChange(null)}
+                      >
+                        Clear
+                      </Button>
+                    )}
+                  </div>
+                </TabsContent>
+              </Tabs>
+            </div>
             
             <div className="mt-4 text-sm flex items-center justify-between">
               <div className="flex items-center text-muted-foreground">
