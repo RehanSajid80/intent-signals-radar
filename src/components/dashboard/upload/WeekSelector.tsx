@@ -47,13 +47,26 @@ export function WeekSelector({
 
   // Create a list of available weeks plus the current week
   const weeks = React.useMemo(() => {
+    // Ensure we have an array of available weeks (never undefined)
+    const safeAvailableWeeks = Array.isArray(availableWeeks) ? availableWeeks : [];
     const currentWeek = getCurrentWeek();
-    const allWeeks = [...new Set([currentWeek, ...availableWeeks])];
-    return allWeeks.map(week => ({
+    
+    // Ensure no duplicates and filter out any undefined/null values
+    const validWeeks = [...new Set([currentWeek, ...safeAvailableWeeks])].filter(Boolean);
+    
+    return validWeeks.map(week => ({
       value: week,
       label: week
     }));
   }, [availableWeeks, getCurrentWeek]);
+
+  // Safe onSelect handler
+  const handleSelect = React.useCallback((selectedValue: string) => {
+    if (selectedValue) {
+      onChange(selectedValue);
+      setOpen(false);
+    }
+  }, [onChange]);
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -81,10 +94,7 @@ export function WeekSelector({
               <CommandItem
                 key={week.value}
                 value={week.value}
-                onSelect={(currentValue) => {
-                  onChange(currentValue);
-                  setOpen(false);
-                }}
+                onSelect={handleSelect}
               >
                 <Check
                   className={cn(
