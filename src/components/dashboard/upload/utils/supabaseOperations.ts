@@ -98,20 +98,16 @@ export const saveToSupabase = async (intentDataArray: IntentData[], weekLabel?: 
  */
 export const fetchSupabaseData = async (dateFilter?: string, weekLabel?: string): Promise<IntentData[]> => {
   try {
-    // Define the base query - avoiding type recursion issues
-    let query = supabase.from('intent_data').select();
-    
-    // Apply filters if provided
-    if (dateFilter) {
-      query = query.eq('date', dateFilter);
-    }
-    
-    if (weekLabel) {
-      query = query.eq('week_label', weekLabel);
-    }
-    
-    // Execute the query with ordering
-    const { data, error } = await query.order('date', { ascending: false });
+    // Use a simpler approach to avoid TypeScript recursion issues
+    let query = `
+      SELECT * FROM intent_data
+      ${dateFilter ? `WHERE date = '${dateFilter}'` : ''}
+      ${dateFilter && weekLabel ? 'AND' : weekLabel ? 'WHERE' : ''}
+      ${weekLabel ? `week_label = '${weekLabel}'` : ''}
+      ORDER BY date DESC
+    `;
+
+    const { data, error } = await supabase.rpc('execute_sql', { sql_query: query });
     
     if (error) {
       console.error("Error fetching data:", error);
@@ -119,58 +115,99 @@ export const fetchSupabaseData = async (dateFilter?: string, weekLabel?: string)
     }
     
     if (!data || data.length === 0) {
-      return [];
+      // Fall back to direct query if RPC doesn't work or returns empty
+      const directQuery = await supabase.from('intent_data').select('*');
+      
+      if (directQuery.error) {
+        console.error("Error in direct query:", directQuery.error);
+        return [];
+      }
+      
+      if (!directQuery.data || directQuery.data.length === 0) {
+        return [];
+      }
+      
+      // Apply filters in JavaScript
+      let filteredData = directQuery.data;
+      if (dateFilter) {
+        filteredData = filteredData.filter(item => item.date === dateFilter);
+      }
+      if (weekLabel) {
+        filteredData = filteredData.filter(item => item.week_label === weekLabel);
+      }
+      
+      // Sort by date
+      filteredData.sort((a, b) => {
+        return new Date(b.date).getTime() - new Date(a.date).getTime();
+      });
+      
+      return convertDbRowsToIntentData(filteredData);
     }
     
-    // Convert to our frontend format with explicit typing
-    const convertedData: IntentData[] = data.map((item: any) => ({
-      intentId: item.id,
-      date: item.date,
-      companyName: item.company_name,
-      topic: item.topic,
-      category: item.category,
-      score: item.score,
-      website: item.website || '',
-      secondaryIndustryHierarchicalCategory: item.secondary_industry_hierarchical_category || '',
-      alexaRank: item.alexa_rank?.toString() || '',
-      employees: item.employees?.toString() || '',
-      weekLabel: item.week_label || '',
-      // Fill other fields as empty strings
-      companyId: '',
-      foundedYear: '',
-      companyHQPhone: '',
-      revenue: '',
-      primaryIndustry: '',
-      primarySubIndustry: '',
-      allIndustries: '',
-      allSubIndustries: '',
-      industryHierarchicalCategory: '',
-      linkedInUrl: '',
-      facebookUrl: '',
-      twitterUrl: '',
-      certifiedActiveCompany: '',
-      certificationDate: '',
-      totalFundingAmount: '',
-      recentFundingAmount: '',
-      recentFundingRound: '',
-      recentFundingDate: '',
-      recentInvestors: '',
-      allInvestors: '',
-      companyStreetAddress: '',
-      companyCity: '',
-      companyState: '',
-      companyZipCode: '',
-      companyCountry: '',
-      fullAddress: '',
-      numberOfLocations: '',
-      queryName: '',
-    }));
-    
-    return convertedData;
+    return convertDbRowsToIntentData(data);
   } catch (err) {
     console.error("Error fetching from Supabase:", err);
-    return [];
+    
+    // Final fallback with simplified query
+    try {
+      const { data } = await supabase
+        .from('intent_data')
+        .select('*');
+      
+      return data ? convertDbRowsToIntentData(data) : [];
+    } catch (finalError) {
+      console.error("Final fallback query failed:", finalError);
+      return [];
+    }
   }
+};
+
+/**
+ * Helper function to convert database rows to frontend IntentData format
+ */
+const convertDbRowsToIntentData = (rows: any[]): IntentData[] => {
+  return rows.map(item => ({
+    intentId: item.id,
+    date: item.date,
+    companyName: item.company_name,
+    topic: item.topic,
+    category: item.category,
+    score: item.score,
+    website: item.website || '',
+    secondaryIndustryHierarchicalCategory: item.secondary_industry_hierarchical_category || '',
+    alexaRank: item.alexa_rank?.toString() || '',
+    employees: item.employees?.toString() || '',
+    weekLabel: item.week_label || '',
+    // Fill other fields as empty strings
+    companyId: '',
+    foundedYear: '',
+    companyHQPhone: '',
+    revenue: '',
+    primaryIndustry: '',
+    primarySubIndustry: '',
+    allIndustries: '',
+    allSubIndustries: '',
+    industryHierarchicalCategory: '',
+    linkedInUrl: '',
+    facebookUrl: '',
+    twitterUrl: '',
+    certifiedActiveCompany: '',
+    certificationDate: '',
+    totalFundingAmount: '',
+    recentFundingAmount: '',
+    recentFundingRound: '',
+    recentFundingDate: '',
+    recentInvestors: '',
+    allInvestors: '',
+    companyStreetAddress: '',
+    companyCity: '',
+    companyState: '',
+    companyZipCode: '',
+    companyCountry: '',
+    fullAddress: '',
+    numberOfLocations: '',
+    queryName: '',
+  }));
 };
 
 /**
@@ -178,12 +215,12 @@ export const fetchSupabaseData = async (dateFilter?: string, weekLabel?: string)
  */
 export const fetchAvailableWeeks = async (): Promise<string[]> => {
   try {
-    // Use a simpler query approach to avoid type issues
+    // Use direct SQL query approach to avoid type issues
     const { data, error } = await supabase
       .from('intent_data')
       .select('week_label')
       .not('week_label', 'is', null);
-      
+    
     if (error) {
       console.error("Error fetching weeks:", error);
       throw error;
@@ -193,11 +230,11 @@ export const fetchAvailableWeeks = async (): Promise<string[]> => {
       return [];
     }
     
-    // Extract unique week labels
+    // Extract unique week labels using Set
     const weekLabels = data
-      .map(item => item.week_label as string)
+      .map(item => item.week_label)
       .filter(Boolean);
-      
+    
     const uniqueWeeks = [...new Set(weekLabels)];
     return uniqueWeeks.sort().reverse();
   } catch (err) {
