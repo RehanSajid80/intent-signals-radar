@@ -19,7 +19,8 @@ export const saveToSupabase = async (intentDataArray: IntentData[], weekLabel?: 
       secondary_industry_hierarchical_category: item.secondaryIndustryHierarchicalCategory || null,
       alexa_rank: item.alexaRank ? parseInt(item.alexaRank) : null,
       employees: item.employees ? parseInt(item.employees) : null,
-      week_label: weekLabel || null
+      week_label: weekLabel || null,
+      // Do not set user_id as it's handled by RLS policies
     }));
     
     // Log what we're trying to insert to help with debugging
