@@ -98,9 +98,8 @@ export const saveToSupabase = async (intentDataArray: IntentData[], weekLabel?: 
  */
 export const fetchSupabaseData = async (dateFilter?: string, weekLabel?: string): Promise<IntentData[]> => {
   try {
-    let query = supabase
-      .from('intent_data')
-      .select('*');
+    // Define the base query - avoiding type recursion issues
+    let query = supabase.from('intent_data').select();
     
     // Apply filters if provided
     if (dateFilter) {
@@ -111,62 +110,63 @@ export const fetchSupabaseData = async (dateFilter?: string, weekLabel?: string)
       query = query.eq('week_label', weekLabel);
     }
     
-    // Execute the query
+    // Execute the query with ordering
     const { data, error } = await query.order('date', { ascending: false });
     
     if (error) {
+      console.error("Error fetching data:", error);
       throw error;
     }
     
-    if (data && data.length > 0) {
-      // Convert to our frontend format
-      const convertedData: IntentData[] = data.map((item: any) => ({
-        intentId: item.id,
-        date: item.date,
-        companyName: item.company_name,
-        topic: item.topic,
-        category: item.category,
-        score: item.score,
-        website: item.website || '',
-        secondaryIndustryHierarchicalCategory: item.secondary_industry_hierarchical_category || '',
-        alexaRank: item.alexa_rank?.toString() || '',
-        employees: item.employees?.toString() || '',
-        weekLabel: item.week_label || '',
-        // Fill other fields as empty strings
-        companyId: '',
-        foundedYear: '',
-        companyHQPhone: '',
-        revenue: '',
-        primaryIndustry: '',
-        primarySubIndustry: '',
-        allIndustries: '',
-        allSubIndustries: '',
-        industryHierarchicalCategory: '',
-        linkedInUrl: '',
-        facebookUrl: '',
-        twitterUrl: '',
-        certifiedActiveCompany: '',
-        certificationDate: '',
-        totalFundingAmount: '',
-        recentFundingAmount: '',
-        recentFundingRound: '',
-        recentFundingDate: '',
-        recentInvestors: '',
-        allInvestors: '',
-        companyStreetAddress: '',
-        companyCity: '',
-        companyState: '',
-        companyZipCode: '',
-        companyCountry: '',
-        fullAddress: '',
-        numberOfLocations: '',
-        queryName: '',
-      }));
-      
-      return convertedData;
+    if (!data || data.length === 0) {
+      return [];
     }
     
-    return [];
+    // Convert to our frontend format with explicit typing
+    const convertedData: IntentData[] = data.map((item: any) => ({
+      intentId: item.id,
+      date: item.date,
+      companyName: item.company_name,
+      topic: item.topic,
+      category: item.category,
+      score: item.score,
+      website: item.website || '',
+      secondaryIndustryHierarchicalCategory: item.secondary_industry_hierarchical_category || '',
+      alexaRank: item.alexa_rank?.toString() || '',
+      employees: item.employees?.toString() || '',
+      weekLabel: item.week_label || '',
+      // Fill other fields as empty strings
+      companyId: '',
+      foundedYear: '',
+      companyHQPhone: '',
+      revenue: '',
+      primaryIndustry: '',
+      primarySubIndustry: '',
+      allIndustries: '',
+      allSubIndustries: '',
+      industryHierarchicalCategory: '',
+      linkedInUrl: '',
+      facebookUrl: '',
+      twitterUrl: '',
+      certifiedActiveCompany: '',
+      certificationDate: '',
+      totalFundingAmount: '',
+      recentFundingAmount: '',
+      recentFundingRound: '',
+      recentFundingDate: '',
+      recentInvestors: '',
+      allInvestors: '',
+      companyStreetAddress: '',
+      companyCity: '',
+      companyState: '',
+      companyZipCode: '',
+      companyCountry: '',
+      fullAddress: '',
+      numberOfLocations: '',
+      queryName: '',
+    }));
+    
+    return convertedData;
   } catch (err) {
     console.error("Error fetching from Supabase:", err);
     return [];
@@ -178,23 +178,28 @@ export const fetchSupabaseData = async (dateFilter?: string, weekLabel?: string)
  */
 export const fetchAvailableWeeks = async (): Promise<string[]> => {
   try {
+    // Use a simpler query approach to avoid type issues
     const { data, error } = await supabase
       .from('intent_data')
       .select('week_label')
-      .not('week_label', 'is', null)
-      .order('week_label', { ascending: false });
+      .not('week_label', 'is', null);
       
     if (error) {
+      console.error("Error fetching weeks:", error);
       throw error;
     }
     
-    if (data && data.length > 0) {
-      // Extract unique week labels
-      const uniqueWeeks = [...new Set(data.map(item => item.week_label))];
-      return uniqueWeeks.filter(Boolean) as string[];
+    if (!data || data.length === 0) {
+      return [];
     }
     
-    return [];
+    // Extract unique week labels
+    const weekLabels = data
+      .map(item => item.week_label as string)
+      .filter(Boolean);
+      
+    const uniqueWeeks = [...new Set(weekLabels)];
+    return uniqueWeeks.sort().reverse();
   } catch (err) {
     console.error("Error fetching available weeks:", err);
     return [];
