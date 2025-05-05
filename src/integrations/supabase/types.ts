@@ -23,6 +23,7 @@ export type Database = {
           topic: string
           user_id: string | null
           website: string | null
+          week_label: string | null
         }
         Insert: {
           alexa_rank?: number | null
@@ -37,6 +38,7 @@ export type Database = {
           topic: string
           user_id?: string | null
           website?: string | null
+          week_label?: string | null
         }
         Update: {
           alexa_rank?: number | null
@@ -51,6 +53,7 @@ export type Database = {
           topic?: string
           user_id?: string | null
           website?: string | null
+          week_label?: string | null
         }
         Relationships: []
       }

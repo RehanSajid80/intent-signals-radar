@@ -10,8 +10,10 @@ import { convertDbRowsToIntentData } from "./dataConverters";
  */
 export const fetchSupabaseData = async (dateFilter?: string, weekLabel?: string): Promise<IntentData[]> => {
   try {
-    // Use specific column selection to avoid TypeScript recursion issues
-    let query = supabase.from('intent_data').select('id, date, company_name, topic, category, score, website, secondary_industry_hierarchical_category, alexa_rank, employees, week_label');
+    // Explicitly select specific columns to avoid TypeScript recursion issues
+    let query = supabase
+      .from('intent_data')
+      .select('id, date, company_name, topic, category, score, website, secondary_industry_hierarchical_category, alexa_rank, employees, week_label');
     
     // Apply filters if provided
     if (dateFilter) {
