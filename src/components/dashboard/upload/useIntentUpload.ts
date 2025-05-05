@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { IntentData } from "../types/intentTypes";
 import { processCSVData, createCSVPreview } from "./utils/csvParser";
-import { saveToSupabase, fetchSupabaseData } from "./utils/supabaseOperations";
+import { saveToSupabase, fetchSupabaseData, fetchAvailableWeeks } from "./utils/supabaseOperations";
 import { downloadIntentData, isValidCSVFile } from "./utils/fileOperations";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -19,6 +19,9 @@ export const useIntentUpload = () => {
   const [saveToDatabase, setSaveToDatabase] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [dateFilter, setDateFilter] = useState<string | null>(null);
+  const [weekLabel, setWeekLabel] = useState<string>("");
+  const [availableWeeks, setAvailableWeeks] = useState<string[]>([]);
+  const [weekFilter, setWeekFilter] = useState<string | null>(null);
   
   const { toast } = useToast();
 
@@ -43,6 +46,39 @@ export const useIntentUpload = () => {
     };
     
     checkAuth();
+  }, []);
+
+  // Load available weeks when authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      const loadWeeks = async () => {
+        const weeks = await fetchAvailableWeeks();
+        setAvailableWeeks(weeks);
+      };
+      
+      loadWeeks();
+    }
+  }, [isAuthenticated]);
+
+  // Generate the current week label
+  useEffect(() => {
+    const current = new Date();
+    const startOfWeek = new Date(current);
+    startOfWeek.setDate(current.getDate() - current.getDay());
+    
+    const endOfWeek = new Date(startOfWeek);
+    endOfWeek.setDate(startOfWeek.getDate() + 6);
+    
+    const weekString = `Week of ${startOfWeek.toLocaleDateString('en-US', { 
+      month: 'short', 
+      day: 'numeric'
+    })} - ${endOfWeek.toLocaleDateString('en-US', { 
+      month: 'short', 
+      day: 'numeric',
+      year: 'numeric'
+    })}`;
+    
+    setWeekLabel(weekString);
   }, []);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -106,7 +142,7 @@ export const useIntentUpload = () => {
           
           // Save to Supabase if option is selected and user is authenticated
           if (saveToDatabase && isAuthenticated) {
-            const { data: saveData, error: saveError } = await saveToSupabase(processedData);
+            const { data: saveData, error: saveError } = await saveToSupabase(processedData, weekLabel);
             
             if (saveError) {
               console.error("Error saving to Supabase:", saveError);
@@ -117,9 +153,14 @@ export const useIntentUpload = () => {
               });
             } else {
               setSavedToSupabase(true);
+              
+              // Update available weeks list
+              const weeks = await fetchAvailableWeeks();
+              setAvailableWeeks(weeks);
+              
               toast({
                 title: "Processing Successful",
-                description: `Processed and saved ${processedData.length} intent records from ${selectedFile.name}.`,
+                description: `Processed and saved ${processedData.length} intent records from ${selectedFile.name} for ${weekLabel}.`,
                 variant: "default",
               });
             }
@@ -133,7 +174,7 @@ export const useIntentUpload = () => {
             toast({
               title: "Login Required",
               description: `Processed ${processedData.length} records. Please login to save data to the database.`,
-              variant: "default", // Changed from "warning" to "default"
+              variant: "default",
             });
           }
         } catch (err: any) {
@@ -158,10 +199,10 @@ export const useIntentUpload = () => {
     }
   };
 
-  // Enhanced fetch function with date filtering
-  const fetchFilteredData = async (date?: string) => {
+  // Enhanced fetch function with date and week filtering
+  const fetchFilteredData = async (date?: string, week?: string) => {
     try {
-      const data = await fetchSupabaseData(date);
+      const data = await fetchSupabaseData(date, week);
       if (data && data.length > 0) {
         setIntentData(data);
         setUploadSuccess(true);
@@ -170,8 +211,12 @@ export const useIntentUpload = () => {
       } else {
         toast({
           title: "No Data Found",
-          description: date ? `No data found for ${date}` : "No data found in the database",
-          variant: "default", // Changed from "warning" to "default"
+          description: date 
+            ? `No data found for ${date}` 
+            : week 
+              ? `No data found for ${week}`
+              : "No data found in the database",
+          variant: "default",
         });
         return [];
       }
@@ -200,8 +245,21 @@ export const useIntentUpload = () => {
 
   const handleDateFilterChange = (date: string | null) => {
     setDateFilter(date);
+    setWeekFilter(null); // Clear week filter when date filter is set
     if (date) {
       fetchFilteredData(date);
+    }
+  };
+
+  const handleWeekLabelChange = (week: string) => {
+    setWeekLabel(week);
+  };
+
+  const handleWeekFilterChange = (week: string | null) => {
+    setWeekFilter(week);
+    setDateFilter(null); // Clear date filter when week filter is set
+    if (week) {
+      fetchFilteredData(undefined, week);
     }
   };
 
@@ -217,12 +275,17 @@ export const useIntentUpload = () => {
     saveToDatabase,
     isAuthenticated,
     dateFilter,
+    weekLabel,
+    weekFilter,
+    availableWeeks,
     handleFileChange,
     handleUpload,
     toggleAnalysis,
     fetchFilteredData,
     downloadData,
     toggleSaveOption,
-    handleDateFilterChange
+    handleDateFilterChange,
+    handleWeekLabelChange,
+    handleWeekFilterChange
   };
 };

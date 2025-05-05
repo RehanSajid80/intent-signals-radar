@@ -5,13 +5,14 @@ import { IntentData, DbIntentData } from "../../types/intentTypes";
 /**
  * Save intent data to Supabase
  */
-export const saveToSupabase = async (intentDataArray: IntentData[]) => {
+export const saveToSupabase = async (intentDataArray: IntentData[], weekLabel?: string) => {
   try {
     // Get the user ID first, outside of the map function
     const { data: authData } = await supabase.auth.getUser();
     const userId = authData?.user?.id || null;
     
     console.log("Auth status:", !!userId, "User ID:", userId);
+    console.log("Saving data for week:", weekLabel || "Not specified");
     
     if (!userId) {
       console.error("Authentication error: User is not authenticated");
@@ -29,7 +30,8 @@ export const saveToSupabase = async (intentDataArray: IntentData[]) => {
       secondary_industry_hierarchical_category: item.secondaryIndustryHierarchicalCategory || null,
       alexa_rank: item.alexaRank ? parseInt(item.alexaRank) : null,
       employees: item.employees ? parseInt(item.employees) : null,
-      user_id: userId
+      user_id: userId,
+      week_label: weekLabel || null // Add the week label
     }));
     
     // Log what we're trying to insert to help with debugging
@@ -92,16 +94,21 @@ export const saveToSupabase = async (intentDataArray: IntentData[]) => {
 /**
  * Fetch intent data from Supabase
  * @param dateFilter Optional date to filter data by
+ * @param weekLabel Optional week label to filter data by
  */
-export const fetchSupabaseData = async (dateFilter?: string): Promise<IntentData[]> => {
+export const fetchSupabaseData = async (dateFilter?: string, weekLabel?: string): Promise<IntentData[]> => {
   try {
     let query = supabase
       .from('intent_data')
       .select('*');
     
-    // Apply date filter if provided
+    // Apply filters if provided
     if (dateFilter) {
       query = query.eq('date', dateFilter);
+    }
+    
+    if (weekLabel) {
+      query = query.eq('week_label', weekLabel);
     }
     
     // Execute the query
@@ -124,6 +131,7 @@ export const fetchSupabaseData = async (dateFilter?: string): Promise<IntentData
         secondaryIndustryHierarchicalCategory: item.secondary_industry_hierarchical_category || '',
         alexaRank: item.alexa_rank?.toString() || '',
         employees: item.employees?.toString() || '',
+        weekLabel: item.week_label || '',
         // Fill other fields as empty strings
         companyId: '',
         foundedYear: '',
@@ -161,6 +169,34 @@ export const fetchSupabaseData = async (dateFilter?: string): Promise<IntentData
     return [];
   } catch (err) {
     console.error("Error fetching from Supabase:", err);
+    return [];
+  }
+};
+
+/**
+ * Fetch available weeks from Supabase
+ */
+export const fetchAvailableWeeks = async (): Promise<string[]> => {
+  try {
+    const { data, error } = await supabase
+      .from('intent_data')
+      .select('week_label')
+      .not('week_label', 'is', null)
+      .order('week_label', { ascending: false });
+      
+    if (error) {
+      throw error;
+    }
+    
+    if (data && data.length > 0) {
+      // Extract unique week labels
+      const uniqueWeeks = [...new Set(data.map(item => item.week_label))];
+      return uniqueWeeks.filter(Boolean) as string[];
+    }
+    
+    return [];
+  } catch (err) {
+    console.error("Error fetching available weeks:", err);
     return [];
   }
 };

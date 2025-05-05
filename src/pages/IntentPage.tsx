@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import Sidebar from "@/components/Sidebar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -9,12 +8,18 @@ import { sampleIntentData } from "@/data/sampleIntentData";
 import { supabase } from "@/integrations/supabase/client";
 import { IntentData } from "@/components/dashboard/types/intentTypes";
 import { format } from "date-fns";
+import { Skeleton } from '@/components/ui/skeleton';
+import { fetchAvailableWeeks, fetchSupabaseData } from '@/components/dashboard/upload/utils/supabaseOperations';
+import { WeekSelector } from '@/components/dashboard/upload/WeekSelector';
+import { Button } from '@/components/ui/button';
 
 const IntentPage = () => {
   const [activeTab, setActiveTab] = useState("database");
   const [databaseData, setDatabaseData] = useState<IntentData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [availableWeeks, setAvailableWeeks] = useState<string[]>([]);
+  const [selectedWeek, setSelectedWeek] = useState<string>("");
   
   // Format current date for display
   const currentDate = format(new Date(), "MMMM d, yyyy");
@@ -34,61 +39,76 @@ const IntentPage = () => {
       try {
         setIsLoading(true);
         
-        const { data, error } = await supabase
-          .from('intent_data')
-          .select('*')
-          .order('date', { ascending: false });
-        
-        if (error) {
-          console.error("Error fetching intent data:", error);
-          return;
-        }
-        
-        if (data && data.length > 0) {
-          // Convert to our frontend format
-          const convertedData: IntentData[] = data.map((item) => ({
-            intentId: item.id,
-            date: item.date,
-            companyName: item.company_name,
-            topic: item.topic,
-            category: item.category,
-            score: item.score,
-            website: item.website || '',
-            secondaryIndustryHierarchicalCategory: item.secondary_industry_hierarchical_category || '',
-            alexaRank: item.alexa_rank?.toString() || '',
-            employees: item.employees?.toString() || '',
-            // Fill other fields as empty strings
-            companyId: '',
-            foundedYear: '',
-            companyHQPhone: '',
-            revenue: '',
-            primaryIndustry: '',
-            primarySubIndustry: '',
-            allIndustries: '',
-            allSubIndustries: '',
-            industryHierarchicalCategory: '',
-            linkedInUrl: '',
-            facebookUrl: '',
-            twitterUrl: '',
-            certifiedActiveCompany: '',
-            certificationDate: '',
-            totalFundingAmount: '',
-            recentFundingAmount: '',
-            recentFundingRound: '',
-            recentFundingDate: '',
-            recentInvestors: '',
-            allInvestors: '',
-            companyStreetAddress: '',
-            companyCity: '',
-            companyState: '',
-            companyZipCode: '',
-            companyCountry: '',
-            fullAddress: '',
-            numberOfLocations: '',
-            queryName: '',
-          }));
+        // Fetch available weeks first
+        if (isAuthenticated) {
+          const weeks = await fetchAvailableWeeks();
+          setAvailableWeeks(weeks);
           
-          setDatabaseData(convertedData);
+          // If there are weeks available, fetch data for the most recent week
+          if (weeks.length > 0) {
+            setSelectedWeek(weeks[0]);
+            const data = await fetchSupabaseData(undefined, weeks[0]);
+            setDatabaseData(data);
+          } else {
+            // Otherwise fetch all data
+            const { data, error } = await supabase
+              .from('intent_data')
+              .select('*')
+              .order('date', { ascending: false });
+            
+            if (error) {
+              console.error("Error fetching intent data:", error);
+              return;
+            }
+            
+            if (data && data.length > 0) {
+              // Convert to our frontend format
+              const convertedData: IntentData[] = data.map((item) => ({
+                intentId: item.id,
+                date: item.date,
+                companyName: item.company_name,
+                topic: item.topic,
+                category: item.category,
+                score: item.score,
+                website: item.website || '',
+                secondaryIndustryHierarchicalCategory: item.secondary_industry_hierarchical_category || '',
+                alexaRank: item.alexa_rank?.toString() || '',
+                employees: item.employees?.toString() || '',
+                weekLabel: item.week_label || '',
+                // Fill other fields as empty strings
+                companyId: '',
+                foundedYear: '',
+                companyHQPhone: '',
+                revenue: '',
+                primaryIndustry: '',
+                primarySubIndustry: '',
+                allIndustries: '',
+                allSubIndustries: '',
+                industryHierarchicalCategory: '',
+                linkedInUrl: '',
+                facebookUrl: '',
+                twitterUrl: '',
+                certifiedActiveCompany: '',
+                certificationDate: '',
+                totalFundingAmount: '',
+                recentFundingAmount: '',
+                recentFundingRound: '',
+                recentFundingDate: '',
+                recentInvestors: '',
+                allInvestors: '',
+                companyStreetAddress: '',
+                companyCity: '',
+                companyState: '',
+                companyZipCode: '',
+                companyCountry: '',
+                fullAddress: '',
+                numberOfLocations: '',
+                queryName: '',
+              }));
+              
+              setDatabaseData(convertedData);
+            }
+          }
         }
       } catch (err) {
         console.error("Error fetching data:", err);
@@ -103,6 +123,20 @@ const IntentPage = () => {
       setIsLoading(false);
     }
   }, [isAuthenticated]);
+
+  const handleWeekChange = async (week: string) => {
+    setSelectedWeek(week);
+    setIsLoading(true);
+    
+    try {
+      const data = await fetchSupabaseData(undefined, week);
+      setDatabaseData(data);
+    } catch (err) {
+      console.error("Error fetching data for week:", week, err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
   
   return (
     <div className="flex min-h-screen bg-background">
@@ -136,19 +170,40 @@ const IntentPage = () => {
             <TabsContent value="database" className="mt-4">
               <Card className="mb-4">
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-lg">Intent Data from Database</CardTitle>
+                  <CardTitle className="text-lg flex justify-between">
+                    <span>Intent Data from Database</span>
+                    {isAuthenticated && availableWeeks.length > 0 && (
+                      <div className="flex items-center space-x-2">
+                        <span className="text-sm font-normal text-muted-foreground">Week:</span>
+                        <div className="w-[240px]">
+                          <WeekSelector
+                            value={selectedWeek}
+                            onChange={handleWeekChange}
+                            availableWeeks={availableWeeks}
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </CardTitle>
                 </CardHeader>
                 <CardContent className="text-sm text-muted-foreground">
                   <p>
                     This data is stored in your Supabase database. It shows real intent signals 
                     from various companies, indicating their interest in specific topics.
+                    {selectedWeek && (
+                      <span className="font-medium"> Currently viewing: <span className="text-primary">{selectedWeek}</span></span>
+                    )}
                   </p>
                 </CardContent>
               </Card>
               
               {isLoading ? (
-                <div className="flex items-center justify-center p-12">
-                  <div className="animate-spin h-8 w-8 border-4 border-teal-500 border-t-transparent rounded-full"></div>
+                <div className="space-y-4">
+                  <Skeleton className="h-[400px] w-full" />
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <Skeleton className="h-[300px]" />
+                    <Skeleton className="h-[300px]" />
+                  </div>
                 </div>
               ) : !isAuthenticated ? (
                 <Card className="py-12">

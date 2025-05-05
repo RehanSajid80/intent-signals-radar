@@ -2,7 +2,7 @@
 import React, { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { BarChart, Database, Upload, Check, Download, Calendar, LogIn } from "lucide-react";
+import { BarChart, Database, Upload, Check, Download, Calendar, LogIn, ListFilter } from "lucide-react";
 import IntentAnalysis from "@/components/dashboard/IntentAnalysis";
 import FileUploadZone from "./upload/FileUploadZone";
 import StatusNotifications from "./upload/StatusNotifications";
@@ -13,6 +13,8 @@ import { IntentData } from "./types/intentTypes";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { DatePicker } from "./upload/DatePicker";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { WeekSelector } from "./upload/WeekSelector";
 import { format, parseISO } from "date-fns";
 
 const IntentUpload: React.FC = () => {
@@ -28,13 +30,18 @@ const IntentUpload: React.FC = () => {
     saveToDatabase,
     isAuthenticated,
     dateFilter,
+    weekLabel,
+    weekFilter,
+    availableWeeks,
     handleFileChange,
     handleUpload,
     toggleAnalysis,
     fetchFilteredData,
     downloadData,
     toggleSaveOption,
-    handleDateFilterChange
+    handleDateFilterChange,
+    handleWeekLabelChange,
+    handleWeekFilterChange
   } = useIntentUpload();
 
   useEffect(() => {
@@ -80,6 +87,25 @@ const IntentUpload: React.FC = () => {
             />
             
             <IntentDataPreview previewData={previewData} />
+            
+            {isAuthenticated && selectedFile && (
+              <div className="border border-gray-200 rounded-md p-4 bg-gray-50">
+                <h3 className="text-sm font-medium mb-2 flex items-center">
+                  <ListFilter className="h-4 w-4 mr-1" />
+                  Assign to Week
+                </h3>
+                <div className="flex flex-col space-y-2">
+                  <WeekSelector 
+                    value={weekLabel}
+                    onChange={handleWeekLabelChange}
+                    availableWeeks={availableWeeks}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Select which week these intent signals belong to
+                  </p>
+                </div>
+              </div>
+            )}
             
             <div className="flex justify-between items-center">
               <div className="flex items-center gap-4">
@@ -130,23 +156,54 @@ const IntentUpload: React.FC = () => {
               <div className="border border-gray-200 rounded-md p-4 bg-gray-50 mt-4">
                 <h3 className="text-sm font-medium mb-2 flex items-center">
                   <Calendar className="h-4 w-4 mr-1" />
-                  Filter Saved Data by Date
+                  Filter Saved Data
                 </h3>
-                <div className="flex items-center gap-4">
-                  <DatePicker 
-                    date={dateFilter ? parseISO(dateFilter) : undefined} 
-                    onSelect={(date) => handleDateFilterChange(date ? format(date, 'yyyy-MM-dd') : null)} 
-                  />
-                  {dateFilter && (
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      onClick={() => handleDateFilterChange(null)}
-                    >
-                      Clear
-                    </Button>
-                  )}
-                </div>
+                
+                <Tabs defaultValue="date" className="w-full">
+                  <TabsList className="grid w-full grid-cols-2">
+                    <TabsTrigger value="date">Filter by Date</TabsTrigger>
+                    <TabsTrigger value="week">Filter by Week</TabsTrigger>
+                  </TabsList>
+                  
+                  <TabsContent value="date" className="pt-4">
+                    <div className="flex items-center gap-4">
+                      <DatePicker 
+                        date={dateFilter ? parseISO(dateFilter) : undefined} 
+                        onSelect={(date) => handleDateFilterChange(date ? format(date, 'yyyy-MM-dd') : null)} 
+                      />
+                      {dateFilter && (
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          onClick={() => handleDateFilterChange(null)}
+                        >
+                          Clear
+                        </Button>
+                      )}
+                    </div>
+                  </TabsContent>
+                  
+                  <TabsContent value="week" className="pt-4">
+                    <div className="flex items-center gap-4">
+                      <div className="w-[240px]">
+                        <WeekSelector
+                          value={weekFilter || ""}
+                          onChange={handleWeekFilterChange}
+                          availableWeeks={availableWeeks}
+                        />
+                      </div>
+                      {weekFilter && (
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          onClick={() => handleWeekFilterChange(null)}
+                        >
+                          Clear
+                        </Button>
+                      )}
+                    </div>
+                  </TabsContent>
+                </Tabs>
               </div>
             )}
             
