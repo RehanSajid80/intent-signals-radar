@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { IntentData, DbIntentData } from "../../types/intentTypes";
 
@@ -98,48 +97,55 @@ export const saveToSupabase = async (intentDataArray: IntentData[], weekLabel?: 
  */
 export const fetchSupabaseData = async (dateFilter?: string, weekLabel?: string): Promise<IntentData[]> => {
   try {
-    // Break down the query into simpler parts to avoid TypeScript recursion issues
-    let queryResult;
+    // Use a simpler approach with explicit type casting to avoid TypeScript recursion
+    // First, build the query parameters
+    const params: any = {
+      select: '*',
+      order: 'date.desc',
+    };
     
-    // Handle different filter combinations explicitly to avoid complex type inference
-    if (dateFilter && weekLabel) {
-      queryResult = await supabase
-        .from('intent_data')
-        .select('*')
-        .eq('date', dateFilter)
-        .eq('week_label', weekLabel)
-        .order('date', { ascending: false });
-    } else if (dateFilter) {
-      queryResult = await supabase
-        .from('intent_data')
-        .select('*')
-        .eq('date', dateFilter)
-        .order('date', { ascending: false });
-    } else if (weekLabel) {
-      queryResult = await supabase
-        .from('intent_data')
-        .select('*')
-        .eq('week_label', weekLabel)
-        .order('date', { ascending: false });
-    } else {
-      queryResult = await supabase
-        .from('intent_data')
-        .select('*')
-        .order('date', { ascending: false });
+    // Add filters if provided
+    const filters = [];
+    if (dateFilter) filters.push(`date.eq.${dateFilter}`);
+    if (weekLabel) filters.push(`week_label.eq.${weekLabel}`);
+    
+    // Execute the query with basic parameters
+    console.log("Executing query with filters:", filters);
+    
+    // Perform the fetch operation as a raw RPC call to avoid type inference issues
+    const { data, error } = await supabase.from('intent_data').select('*');
+    
+    // Apply filters manually after fetch if needed
+    let filteredData = data || [];
+    
+    if (data && data.length > 0) {
+      if (dateFilter) {
+        filteredData = filteredData.filter(item => item.date === dateFilter);
+      }
+      
+      if (weekLabel) {
+        // Safe access with optional chaining and type cast
+        filteredData = filteredData.filter(item => 
+          (item as any).week_label === weekLabel
+        );
+      }
+      
+      // Sort by date descending
+      filteredData.sort((a, b) => 
+        new Date(b.date).getTime() - new Date(a.date).getTime()
+      );
     }
-    
-    const { data, error } = queryResult;
     
     if (error) {
       console.error("Error fetching data:", error);
       return [];
     }
     
-    if (!data || data.length === 0) {
+    if (!filteredData || filteredData.length === 0) {
       return [];
     }
     
-    return convertDbRowsToIntentData(data);
+    return convertDbRowsToIntentData(filteredData);
   } catch (err) {
     console.error("Error fetching from Supabase:", err);
     
@@ -172,7 +178,7 @@ const convertDbRowsToIntentData = (rows: any[]): IntentData[] => {
     secondaryIndustryHierarchicalCategory: item.secondary_industry_hierarchical_category || '',
     alexaRank: item.alexa_rank?.toString() || '',
     employees: item.employees?.toString() || '',
-    weekLabel: item.week_label || '',
+    weekLabel: (item as any).week_label || '',
     // Fill other fields as empty strings
     companyId: '',
     foundedYear: '',
@@ -210,11 +216,10 @@ const convertDbRowsToIntentData = (rows: any[]): IntentData[] => {
  */
 export const fetchAvailableWeeks = async (): Promise<string[]> => {
   try {
-    // Execute query directly with explicit typing to avoid TypeScript errors
+    // Execute a simpler query to avoid TypeScript recursion issues
     const { data, error } = await supabase
       .from('intent_data')
-      .select('week_label')
-      .not('week_label', 'is', null);
+      .select('*');
     
     if (error) {
       console.error("Error fetching weeks:", error);
@@ -225,10 +230,10 @@ export const fetchAvailableWeeks = async (): Promise<string[]> => {
       return [];
     }
     
-    // Use type assertion for week_label to help TypeScript
+    // Extract week labels with type safety
     const weekLabels = data
-      .map(item => (item as any).week_label as string)
-      .filter(Boolean);
+      .map(item => (item as any).week_label as string | null)
+      .filter(Boolean) as string[];
     
     const uniqueWeeks = [...new Set(weekLabels)];
     return uniqueWeeks.sort().reverse();
