@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { IntentData, DbIntentData } from "../../types/intentTypes";
 
@@ -98,50 +97,43 @@ export const saveToSupabase = async (intentDataArray: IntentData[], weekLabel?: 
  */
 export const fetchSupabaseData = async (dateFilter?: string, weekLabel?: string): Promise<IntentData[]> => {
   try {
-    // Use a simpler approach to avoid TypeScript recursion issues
-    let query = `
-      SELECT * FROM intent_data
-      ${dateFilter ? `WHERE date = '${dateFilter}'` : ''}
-      ${dateFilter && weekLabel ? 'AND' : weekLabel ? 'WHERE' : ''}
-      ${weekLabel ? `week_label = '${weekLabel}'` : ''}
-      ORDER BY date DESC
-    `;
-
-    const { data, error } = await supabase.rpc('execute_sql', { sql_query: query });
+    let query;
+    
+    if (dateFilter && weekLabel) {
+      query = supabase
+        .from('intent_data')
+        .select('*')
+        .eq('date', dateFilter)
+        .eq('week_label', weekLabel)
+        .order('date', { ascending: false });
+    } else if (dateFilter) {
+      query = supabase
+        .from('intent_data')
+        .select('*')
+        .eq('date', dateFilter)
+        .order('date', { ascending: false });
+    } else if (weekLabel) {
+      query = supabase
+        .from('intent_data')
+        .select('*')
+        .eq('week_label', weekLabel)
+        .order('date', { ascending: false });
+    } else {
+      query = supabase
+        .from('intent_data')
+        .select('*')
+        .order('date', { ascending: false });
+    }
+    
+    const { data, error } = await query;
     
     if (error) {
       console.error("Error fetching data:", error);
-      throw error;
+      return [];
     }
     
     if (!data || data.length === 0) {
-      // Fall back to direct query if RPC doesn't work or returns empty
-      const directQuery = await supabase.from('intent_data').select('*');
-      
-      if (directQuery.error) {
-        console.error("Error in direct query:", directQuery.error);
-        return [];
-      }
-      
-      if (!directQuery.data || directQuery.data.length === 0) {
-        return [];
-      }
-      
-      // Apply filters in JavaScript
-      let filteredData = directQuery.data;
-      if (dateFilter) {
-        filteredData = filteredData.filter(item => item.date === dateFilter);
-      }
-      if (weekLabel) {
-        filteredData = filteredData.filter(item => item.week_label === weekLabel);
-      }
-      
-      // Sort by date
-      filteredData.sort((a, b) => {
-        return new Date(b.date).getTime() - new Date(a.date).getTime();
-      });
-      
-      return convertDbRowsToIntentData(filteredData);
+      return [];
     }
     
     return convertDbRowsToIntentData(data);
@@ -215,7 +207,6 @@ const convertDbRowsToIntentData = (rows: any[]): IntentData[] => {
  */
 export const fetchAvailableWeeks = async (): Promise<string[]> => {
   try {
-    // Use direct SQL query approach to avoid type issues
     const { data, error } = await supabase
       .from('intent_data')
       .select('week_label')
@@ -223,7 +214,7 @@ export const fetchAvailableWeeks = async (): Promise<string[]> => {
     
     if (error) {
       console.error("Error fetching weeks:", error);
-      throw error;
+      return [];
     }
     
     if (!data || data.length === 0) {
@@ -232,7 +223,7 @@ export const fetchAvailableWeeks = async (): Promise<string[]> => {
     
     // Extract unique week labels using Set
     const weekLabels = data
-      .map(item => item.week_label)
+      .map(item => item.week_label as string)
       .filter(Boolean);
     
     const uniqueWeeks = [...new Set(weekLabels)];
