@@ -51,63 +51,8 @@ const IntentPage = () => {
             setDatabaseData(data);
           } else {
             // Otherwise fetch all data
-            const { data, error } = await supabase
-              .from('intent_data')
-              .select('*')
-              .order('date', { ascending: false });
-            
-            if (error) {
-              console.error("Error fetching intent data:", error);
-              return;
-            }
-            
-            if (data && data.length > 0) {
-              // Convert to our frontend format
-              const convertedData: IntentData[] = data.map((item) => ({
-                intentId: item.id,
-                date: item.date,
-                companyName: item.company_name,
-                topic: item.topic,
-                category: item.category,
-                score: item.score,
-                website: item.website || '',
-                secondaryIndustryHierarchicalCategory: item.secondary_industry_hierarchical_category || '',
-                alexaRank: item.alexa_rank?.toString() || '',
-                employees: item.employees?.toString() || '',
-                weekLabel: item.week_label || '',
-                // Fill other fields as empty strings
-                companyId: '',
-                foundedYear: '',
-                companyHQPhone: '',
-                revenue: '',
-                primaryIndustry: '',
-                primarySubIndustry: '',
-                allIndustries: '',
-                allSubIndustries: '',
-                industryHierarchicalCategory: '',
-                linkedInUrl: '',
-                facebookUrl: '',
-                twitterUrl: '',
-                certifiedActiveCompany: '',
-                certificationDate: '',
-                totalFundingAmount: '',
-                recentFundingAmount: '',
-                recentFundingRound: '',
-                recentFundingDate: '',
-                recentInvestors: '',
-                allInvestors: '',
-                companyStreetAddress: '',
-                companyCity: '',
-                companyState: '',
-                companyZipCode: '',
-                companyCountry: '',
-                fullAddress: '',
-                numberOfLocations: '',
-                queryName: '',
-              }));
-              
-              setDatabaseData(convertedData);
-            }
+            const data = await fetchSupabaseData();
+            setDatabaseData(data);
           }
         }
       } catch (err) {

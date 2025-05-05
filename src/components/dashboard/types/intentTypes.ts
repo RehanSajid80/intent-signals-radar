@@ -1,3 +1,4 @@
+
 // Define the structure for intent data
 export interface IntentData {
   intentId?: string;
@@ -38,7 +39,7 @@ export interface IntentData {
   category: string;
   score: number;
   queryName: string;
-  weekLabel?: string; // Add weekLabel property
+  weekLabel?: string;
 }
 
 // Define the database intent data structure
@@ -55,5 +56,5 @@ export interface DbIntentData {
   employees: number | null;
   user_id: string | null;
   created_at: string;
-  week_label: string | null; // Add week_label property
+  week_label: string | null;
 }

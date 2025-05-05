@@ -31,7 +31,7 @@ export const saveToSupabase = async (intentDataArray: IntentData[], weekLabel?: 
       alexa_rank: item.alexaRank ? parseInt(item.alexaRank) : null,
       employees: item.employees ? parseInt(item.employees) : null,
       user_id: userId,
-      week_label: weekLabel || null // Add the week label
+      week_label: weekLabel || null
     }));
     
     // Log what we're trying to insert to help with debugging
@@ -120,7 +120,7 @@ export const fetchSupabaseData = async (dateFilter?: string, weekLabel?: string)
     
     if (data && data.length > 0) {
       // Convert to our frontend format
-      const convertedData: IntentData[] = data.map((item: DbIntentData) => ({
+      const convertedData: IntentData[] = data.map((item: any) => ({
         intentId: item.id,
         date: item.date,
         companyName: item.company_name,
