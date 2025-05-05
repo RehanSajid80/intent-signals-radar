@@ -14,6 +14,21 @@ interface TopCompaniesTableProps {
   data: IntentData[];
 }
 
+interface CompanyStats {
+  count: number;
+  totalScore: number;
+  topics: Set<string>;
+  categories: Set<string>;
+}
+
+interface TableData {
+  company: string;
+  avgScore: number;
+  count: number;
+  topics: string[];
+  categories: string[];
+}
+
 const TopCompaniesTable: React.FC<TopCompaniesTableProps> = ({ data }) => {
   const [displayCount, setDisplayCount] = useState<number>(10);
   
@@ -35,7 +50,7 @@ const TopCompaniesTable: React.FC<TopCompaniesTableProps> = ({ data }) => {
       acc[item.companyName].categories.add(item.category);
       
       return acc;
-    }, {} as Record<string, { count: number, totalScore: number, topics: Set<string>, categories: Set<string> }>);
+    }, {} as Record<string, CompanyStats>);
     
     // Convert to array and sort by average score
     return Object.entries(companyScores)

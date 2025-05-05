@@ -10,10 +10,25 @@ import {
   ResponsiveContainer, 
   Cell
 } from "recharts";
-import { IntentData } from "../IntentUpload";
+import { IntentData } from "../types/intentTypes";
 
 interface TopCompaniesChartProps {
   data: IntentData[];
+}
+
+interface CompanyStats {
+  count: number;
+  totalScore: number;
+  topics: Set<string>;
+  categories: Set<string>;
+}
+
+interface ChartData {
+  company: string;
+  avgScore: number;
+  count: number;
+  topics: string[];
+  categories: string[];
 }
 
 const TopCompaniesChart: React.FC<TopCompaniesChartProps> = ({ data }) => {
@@ -37,7 +52,7 @@ const TopCompaniesChart: React.FC<TopCompaniesChartProps> = ({ data }) => {
       acc[item.companyName].categories.add(item.category);
       
       return acc;
-    }, {} as Record<string, { count: number, totalScore: number, topics: Set<string>, categories: Set<string> }>);
+    }, {} as Record<string, CompanyStats>);
     
     // Convert to array and sort by average score
     return Object.entries(companyScores)

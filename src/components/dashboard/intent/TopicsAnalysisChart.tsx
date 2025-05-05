@@ -10,10 +10,21 @@ import {
   Legend, 
   ResponsiveContainer 
 } from "recharts";
-import { IntentData } from "../IntentUpload";
+import { IntentData } from "../types/intentTypes";
 
 interface TopicsAnalysisChartProps {
   data: IntentData[];
+}
+
+interface TopicStats {
+  count: number;
+  totalScore: number;
+}
+
+interface ChartData {
+  topic: string;
+  count: number;
+  avgScore: number;
 }
 
 const TopicsAnalysisChart: React.FC<TopicsAnalysisChartProps> = ({ data }) => {
@@ -31,7 +42,7 @@ const TopicsAnalysisChart: React.FC<TopicsAnalysisChartProps> = ({ data }) => {
       acc[item.topic].totalScore += item.score;
       
       return acc;
-    }, {} as Record<string, { count: number, totalScore: number }>);
+    }, {} as Record<string, TopicStats>);
     
     // Convert to array and sort by count
     return Object.entries(topicStats)

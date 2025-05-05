@@ -1,4 +1,3 @@
-
 import React, { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -15,6 +14,7 @@ import { DatePicker } from "./upload/DatePicker";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { WeekSelector } from "./upload/WeekSelector";
 import { format, parseISO } from "date-fns";
+import { IntentData } from "./types/intentTypes";
 
 const IntentUpload: React.FC = () => {
   const {

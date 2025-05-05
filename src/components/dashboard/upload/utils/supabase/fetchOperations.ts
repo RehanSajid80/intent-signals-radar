@@ -10,8 +10,8 @@ import { convertDbRowsToIntentData } from "./dataConverters";
  */
 export const fetchSupabaseData = async (dateFilter?: string, weekLabel?: string): Promise<IntentData[]> => {
   try {
-    // Use simple query structure to avoid TypeScript recursion issues
-    let query = supabase.from('intent_data').select('*');
+    // Use specific column selection to avoid TypeScript recursion issues
+    let query = supabase.from('intent_data').select('id, date, company_name, topic, category, score, website, secondary_industry_hierarchical_category, alexa_rank, employees, week_label');
     
     // Apply filters if provided
     if (dateFilter) {
@@ -40,9 +40,10 @@ export const fetchSupabaseData = async (dateFilter?: string, weekLabel?: string)
     
     // Final fallback with simplified query
     try {
+      // Use specific column selection to avoid TypeScript recursion
       const { data } = await supabase
         .from('intent_data')
-        .select('*');
+        .select('id, date, company_name, topic, category, score, website, secondary_industry_hierarchical_category, alexa_rank, employees, week_label');
       
       return data ? convertDbRowsToIntentData(data) : [];
     } catch (finalError) {
@@ -57,7 +58,7 @@ export const fetchSupabaseData = async (dateFilter?: string, weekLabel?: string)
  */
 export const fetchAvailableWeeks = async (): Promise<string[]> => {
   try {
-    // Simplified query that should work without TypeScript recursion issues
+    // Use specific column selection to avoid TypeScript recursion issues
     const { data, error } = await supabase
       .from('intent_data')
       .select('week_label');
@@ -71,12 +72,15 @@ export const fetchAvailableWeeks = async (): Promise<string[]> => {
       return [];
     }
     
-    // Use type assertion for week_label to help TypeScript
+    // Extract week labels and filter out any null values
     const weekLabels = data
-      .map(item => (item as any).week_label as string)
-      .filter(Boolean);
+      .map(item => item.week_label)
+      .filter(Boolean) as string[];
     
+    // Get unique week labels
     const uniqueWeeks = [...new Set(weekLabels)];
+    
+    // Sort in reverse chronological order (assuming week labels can be sorted)
     return uniqueWeeks.sort().reverse();
   } catch (err) {
     console.error("Error fetching available weeks:", err);
