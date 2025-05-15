@@ -10,11 +10,11 @@ const Header: React.FC = () => {
   const navigate = useNavigate();
   
   const handleSettingsClick = () => {
-    navigate('/settings');
     toast({
       title: "Settings",
       description: "Opening settings page..."
     });
+    navigate('/settings');
   };
   
   return (
@@ -34,14 +34,16 @@ const Header: React.FC = () => {
             </h1>
           </div>
           <div className="flex items-center gap-3">
-            <Button 
-              variant="outline" 
-              className="flex items-center gap-2"
-              onClick={handleSettingsClick}
-            >
-              <Settings className="h-4 w-4" />
-              Settings
-            </Button>
+            <Link to="/settings">
+              <Button 
+                variant="outline" 
+                className="flex items-center gap-2"
+                onClick={handleSettingsClick}
+              >
+                <Settings className="h-4 w-4" />
+                Settings
+              </Button>
+            </Link>
             <Button className="bg-teal-500 hover:bg-teal-600">
               <a 
                 href="https://app.hubspot.com" 

@@ -14,11 +14,11 @@ const MainContent: React.FC = () => {
   const { toast } = useToast();
   
   const handleNavigateToSettings = () => {
-    navigate('/settings');
     toast({
       title: "Settings",
       description: "Opening settings page..."
     });
+    navigate('/settings');
   };
 
   return (
@@ -61,13 +61,15 @@ const MainContent: React.FC = () => {
                 Set up your HubSpot API connection to start analyzing your marketing and sales data.
               </p>
               <div className="flex flex-wrap gap-3">
-                <Button 
-                  onClick={handleNavigateToSettings}
-                  className="bg-blue-500 hover:bg-blue-600"
-                >
-                  <Settings className="h-4 w-4 mr-2" />
-                  Configure HubSpot API
-                </Button>
+                <Link to="/settings">
+                  <Button 
+                    onClick={handleNavigateToSettings}
+                    className="bg-blue-500 hover:bg-blue-600"
+                  >
+                    <Settings className="h-4 w-4 mr-2" />
+                    Configure HubSpot API
+                  </Button>
+                </Link>
               </div>
             </CardContent>
           </Card>
