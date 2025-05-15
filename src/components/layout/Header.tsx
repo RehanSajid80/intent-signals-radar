@@ -22,7 +22,7 @@ const Header: React.FC = () => {
       <div className="container mx-auto px-4">
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-3">
-            <Link to="/dashboard">
+            <Link to="/">
               <img 
                 src="https://www.zyter.com/wp-content/uploads/2023/04/ZTC_LOGO_FINAL1.png" 
                 alt="Zyter Logo" 

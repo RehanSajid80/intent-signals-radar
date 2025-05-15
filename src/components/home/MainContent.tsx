@@ -7,12 +7,18 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { BarChart, Upload, Settings } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useToast } from '@/hooks/use-toast';
 
 const MainContent: React.FC = () => {
   const navigate = useNavigate();
+  const { toast } = useToast();
   
   const handleNavigateToSettings = () => {
     navigate('/settings');
+    toast({
+      title: "Settings",
+      description: "Opening settings page..."
+    });
   };
 
   return (
