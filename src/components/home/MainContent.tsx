@@ -5,7 +5,7 @@ import DashboardPreview from './DashboardPreview';
 import FeaturesSection from './FeaturesSection';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { BarChart, Upload } from 'lucide-react';
+import { BarChart, Upload, Settings } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const MainContent: React.FC = () => {
@@ -33,6 +33,26 @@ const MainContent: React.FC = () => {
                   <Link to="/intent?tab=upload">
                     <Upload className="h-4 w-4 mr-2" />
                     Upload Intent Data
+                  </Link>
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* New Settings Quick Access Card */}
+          <Card className="mb-8 bg-gradient-to-r from-blue-50 to-green-50 border-blue-100">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-xl text-blue-700">HubSpot Configuration</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="mb-4 text-muted-foreground">
+                Set up your HubSpot API connection to start analyzing your marketing and sales data.
+              </p>
+              <div className="flex flex-wrap gap-3">
+                <Button asChild className="bg-blue-500 hover:bg-blue-600">
+                  <Link to="/settings">
+                    <Settings className="h-4 w-4 mr-2" />
+                    Configure HubSpot API
                   </Link>
                 </Button>
               </div>

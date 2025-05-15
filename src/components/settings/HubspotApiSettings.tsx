@@ -87,16 +87,16 @@ const HubspotApiSettings = () => {
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>HubSpot API Connection</CardTitle>
+    <Card className="border-2 border-blue-200 shadow-md">
+      <CardHeader className="bg-blue-50">
+        <CardTitle className="text-blue-700">HubSpot API Connection</CardTitle>
         <CardDescription>
           Configure your HubSpot API connection to sync your data
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-4 p-6">
         <div className="space-y-2">
-          <Label htmlFor="api-key">API Key</Label>
+          <Label htmlFor="api-key" className="text-base font-medium">API Key</Label>
           <div className="flex">
             <Input
               id="api-key"
@@ -131,10 +131,11 @@ const HubspotApiSettings = () => {
           </p>
         </div>
 
-        <div className="flex gap-2">
+        <div className="flex gap-2 pt-2">
           <Button 
             onClick={handleSaveApiKey} 
             disabled={loading}
+            className="bg-blue-600 hover:bg-blue-700"
           >
             {loading ? (
               <>
