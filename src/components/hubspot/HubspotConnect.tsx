@@ -6,7 +6,7 @@ import { useHubspot } from "@/context/HubspotContext";
 import { Loader2, Settings } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import FileUpload from "./FileUpload";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 
 const HubspotConnect = () => {
@@ -14,6 +14,7 @@ const HubspotConnect = () => {
   const [showDetails, setShowDetails] = useState(false);
   const [activeTab, setActiveTab] = useState("connect");
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const handleConnect = () => {
     // Check for API key
@@ -27,6 +28,11 @@ const HubspotConnect = () => {
     }
     
     connectToHubspot();
+  };
+  
+  const handleNavigateToSettings = () => {
+    console.log("Navigating to settings from HubspotConnect");
+    navigate("/settings");
   };
 
   return (
@@ -111,12 +117,10 @@ const HubspotConnect = () => {
                 <Button
                   variant="outline"
                   className="text-sm w-full"
-                  asChild
+                  onClick={handleNavigateToSettings}
                 >
-                  <Link to="/settings">
-                    <Settings className="mr-2 h-4 w-4" />
-                    Configure API Key in Settings
-                  </Link>
+                  <Settings className="mr-2 h-4 w-4" />
+                  Configure API Key in Settings
                 </Button>
               )}
               <Button

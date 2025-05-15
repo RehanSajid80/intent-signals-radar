@@ -16,9 +16,13 @@ const Settings = () => {
   const navigate = useNavigate();
   
   useEffect(() => {
+    // Remove this check to allow settings page to be accessed without authentication
+    // This way we can set the API key before connecting
+    /* 
     if (!isAuthenticated) {
       navigate("/");
     }
+    */
   }, [isAuthenticated, navigate]);
   
   return (
