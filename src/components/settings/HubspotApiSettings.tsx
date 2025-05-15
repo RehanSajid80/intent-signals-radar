@@ -4,25 +4,46 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Eye, EyeOff, Save, RefreshCw } from "lucide-react";
-import { useToast } from "@/components/ui/use-toast";
+import { Eye, EyeOff, Save, RefreshCw, CheckCircle, XCircle } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 import { useHubspot } from "@/context/HubspotContext";
 import { testHubspotConnection } from "@/lib/hubspot-api";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const HubspotApiSettings = () => {
   const [apiKey, setApiKey] = useState("");
   const [loading, setLoading] = useState(false);
   const [showKey, setShowKey] = useState(false);
+  const [connectionStatus, setConnectionStatus] = useState<"connected" | "disconnected" | "unknown">("unknown");
   const { toast } = useToast();
-  const { refreshData } = useHubspot();
+  const { refreshData, isAuthenticated } = useHubspot();
 
   useEffect(() => {
     // Load API key from localStorage on component mount
     const savedKey = localStorage.getItem("hubspot_api_key");
     if (savedKey) {
       setApiKey(savedKey);
+      // Check connection status when component mounts
+      checkConnectionStatus(savedKey);
     }
   }, []);
+
+  // Update connection status based on HubSpot context
+  useEffect(() => {
+    if (isAuthenticated) {
+      setConnectionStatus("connected");
+    }
+  }, [isAuthenticated]);
+
+  const checkConnectionStatus = async (key: string) => {
+    try {
+      const isValid = await testHubspotConnection(key);
+      setConnectionStatus(isValid ? "connected" : "disconnected");
+    } catch (error) {
+      console.error("Error checking connection status:", error);
+      setConnectionStatus("disconnected");
+    }
+  };
 
   const handleSaveApiKey = async () => {
     if (!apiKey.trim()) {
@@ -51,13 +72,17 @@ const HubspotApiSettings = () => {
         const isValid = await testHubspotConnection(apiKey);
         
         if (isValid) {
+          setConnectionStatus("connected");
           toast({
             title: "API Key Validated",
             description: "Your HubSpot API key was successfully validated with HubSpot.",
           });
+        } else {
+          setConnectionStatus("disconnected");
         }
       } catch (error) {
         console.error("Error validating API key:", error);
+        setConnectionStatus("disconnected");
         toast({
           title: "Validation Notice",
           description: "API key saved, but we couldn't validate it with HubSpot. You can still try connecting from the dashboard.",
@@ -80,11 +105,13 @@ const HubspotApiSettings = () => {
     setLoading(true);
     try {
       await refreshData();
+      setConnectionStatus("connected");
       toast({
         title: "Connection Successful",
         description: "Successfully connected to HubSpot API and retrieved data.",
       });
     } catch (error) {
+      setConnectionStatus("disconnected");
       toast({
         title: "Connection Failed",
         description: "Failed to connect to HubSpot API. Please check your API key.",
@@ -98,12 +125,39 @@ const HubspotApiSettings = () => {
   return (
     <Card className="border-2 border-blue-200 shadow-md">
       <CardHeader className="bg-blue-50">
-        <CardTitle className="text-blue-700">HubSpot API Connection</CardTitle>
-        <CardDescription>
-          Configure your HubSpot API connection to sync your data
-        </CardDescription>
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle className="text-blue-700">HubSpot API Connection</CardTitle>
+            <CardDescription>
+              Configure your HubSpot API connection to sync your data
+            </CardDescription>
+          </div>
+          {connectionStatus !== "unknown" && (
+            <div className="flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium">
+              {connectionStatus === "connected" ? (
+                <div className="flex items-center gap-1 bg-green-100 text-green-800 px-3 py-1 rounded-full">
+                  <CheckCircle className="h-4 w-4" />
+                  <span>Connected</span>
+                </div>
+              ) : (
+                <div className="flex items-center gap-1 bg-red-100 text-red-800 px-3 py-1 rounded-full">
+                  <XCircle className="h-4 w-4" />
+                  <span>Disconnected</span>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       </CardHeader>
       <CardContent className="space-y-4 p-6">
+        {connectionStatus === "connected" && (
+          <Alert className="bg-green-50 border-green-200">
+            <AlertDescription className="text-green-800">
+              Your HubSpot API connection is active and working properly.
+            </AlertDescription>
+          </Alert>
+        )}
+        
         <div className="space-y-2">
           <Label htmlFor="api-key" className="text-base font-medium">API Key</Label>
           <div className="flex">
