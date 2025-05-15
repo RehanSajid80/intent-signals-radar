@@ -60,9 +60,19 @@ const HubspotApiSettings = () => {
     try {
       const isValid = await testHubspotConnection(key);
       setConnectionStatus(isValid ? "connected" : "disconnected");
+      
+      if (isValid) {
+        console.log("API key validation successful");
+      } else {
+        console.log("API key validation failed");
+      }
     } catch (error) {
       console.error("Error checking connection status:", error);
-      setConnectionStatus("disconnected");
+      // Don't immediately set to disconnected for network errors
+      // since they might be CORS related
+      if (!(error instanceof TypeError && error.message.includes('Failed to fetch'))) {
+        setConnectionStatus("disconnected");
+      }
     }
   };
 
@@ -115,15 +125,30 @@ const HubspotApiSettings = () => {
           });
         } else {
           setConnectionStatus("disconnected");
+          toast({
+            title: "API Key Warning",
+            description: "Your API key was saved, but couldn't be validated with HubSpot.",
+            variant: "default",
+          });
         }
       } catch (error) {
         console.error("Error validating API key:", error);
-        setConnectionStatus("disconnected");
-        toast({
-          title: "Validation Notice",
-          description: "API key saved, but we couldn't validate it with HubSpot. You can still try connecting from the dashboard.",
-          variant: "default",
-        });
+        
+        // Special handling for network/CORS errors
+        if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
+          toast({
+            title: "API Key Saved",
+            description: "API key saved. Validation limited due to browser security restrictions.",
+            variant: "default",
+          });
+        } else {
+          setConnectionStatus("disconnected");
+          toast({
+            title: "Validation Notice",
+            description: "API key saved, but we couldn't validate it with HubSpot. You can still try connecting from the dashboard.",
+            variant: "default",
+          });
+        }
       }
     } catch (error) {
       console.error("Error saving API key:", error);

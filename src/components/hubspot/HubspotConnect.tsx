@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -18,6 +17,11 @@ const HubspotConnect = () => {
   const navigate = useNavigate();
 
   const handleConnect = () => {
+    toast({
+      title: "Connecting to HubSpot",
+      description: "Browser security may limit direct API access. We'll do our best to connect.",
+      duration: 5000,
+    });
     connectToHubspot();
   };
   
@@ -61,6 +65,15 @@ const HubspotConnect = () => {
                 <AlertDescription className="text-blue-600">
                   Your API key is securely stored and never exposed to the frontend.
                   You need to add your API key in Settings before connecting.
+                </AlertDescription>
+              </Alert>
+              
+              <Alert className="mb-4 bg-amber-50 border-amber-200">
+                <AlertTitle className="text-amber-700">Browser Limitation</AlertTitle>
+                <AlertDescription className="text-amber-600">
+                  Browser security restrictions may limit direct API access.
+                  If connection testing shows errors but your API key is valid, 
+                  you can still proceed with connecting and try importing data.
                 </AlertDescription>
               </Alert>
               
