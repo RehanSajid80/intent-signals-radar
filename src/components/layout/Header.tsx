@@ -1,25 +1,10 @@
 
 import React from 'react';
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Settings } from "lucide-react";
-import { toast } from '@/hooks/use-toast';
 
 const Header: React.FC = () => {
-  const navigate = useNavigate();
-  
-  const handleSettingsClick = () => {
-    toast({
-      title: "Settings",
-      description: "Opening settings page..."
-    });
-    
-    // Use a small timeout to ensure the toast is shown before navigation
-    setTimeout(() => {
-      navigate('/settings');
-    }, 100);
-  };
-  
   return (
     <header className="bg-white border-b py-4">
       <div className="container mx-auto px-4">
@@ -40,10 +25,12 @@ const Header: React.FC = () => {
             <Button 
               variant="outline" 
               className="flex items-center gap-2"
-              onClick={handleSettingsClick}
+              asChild
             >
-              <Settings className="h-4 w-4" />
-              Settings
+              <Link to="/settings">
+                <Settings className="h-4 w-4" />
+                Settings
+              </Link>
             </Button>
             <Button className="bg-teal-500 hover:bg-teal-600">
               <a 
