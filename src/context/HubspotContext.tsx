@@ -140,6 +140,56 @@ export const HubspotProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [jobTitleStats, setJobTitleStats] = useState<Record<string, number>>({});
   const [engagementByOwner, setEngagementByOwner] = useState<Record<string, {high: number, medium: number, low: number}>>({});
 
+  // Define refreshData function before it's used
+  const refreshData = async (): Promise<void> => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      // Get API key from Supabase with localStorage as fallback
+      const apiKey = await fetchApiKeyFromSupabase();
+      if (!apiKey) {
+        setError("No API key found. Please add your HubSpot API key in the settings.");
+        setIsAuthenticated(false);
+        setIsLoading(false);
+        return;
+      }
+      
+      // Fetch data from HubSpot API
+      const [contactsData, companiesData, dealsData] = await Promise.all([
+        fetchHubspotContacts(apiKey),
+        fetchHubspotCompanies(apiKey),
+        fetchHubspotDeals(apiKey)
+      ]);
+      
+      console.log(`Retrieved ${contactsData.length} contacts, ${companiesData.length} companies, and ${dealsData.length} deals from HubSpot`);
+      
+      // Convert the data to our local format
+      const { contacts: localContacts, accounts: localAccounts } = convertHubspotDataToLocalFormat(contactsData, companiesData, dealsData);
+      
+      // Update state
+      setContacts(localContacts);
+      setAccounts(localAccounts);
+      
+      // Calculate analytics based on the new data
+      if (localContacts.length > 0) {
+        calculateAnalytics(localContacts);
+      }
+      
+      toast({
+        title: "Data Synced",
+        description: `Successfully loaded ${localContacts.length} contacts and ${localAccounts.length} accounts from HubSpot`
+      });
+      
+      return Promise.resolve();
+    } catch (error) {
+      console.error("Error refreshing HubSpot data:", error);
+      setError("Failed to fetch data from HubSpot API. Please check your API key.");
+      setIsAuthenticated(false);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   // Check for API key and connection status on mount and reconnect if needed
   useEffect(() => {
     const checkConnectionStatus = async () => {
