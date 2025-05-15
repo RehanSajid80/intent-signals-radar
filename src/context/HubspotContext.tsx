@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { 
@@ -8,6 +7,7 @@ import {
   convertHubspotDataToLocalFormat,
   testHubspotConnection
 } from "@/lib/hubspot-api";
+import { supabase } from "@/lib/supabase";
 
 // Types
 export interface Contact {
@@ -128,6 +128,8 @@ export const HubspotProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [apiKey, setApiKey] = useState<string | null>(null);
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [accounts, setAccounts] = useState<Account[]>([]);
@@ -198,18 +200,38 @@ export const HubspotProvider: React.FC<{ children: React.ReactNode }> = ({ child
       });
   };
 
-  const disconnectFromHubspot = () => {
-    setIsAuthenticated(false);
-    setApiKey(null);
-    // Clear all data when disconnecting
-    setContacts([]);
-    setAccounts([]);
-    setNotifications([]);
-    
-    toast({
-      title: "Disconnected from HubSpot",
-      description: "All data has been cleared",
-    });
+  const disconnectFromHubspot = async () => {
+    try {
+      // Clear API key from Supabase
+      const { error } = await supabase
+        .from('api_keys')
+        .update({ api_key: '' })
+        .eq('service', 'hubspot');
+        
+      if (error) {
+        console.error("Error clearing API key from Supabase:", error);
+      }
+      
+      // Also clear from localStorage
+      localStorage.removeItem("hubspot_api_key");
+      
+      // Reset state
+      setContacts([]);
+      setAccounts([]);
+      setNotifications([]);
+      
+      toast({
+        title: "Disconnected",
+        description: "Successfully disconnected from HubSpot API.",
+      });
+    } catch (error) {
+      console.error("Error disconnecting from HubSpot:", error);
+      toast({
+        title: "Error",
+        description: "Failed to disconnect from HubSpot API.",
+        variant: "destructive",
+      });
+    }
   };
 
   const markNotificationAsRead = (id: string) => {
@@ -220,24 +242,43 @@ export const HubspotProvider: React.FC<{ children: React.ReactNode }> = ({ child
     );
   };
 
-  const refreshData = async (): Promise<void> => {
-    if (!apiKey) {
-      toast({
-        title: "API Key Required",
-        description: "Please set your HubSpot API key in Settings first.",
-        variant: "destructive",
-      });
-      return Promise.reject(new Error("API key not found"));
+  const fetchApiKeyFromSupabase = async () => {
+    try {
+      // Try to get API key from Supabase first
+      const { data, error } = await supabase
+        .from('api_keys')
+        .select('api_key')
+        .eq('service', 'hubspot')
+        .single();
+        
+      if (error) {
+        console.error("Error fetching HubSpot API key from Supabase:", error);
+        // Fall back to localStorage
+        return localStorage.getItem("hubspot_api_key") || "";
+      }
+      
+      return data?.api_key || "";
+    } catch (error) {
+      console.error("Error in fetchApiKeyFromSupabase:", error);
+      return localStorage.getItem("hubspot_api_key") || "";
     }
-    
-    toast({
-      title: "Fetching data",
-      description: "Retrieving latest data from HubSpot",
-    });
-    
-    setIsProcessing(true);
+  };
+  
+  const refreshData = async () => {
+    setIsLoading(true);
+    setError(null);
     
     try {
+      // Get API key from Supabase with localStorage as fallback
+      const apiKey = await fetchApiKeyFromSupabase();
+      
+      if (!apiKey) {
+        setError("No API key found. Please add your HubSpot API key in the settings.");
+        setIsAuthenticated(false);
+        setIsLoading(false);
+        return;
+      }
+
       // Fetch data from HubSpot API
       const [contactsData, companiesData, dealsData] = await Promise.all([
         fetchHubspotContacts(apiKey),
@@ -268,14 +309,10 @@ export const HubspotProvider: React.FC<{ children: React.ReactNode }> = ({ child
       return Promise.resolve();
     } catch (error) {
       console.error("Error refreshing HubSpot data:", error);
-      toast({
-        title: "Sync Failed",
-        description: "Could not retrieve data from HubSpot. Please check your API key.",
-        variant: "destructive"
-      });
-      return Promise.reject(error);
+      setError("Failed to fetch data from HubSpot API. Please check your API key.");
+      setIsAuthenticated(false);
     } finally {
-      setIsProcessing(false);
+      setIsLoading(false);
     }
   };
 
@@ -632,6 +669,8 @@ export const HubspotProvider: React.FC<{ children: React.ReactNode }> = ({ child
     isAuthenticated,
     isConnecting,
     isProcessing,
+    isLoading,
+    error,
     contacts,
     accounts,
     notifications,

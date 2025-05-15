@@ -1,11 +1,11 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { LogOut } from "lucide-react";
+import { LogOut, Shield } from "lucide-react";
 import { useHubspot } from "@/context/HubspotContext";
 
 const IntegrationSettings = () => {
-  const { disconnectFromHubspot } = useHubspot();
+  const { disconnectFromHubspot, isAuthenticated } = useHubspot();
   
   return (
     <div className="space-y-6">
@@ -32,10 +32,18 @@ const IntegrationSettings = () => {
               </div>
               <div>
                 <h3 className="font-medium">HubSpot</h3>
-                <p className="text-sm text-muted-foreground">Connected</p>
+                <p className="text-sm text-muted-foreground">
+                  {isAuthenticated ? (
+                    <span className="flex items-center text-green-600">
+                      <Shield className="inline-block mr-1 h-4 w-4" /> Connected securely
+                    </span>
+                  ) : (
+                    "Not connected"
+                  )}
+                </p>
               </div>
             </div>
-            <Button variant="outline" onClick={disconnectFromHubspot}>
+            <Button variant="outline" onClick={disconnectFromHubspot} disabled={!isAuthenticated}>
               <LogOut className="mr-2 h-4 w-4" />
               Disconnect
             </Button>
