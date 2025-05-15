@@ -269,24 +269,38 @@ export function convertHubspotDataToLocalFormat(
     // Create intent signals
     const intentSignals = [];
     
+    // Helper function to safely convert date strings
+    const safelyCreateDate = (dateValue: string | number | boolean | undefined): Date | null => {
+      if (typeof dateValue === 'string' || typeof dateValue === 'number') {
+        return new Date(dateValue);
+      }
+      return null;
+    };
+    
     if (props.hs_email_last_open_date) {
-      intentSignals.push({
-        id: `intent-email-${contact.id}`,
-        type: "email_open",
-        timestamp: new Date(props.hs_email_last_open_date).toISOString(),
-        description: "Opened marketing email",
-        strength: 60
-      });
+      const openDate = safelyCreateDate(props.hs_email_last_open_date);
+      if (openDate) {
+        intentSignals.push({
+          id: `intent-email-${contact.id}`,
+          type: "email_open",
+          timestamp: openDate.toISOString(),
+          description: "Opened marketing email",
+          strength: 60
+        });
+      }
     }
     
     if (props.hs_email_last_click_date) {
-      intentSignals.push({
-        id: `intent-click-${contact.id}`,
-        type: "email_open", 
-        timestamp: new Date(props.hs_email_last_click_date).toISOString(),
-        description: "Clicked email link",
-        strength: 75
-      });
+      const clickDate = safelyCreateDate(props.hs_email_last_click_date);
+      if (clickDate) {
+        intentSignals.push({
+          id: `intent-click-${contact.id}`,
+          type: "email_open", 
+          timestamp: clickDate.toISOString(),
+          description: "Clicked email link",
+          strength: 75
+        });
+      }
     }
     
     // Ensure hubspot_owner_id is always a string
