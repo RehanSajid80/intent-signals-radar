@@ -289,6 +289,9 @@ export function convertHubspotDataToLocalFormat(
       });
     }
     
+    // Ensure hubspot_owner_id is always a string
+    const ownerIdString = props.hubspot_owner_id ? String(props.hubspot_owner_id) : '';
+    
     return {
       id: contact.id,
       firstName: props.firstname || '',
@@ -302,7 +305,7 @@ export function convertHubspotDataToLocalFormat(
       lastActivity: props.lastmodifieddate || '',
       engagementLevel: engagementLevel,
       intentSignals: intentSignals,
-      owner: props.hubspot_owner_id || '',
+      owner: ownerIdString,
       lifecycleStage: props.lifecyclestage || '',
       lastEngagementDate: props.lastmodifieddate || '',
       timesContacted: 0, // Not available in basic API

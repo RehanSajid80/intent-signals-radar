@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { 
@@ -439,6 +440,9 @@ export const HubspotProvider: React.FC<{ children: React.ReactNode }> = ({ child
         });
       }
       
+      // Ensure owner is a string
+      const ownerString = item['Contact owner'] ? String(item['Contact owner']) : '';
+      
       return {
         id: item['Record ID - Contact'] || item['Record ID'] || `contact-${index}`,
         firstName: item['First Name'] || '',
@@ -452,7 +456,7 @@ export const HubspotProvider: React.FC<{ children: React.ReactNode }> = ({ child
         lastActivity: item['Last Activity Date'] || new Date().toISOString(),
         engagementLevel: engagementLevel,
         intentSignals: intentSignals,
-        owner: item['Contact owner'] || '',
+        owner: ownerString,
         lifecycleStage: item['Lifecycle Stage'] || '',
         lastEngagementDate: item['Last Engagement Date'] || '',
         timesContacted: timesContacted,
@@ -582,6 +586,7 @@ export const HubspotProvider: React.FC<{ children: React.ReactNode }> = ({ child
             }
           }
           
+          // Process the data
           const processedContacts = processContactsData(contactData);
           console.log("Processed contacts:", processedContacts.length);
           
