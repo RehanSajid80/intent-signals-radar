@@ -3,12 +3,14 @@ import React from 'react';
 import { Button } from "@/components/ui/button";
 import { Settings } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 const Footer: React.FC = () => {
   const { toast } = useToast();
+  const navigate = useNavigate();
   
   const handleSettingsClick = () => {
+    navigate('/settings');
     toast({
       title: "Settings",
       description: "Opening settings page..."
@@ -31,12 +33,10 @@ const Footer: React.FC = () => {
             variant="link" 
             size="sm" 
             className="text-muted-foreground"
-            asChild
+            onClick={handleSettingsClick}
           >
-            <Link to="/settings" onClick={handleSettingsClick}>
-              <Settings className="h-3 w-3 mr-1" />
-              Settings
-            </Link>
+            <Settings className="h-3 w-3 mr-1" />
+            Settings
           </Button>
         </div>
       </div>

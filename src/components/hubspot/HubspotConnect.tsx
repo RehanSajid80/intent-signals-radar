@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useHubspot } from "@/context/HubspotContext";
-import { Loader2 } from "lucide-react";
+import { Loader2, Settings } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import FileUpload from "./FileUpload";
 import { useNavigate } from "react-router-dom";
@@ -23,6 +23,10 @@ const HubspotConnect = () => {
     }
     
     connectToHubspot();
+  };
+
+  const goToSettings = () => {
+    navigate("/settings");
   };
 
   return (
@@ -105,11 +109,12 @@ const HubspotConnect = () => {
               </Button>
               {!isAuthenticated && (
                 <Button
-                  variant="link"
-                  className="text-sm"
-                  onClick={() => navigate("/settings")}
+                  variant="outline"
+                  className="text-sm w-full"
+                  onClick={goToSettings}
                 >
-                  Set API Key in Settings
+                  <Settings className="mr-2 h-4 w-4" />
+                  Configure API Key in Settings
                 </Button>
               )}
               <Button

@@ -6,9 +6,15 @@ import FeaturesSection from './FeaturesSection';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { BarChart, Upload, Settings } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 const MainContent: React.FC = () => {
+  const navigate = useNavigate();
+  
+  const handleNavigateToSettings = () => {
+    navigate('/settings');
+  };
+
   return (
     <main className="flex-1 py-8">
       <div className="container mx-auto px-4">
@@ -49,11 +55,12 @@ const MainContent: React.FC = () => {
                 Set up your HubSpot API connection to start analyzing your marketing and sales data.
               </p>
               <div className="flex flex-wrap gap-3">
-                <Button asChild className="bg-blue-500 hover:bg-blue-600">
-                  <Link to="/settings">
-                    <Settings className="h-4 w-4 mr-2" />
-                    Configure HubSpot API
-                  </Link>
+                <Button 
+                  onClick={handleNavigateToSettings}
+                  className="bg-blue-500 hover:bg-blue-600"
+                >
+                  <Settings className="h-4 w-4 mr-2" />
+                  Configure HubSpot API
                 </Button>
               </div>
             </CardContent>
