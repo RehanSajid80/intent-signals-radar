@@ -19,8 +19,6 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <HubspotProvider>
       <TooltipProvider>
-        <Toaster />
-        <Sonner />
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Index />} />
@@ -33,6 +31,8 @@ const App = () => (
             <Route path="/settings" element={<Settings />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
+          <Toaster />
+          <Sonner />
         </BrowserRouter>
       </TooltipProvider>
     </HubspotProvider>

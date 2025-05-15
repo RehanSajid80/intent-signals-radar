@@ -2,17 +2,22 @@
 import React from 'react';
 import { Button } from "@/components/ui/button";
 import { Settings } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
-import { Link } from "react-router-dom";
+import { toast } from '@/hooks/use-toast';
+import { useNavigate } from "react-router-dom";
 
 const Footer: React.FC = () => {
-  const { toast } = useToast();
+  const navigate = useNavigate();
   
   const handleSettingsClick = () => {
     toast({
       title: "Settings",
       description: "Opening settings page..."
     });
+    
+    // Use a small timeout to ensure the toast is shown before navigation
+    setTimeout(() => {
+      navigate('/settings');
+    }, 100);
   };
   
   return (
@@ -32,12 +37,9 @@ const Footer: React.FC = () => {
             size="sm" 
             className="text-muted-foreground"
             onClick={handleSettingsClick}
-            asChild
           >
-            <Link to="/settings">
-              <Settings className="h-3 w-3 mr-1" />
-              Settings
-            </Link>
+            <Settings className="h-3 w-3 mr-1" />
+            Settings
           </Button>
         </div>
       </div>
