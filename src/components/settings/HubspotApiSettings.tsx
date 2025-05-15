@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Eye, EyeOff, Save, RefreshCw } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/components/ui/use-toast";
 import { useHubspot } from "@/context/HubspotContext";
 import { testHubspotConnection } from "@/lib/hubspot-api";
 
@@ -37,29 +37,38 @@ const HubspotApiSettings = () => {
     setLoading(true);
     
     try {
-      // Actually test the connection with the API key
-      const isValid = await testHubspotConnection(apiKey);
+      // Store API key in localStorage regardless of validation
+      // This allows users to save the key even if HubSpot API is temporarily unavailable
+      localStorage.setItem("hubspot_api_key", apiKey);
       
-      if (isValid) {
-        // Store API key in localStorage
-        localStorage.setItem("hubspot_api_key", apiKey);
+      toast({
+        title: "API Key Saved",
+        description: "Your HubSpot API key has been saved. You can now try connecting to HubSpot.",
+      });
+      
+      // Try to validate the key but don't block saving if it fails
+      try {
+        const isValid = await testHubspotConnection(apiKey);
         
+        if (isValid) {
+          toast({
+            title: "API Key Validated",
+            description: "Your HubSpot API key was successfully validated with HubSpot.",
+          });
+        }
+      } catch (error) {
+        console.error("Error validating API key:", error);
         toast({
-          title: "API Key Saved",
-          description: "Your HubSpot API key has been saved and validated successfully.",
-        });
-      } else {
-        toast({
-          title: "Invalid API Key",
-          description: "The API key could not be validated with HubSpot. Please check and try again.",
-          variant: "destructive",
+          title: "Validation Notice",
+          description: "API key saved, but we couldn't validate it with HubSpot. You can still try connecting from the dashboard.",
+          variant: "default",
         });
       }
     } catch (error) {
-      console.error("Error validating API key:", error);
+      console.error("Error saving API key:", error);
       toast({
-        title: "Validation Error",
-        description: "An error occurred while validating your API key. Please try again.",
+        title: "Error",
+        description: "An error occurred while saving your API key. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -135,7 +144,7 @@ const HubspotApiSettings = () => {
           <Button 
             onClick={handleSaveApiKey} 
             disabled={loading}
-            className="bg-blue-600 hover:bg-blue-700"
+            className="bg-blue-500 hover:bg-blue-600"
           >
             {loading ? (
               <>

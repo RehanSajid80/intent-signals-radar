@@ -86,11 +86,31 @@ async function makeHubspotRequest<T>(
 // Function to validate API key and test connection
 export async function testHubspotConnection(apiKey: string): Promise<boolean> {
   try {
-    // Just fetch a single contact to test the API key
-    await makeHubspotRequest(CONTACT_ENDPOINT, apiKey, { limit: "1" });
-    return true;
+    // Create a timeout to abort the request if it takes too long
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+    
+    // Make a simpler request to validate the API key
+    const response = await fetch(`${HUBSPOT_BASE_URL}/oauth/v1/access-tokens/${apiKey}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      signal: controller.signal
+    });
+    
+    clearTimeout(timeoutId);
+    
+    // Check if the API key is valid by checking the response
+    return response.ok;
   } catch (error) {
     console.error("HubSpot connection test failed:", error);
+    // If we have a network error, we'll consider the API key might be valid
+    // but we just can't verify it at the moment
+    if (error instanceof TypeError && error.message.includes('fetch')) {
+      // Network error, but we'll still save the API key
+      return false;
+    }
     return false;
   }
 }
