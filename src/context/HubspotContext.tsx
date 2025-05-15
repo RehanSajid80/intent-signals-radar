@@ -49,7 +49,7 @@ export const HubspotProvider: React.FC<{ children: React.ReactNode }> = ({ child
           if (isValid) {
             setIsAuthenticated(true);
             // Pre-load data if connection is valid
-            refreshData();
+            await refreshData();
           }
         }
       } catch (error) {
@@ -109,11 +109,9 @@ export const HubspotProvider: React.FC<{ children: React.ReactNode }> = ({ child
         setJobTitleStats(result.analytics.jobTitleStats);
         setEngagementByOwner(result.analytics.engagementByOwner);
       }
-      return Promise.resolve();
     } catch (error) {
       setIsAuthenticated(false);
       console.error("Error in refreshData:", error);
-      return Promise.reject(error);
     }
   };
 
@@ -131,11 +129,8 @@ export const HubspotProvider: React.FC<{ children: React.ReactNode }> = ({ child
       setContactLifecycleStats(result.analytics.contactLifecycleStats);
       setJobTitleStats(result.analytics.jobTitleStats);
       setEngagementByOwner(result.analytics.engagementByOwner);
-      
-      return Promise.resolve();
     } catch (error) {
       console.error("Error in processFileUpload:", error);
-      return Promise.reject(error);
     }
   };
 

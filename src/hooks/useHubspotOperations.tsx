@@ -11,6 +11,19 @@ import {
 } from "@/lib/hubspot-api";
 import { calculateAnalytics } from "@/utils/hubspotDataProcessing";
 import { supabase } from "@/integrations/supabase/client";
+import { Contact, Account } from "@/types/hubspot";
+
+// Define proper return types for our functions
+type OperationResult = {
+  contacts: Contact[];
+  accounts: Account[];
+  analytics: {
+    contactOwnerStats: Record<string, number>;
+    contactLifecycleStats: Record<string, Record<string, number>>;
+    jobTitleStats: Record<string, number>;
+    engagementByOwner: Record<string, {high: number, medium: number, low: number}>;
+  };
+};
 
 export const useHubspotOperations = () => {
   const [isConnecting, setIsConnecting] = useState(false);
@@ -18,7 +31,7 @@ export const useHubspotOperations = () => {
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
 
-  const refreshData = async (): Promise<void> => {
+  const refreshData = async (): Promise<OperationResult | null> => {
     setIsLoading(true);
     setError(null);
     try {
@@ -27,7 +40,7 @@ export const useHubspotOperations = () => {
       if (!apiKey) {
         setError("No API key found. Please add your HubSpot API key in the settings.");
         setIsLoading(false);
-        return Promise.reject("No API key found");
+        return null;
       }
       
       // Fetch data from HubSpot API
@@ -55,21 +68,21 @@ export const useHubspotOperations = () => {
         description: `Successfully loaded ${localContacts.length} contacts and ${localAccounts.length} accounts from HubSpot`
       });
       
-      return Promise.resolve({
+      return {
         contacts: localContacts,
         accounts: localAccounts,
         analytics
-      });
+      };
     } catch (error) {
       console.error("Error refreshing HubSpot data:", error);
       setError("Failed to fetch data from HubSpot API. Please check your API key.");
-      return Promise.reject(error);
+      return null;
     } finally {
       setIsLoading(false);
     }
   };
 
-  const connectToHubspot = async () => {
+  const connectToHubspot = async (): Promise<OperationResult | null> => {
     // Get the API key securely
     const apiKey = await fetchApiKeyFromSupabase();
     
@@ -79,7 +92,7 @@ export const useHubspotOperations = () => {
         description: "Please set your HubSpot API key in Settings first.",
         variant: "destructive",
       });
-      return Promise.reject("API Key Required");
+      return null;
     }
     
     setIsConnecting(true);
@@ -97,7 +110,7 @@ export const useHubspotOperations = () => {
         // Automatically fetch data after successful connection
         const result = await refreshData();
         setIsConnecting(false);
-        return Promise.resolve(result);
+        return result;
       } else {
         toast({
           title: "Connection Failed",
@@ -105,7 +118,7 @@ export const useHubspotOperations = () => {
           variant: "destructive",
         });
         setIsConnecting(false);
-        return Promise.reject("Connection Failed");
+        return null;
       }
     } catch (error) {
       console.error("Error connecting to HubSpot:", error);
@@ -115,11 +128,11 @@ export const useHubspotOperations = () => {
         variant: "destructive",
       });
       setIsConnecting(false);
-      return Promise.reject(error);
+      return null;
     }
   };
 
-  const disconnectFromHubspot = async () => {
+  const disconnectFromHubspot = async (): Promise<void> => {
     try {
       // Clear API key from Supabase
       const { error } = await supabase
@@ -138,8 +151,6 @@ export const useHubspotOperations = () => {
         title: "Disconnected",
         description: "Successfully disconnected from HubSpot API.",
       });
-      
-      return Promise.resolve();
     } catch (error) {
       console.error("Error disconnecting from HubSpot:", error);
       toast({
@@ -147,7 +158,6 @@ export const useHubspotOperations = () => {
         description: "Failed to disconnect from HubSpot API.",
         variant: "destructive",
       });
-      return Promise.reject(error);
     }
   };
 
