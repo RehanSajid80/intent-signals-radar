@@ -1,5 +1,12 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { 
+  fetchHubspotContacts, 
+  fetchHubspotCompanies, 
+  fetchHubspotDeals, 
+  convertHubspotDataToLocalFormat,
+  testHubspotConnection
+} from "@/lib/hubspot-api";
 
 // Types
 export interface Contact {
@@ -125,7 +132,7 @@ export const HubspotProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const { toast } = useToast();
-
+  
   const [contactOwnerStats, setContactOwnerStats] = useState<Record<string, number>>({});
   const [contactLifecycleStats, setContactLifecycleStats] = useState<Record<string, Record<string, number>>>({});
   const [jobTitleStats, setJobTitleStats] = useState<Record<string, number>>({});
@@ -136,7 +143,8 @@ export const HubspotProvider: React.FC<{ children: React.ReactNode }> = ({ child
     const savedApiKey = localStorage.getItem("hubspot_api_key");
     if (savedApiKey) {
       setApiKey(savedApiKey);
-      setIsAuthenticated(true);
+      // We don't automatically set isAuthenticated here anymore
+      // We'll validate the API key first in connectToHubspot
     }
   }, []);
 
@@ -155,16 +163,38 @@ export const HubspotProvider: React.FC<{ children: React.ReactNode }> = ({ child
     
     setIsConnecting(true);
     
-    // Simulate connection process
-    setTimeout(() => {
-      setApiKey(savedApiKey);
-      setIsAuthenticated(true);
-      setIsConnecting(false);
-      toast({
-        title: "Ready for Data Import",
-        description: "You can now import your HubSpot data",
+    // Test the API key by making an actual API request
+    testHubspotConnection(savedApiKey)
+      .then(isValid => {
+        if (isValid) {
+          setApiKey(savedApiKey);
+          setIsAuthenticated(true);
+          toast({
+            title: "Connected to HubSpot",
+            description: "Your API key is valid. Fetching data...",
+          });
+          
+          // Automatically fetch data after successful connection
+          refreshData();
+        } else {
+          toast({
+            title: "Connection Failed",
+            description: "Your HubSpot API key appears to be invalid.",
+            variant: "destructive",
+          });
+        }
+      })
+      .catch(error => {
+        console.error("Error connecting to HubSpot:", error);
+        toast({
+          title: "Connection Error",
+          description: "Failed to connect to HubSpot API. Please check your API key and try again.",
+          variant: "destructive",
+        });
+      })
+      .finally(() => {
+        setIsConnecting(false);
       });
-    }, 2000);
   };
 
   const disconnectFromHubspot = () => {
@@ -189,7 +219,7 @@ export const HubspotProvider: React.FC<{ children: React.ReactNode }> = ({ child
     );
   };
 
-  const refreshData = async () => {
+  const refreshData = async (): Promise<void> => {
     if (!apiKey) {
       toast({
         title: "API Key Required",
@@ -199,24 +229,53 @@ export const HubspotProvider: React.FC<{ children: React.ReactNode }> = ({ child
       return Promise.reject(new Error("API key not found"));
     }
     
-    // Simulate API refresh with the API key
     toast({
-      title: "Refreshing data",
-      description: "Syncing latest data from HubSpot",
+      title: "Fetching data",
+      description: "Retrieving latest data from HubSpot",
     });
     
-    console.log("Using API key to fetch data:", apiKey.substring(0, 5) + "...");
+    setIsProcessing(true);
     
-    return new Promise<void>((resolve, reject) => {
-      setTimeout(() => {
-        // In a real implementation, you would use the apiKey to make actual API calls to HubSpot
-        toast({
-          title: "Data refreshed",
-          description: "Latest data has been synced from HubSpot",
-        });
-        resolve();
-      }, 2000);
-    });
+    try {
+      // Fetch data from HubSpot API
+      const [contactsData, companiesData, dealsData] = await Promise.all([
+        fetchHubspotContacts(apiKey),
+        fetchHubspotCompanies(apiKey),
+        fetchHubspotDeals(apiKey)
+      ]);
+      
+      console.log(`Retrieved ${contactsData.length} contacts, ${companiesData.length} companies, and ${dealsData.length} deals from HubSpot`);
+      
+      // Convert the data to our local format
+      const { contacts: localContacts, accounts: localAccounts } = 
+        convertHubspotDataToLocalFormat(contactsData, companiesData, dealsData);
+      
+      // Update state
+      setContacts(localContacts);
+      setAccounts(localAccounts);
+      
+      // Calculate analytics based on the new data
+      if (localContacts.length > 0) {
+        calculateAnalytics(localContacts);
+      }
+      
+      toast({
+        title: "Data Synced",
+        description: `Successfully loaded ${localContacts.length} contacts and ${localAccounts.length} accounts from HubSpot`,
+      });
+      
+      return Promise.resolve();
+    } catch (error) {
+      console.error("Error refreshing HubSpot data:", error);
+      toast({
+        title: "Sync Failed",
+        description: "Could not retrieve data from HubSpot. Please check your API key.",
+        variant: "destructive"
+      });
+      return Promise.reject(error);
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   const parseCSV = async (file: File): Promise<any[]> => {

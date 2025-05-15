@@ -9,7 +9,7 @@ import FileUpload from "./FileUpload";
 import { useNavigate } from "react-router-dom";
 
 const HubspotConnect = () => {
-  const { isConnecting, connectToHubspot, isAuthenticated } = useHubspot();
+  const { isConnecting, connectToHubspot, isAuthenticated, isProcessing } = useHubspot();
   const [showDetails, setShowDetails] = useState(false);
   const [activeTab, setActiveTab] = useState("connect");
   const navigate = useNavigate();
@@ -85,12 +85,17 @@ const HubspotConnect = () => {
               <Button 
                 className="w-full bg-hubspot hover:bg-hubspot/90"
                 onClick={handleConnect}
-                disabled={isConnecting}
+                disabled={isConnecting || isProcessing}
               >
                 {isConnecting ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     Connecting...
+                  </>
+                ) : isProcessing ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Fetching Data...
                   </>
                 ) : isAuthenticated ? (
                   "Connected to HubSpot"

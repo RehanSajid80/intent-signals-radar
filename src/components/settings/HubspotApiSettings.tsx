@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Eye, EyeOff, Save, RefreshCw } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useHubspot } from "@/context/HubspotContext";
+import { testHubspotConnection } from "@/lib/hubspot-api";
 
 const HubspotApiSettings = () => {
   const [apiKey, setApiKey] = useState("");
@@ -23,7 +24,7 @@ const HubspotApiSettings = () => {
     }
   }, []);
 
-  const handleSaveApiKey = () => {
+  const handleSaveApiKey = async () => {
     if (!apiKey.trim()) {
       toast({
         title: "Error",
@@ -34,18 +35,36 @@ const HubspotApiSettings = () => {
     }
 
     setLoading(true);
-
-    // Store API key in localStorage
-    localStorage.setItem("hubspot_api_key", apiKey);
-
-    // Simulate API verification
-    setTimeout(() => {
-      setLoading(false);
+    
+    try {
+      // Actually test the connection with the API key
+      const isValid = await testHubspotConnection(apiKey);
+      
+      if (isValid) {
+        // Store API key in localStorage
+        localStorage.setItem("hubspot_api_key", apiKey);
+        
+        toast({
+          title: "API Key Saved",
+          description: "Your HubSpot API key has been saved and validated successfully.",
+        });
+      } else {
+        toast({
+          title: "Invalid API Key",
+          description: "The API key could not be validated with HubSpot. Please check and try again.",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error("Error validating API key:", error);
       toast({
-        title: "API Key Saved",
-        description: "Your HubSpot API key has been saved successfully.",
+        title: "Validation Error",
+        description: "An error occurred while validating your API key. Please try again.",
+        variant: "destructive",
       });
-    }, 1000);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleTestConnection = async () => {
@@ -54,7 +73,7 @@ const HubspotApiSettings = () => {
       await refreshData();
       toast({
         title: "Connection Successful",
-        description: "Successfully connected to HubSpot API.",
+        description: "Successfully connected to HubSpot API and retrieved data.",
       });
     } catch (error) {
       toast({
@@ -99,6 +118,16 @@ const HubspotApiSettings = () => {
           </div>
           <p className="text-sm text-muted-foreground mt-1">
             Your API key will be stored locally in your browser.
+          </p>
+          <p className="text-sm text-muted-foreground">
+            <a 
+              href="https://app.hubspot.com/api-key"
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-primary hover:underline"
+            >
+              Get your HubSpot API key here
+            </a>
           </p>
         </div>
 
