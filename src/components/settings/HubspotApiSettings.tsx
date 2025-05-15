@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -10,6 +9,7 @@ import { useHubspot } from "@/context/HubspotContext";
 import { testHubspotConnection } from "@/lib/hubspot-api";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { supabase } from "@/integrations/supabase/client";
+import { fetchApiKeyFromSupabase, saveApiKeyToSupabase } from "@/utils/hubspotApiKeyUtils";
 
 const HubspotApiSettings = () => {
   const [apiKey, setApiKey] = useState("");
@@ -28,31 +28,14 @@ const HubspotApiSettings = () => {
         setFetchingKey(true);
         
         // Check if we have an API key stored in Supabase
-        const { data, error } = await supabase
-          .from('api_keys')
-          .select('api_key')
-          .eq('service', 'hubspot')
-          .maybeSingle();
-          
-        if (error) {
-          console.error("Error checking API key status:", error);
-          // Check localStorage as fallback
-          const localKey = localStorage.getItem("hubspot_api_key");
-          if (localKey) {
-            setApiKey("••••••••••••••••••••"); // Masked key
-            setHasStoredKey(true);
-            checkConnectionStatus(localKey);
-          } else {
-            setHasStoredKey(false);
-          }
-        } else if (data && data.api_key) {
-          // If API key exists, just show masked version
-          setApiKey(data.api_key ? "••••••••••••••••••••" : "");
-          setHasStoredKey(!!data.api_key);
-          
-          if (data.api_key) {
-            checkConnectionStatus(data.api_key);
-          }
+        const apiKey = await fetchApiKeyFromSupabase();
+        
+        if (apiKey) {
+          setApiKey("••••••••••••••••••••"); // Masked key
+          setHasStoredKey(true);
+          checkConnectionStatus(apiKey);
+        } else {
+          setHasStoredKey(false);
         }
       } catch (error) {
         console.error("Error in checkApiKeyStatus:", error);
@@ -80,47 +63,6 @@ const HubspotApiSettings = () => {
     } catch (error) {
       console.error("Error checking connection status:", error);
       setConnectionStatus("disconnected");
-    }
-  };
-
-  const saveApiKeyToSupabase = async (key: string) => {
-    try {
-      // Check if we have an existing record
-      const { data, error } = await supabase
-        .from('api_keys')
-        .select('id')
-        .eq('service', 'hubspot')
-        .maybeSingle();
-      
-      if (error && error.code !== 'PGRST116') { // PGRST116 is not found
-        console.error("Error checking for existing API key:", error);
-        return false;
-      }
-      
-      let result;
-      
-      if (data?.id) {
-        // Update existing record
-        result = await supabase
-          .from('api_keys')
-          .update({ api_key: key, updated_at: new Date().toISOString() })
-          .eq('id', data.id);
-      } else {
-        // Insert new record
-        result = await supabase
-          .from('api_keys')
-          .insert([{ service: 'hubspot', api_key: key }]);
-      }
-      
-      if (result.error) {
-        console.error("Error saving API key to Supabase:", result.error);
-        return false;
-      }
-      
-      return true;
-    } catch (error) {
-      console.error("Error in saveApiKeyToSupabase:", error);
-      return false;
     }
   };
 
@@ -234,25 +176,10 @@ const HubspotApiSettings = () => {
       // When showing the key, if we have a stored key, load it from storage
       if (hasStoredKey) {
         try {
-          // Try to get from Supabase first
-          const { data, error } = await supabase
-            .from('api_keys')
-            .select('api_key')
-            .eq('service', 'hubspot')
-            .maybeSingle();
-            
-          if (data?.api_key) {
-            setApiKey(data.api_key);
-          } else {
-            // Fall back to localStorage
-            const localKey = localStorage.getItem("hubspot_api_key") || "";
-            setApiKey(localKey);
-          }
+          const key = await fetchApiKeyFromSupabase();
+          setApiKey(key);
         } catch (error) {
           console.error("Error retrieving API key:", error);
-          // Fall back to localStorage
-          const localKey = localStorage.getItem("hubspot_api_key") || "";
-          setApiKey(localKey);
         }
       }
       setShowKey(true);
