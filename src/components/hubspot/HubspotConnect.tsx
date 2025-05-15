@@ -7,22 +7,21 @@ import { Loader2, Settings } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import FileUpload from "./FileUpload";
 import { Link } from "react-router-dom";
+import { useToast } from "@/hooks/use-toast";
 
 const HubspotConnect = () => {
   const { isConnecting, connectToHubspot, isAuthenticated, isProcessing } = useHubspot();
   const [showDetails, setShowDetails] = useState(false);
   const [activeTab, setActiveTab] = useState("connect");
+  const { toast } = useToast();
 
   const handleConnect = () => {
     // Check for API key
     const savedApiKey = localStorage.getItem("hubspot_api_key");
     if (!savedApiKey) {
-      // Use the toast import from hooks
-      import("@/hooks/use-toast").then(({ toast }) => {
-        toast({
-          title: "API Key Required",
-          description: "Please configure your HubSpot API key in settings first",
-        });
+      toast({
+        title: "API Key Required",
+        description: "Please configure your HubSpot API key in settings first",
       });
       return;
     }
