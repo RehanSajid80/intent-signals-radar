@@ -32,7 +32,7 @@ const HubspotApiSettings = () => {
           .from('api_keys')
           .select('api_key')
           .eq('service', 'hubspot')
-          .single();
+          .maybeSingle();
           
         if (error) {
           console.error("Error checking API key status:", error);
@@ -90,7 +90,7 @@ const HubspotApiSettings = () => {
         .from('api_keys')
         .select('id')
         .eq('service', 'hubspot')
-        .single();
+        .maybeSingle();
       
       if (error && error.code !== 'PGRST116') { // PGRST116 is not found
         console.error("Error checking for existing API key:", error);
@@ -198,7 +198,7 @@ const HubspotApiSettings = () => {
   const handleTestConnection = async () => {
     setLoading(true);
     try {
-      await refreshData();
+      const result = await refreshData();
       setConnectionStatus("connected");
       toast({
         title: "Connection Successful",
@@ -223,7 +223,7 @@ const HubspotApiSettings = () => {
     }
   };
 
-  const toggleShowKey = () => {
+  const toggleShowKey = async () => {
     if (showKey) {
       // When hiding the key, if we have a stored key, mask it
       if (hasStoredKey) {
@@ -233,8 +233,27 @@ const HubspotApiSettings = () => {
     } else {
       // When showing the key, if we have a stored key, load it from storage
       if (hasStoredKey) {
-        const savedKey = localStorage.getItem("hubspot_api_key") || "";
-        setApiKey(savedKey);
+        try {
+          // Try to get from Supabase first
+          const { data, error } = await supabase
+            .from('api_keys')
+            .select('api_key')
+            .eq('service', 'hubspot')
+            .maybeSingle();
+            
+          if (data?.api_key) {
+            setApiKey(data.api_key);
+          } else {
+            // Fall back to localStorage
+            const localKey = localStorage.getItem("hubspot_api_key") || "";
+            setApiKey(localKey);
+          }
+        } catch (error) {
+          console.error("Error retrieving API key:", error);
+          // Fall back to localStorage
+          const localKey = localStorage.getItem("hubspot_api_key") || "";
+          setApiKey(localKey);
+        }
       }
       setShowKey(true);
     }

@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { 
@@ -141,24 +140,48 @@ export const HubspotProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [jobTitleStats, setJobTitleStats] = useState<Record<string, number>>({});
   const [engagementByOwner, setEngagementByOwner] = useState<Record<string, {high: number, medium: number, low: number}>>({});
 
+  // Check for API key and connection status on mount and reconnect if needed
   useEffect(() => {
-    // Check if there's a valid API key saved on component mount
-    checkForValidApiKey();
+    const checkConnectionStatus = async () => {
+      // Try to get a valid API key and verify connection
+      try {
+        const apiKey = await fetchApiKeyFromSupabase();
+        if (apiKey) {
+          const isValid = await testHubspotConnection(apiKey);
+          if (isValid) {
+            setIsAuthenticated(true);
+            // Pre-load data if connection is valid
+            refreshData();
+          }
+        }
+      } catch (error) {
+        console.error("Error checking connection status on mount:", error);
+      }
+    };
+    
+    checkConnectionStatus();
   }, []);
 
   // Check if a valid API key exists
-  const checkForValidApiKey = async () => {
-    const key = await fetchApiKeyFromSupabase();
-    if (key) {
-      // Just check if key exists but don't store it in state
-      try {
-        const isValid = await testHubspotConnection(key);
-        if (isValid) {
-          setIsAuthenticated(true);
-        }
-      } catch (error) {
-        console.error("Error validating saved API key:", error);
+  const fetchApiKeyFromSupabase = async () => {
+    try {
+      // Try to get API key from Supabase first
+      const { data, error } = await supabase
+        .from('api_keys')
+        .select('api_key')
+        .eq('service', 'hubspot')
+        .maybeSingle();
+        
+      if (error) {
+        console.error("Error fetching HubSpot API key from Supabase:", error);
+        // Fall back to localStorage
+        return localStorage.getItem("hubspot_api_key") || "";
       }
+      
+      return data?.api_key || "";
+    } catch (error) {
+      console.error("Error in fetchApiKeyFromSupabase:", error);
+      return localStorage.getItem("hubspot_api_key") || "";
     }
   };
 
@@ -214,7 +237,7 @@ export const HubspotProvider: React.FC<{ children: React.ReactNode }> = ({ child
       // Clear API key from Supabase
       const { error } = await supabase
         .from('api_keys')
-        .update({ api_key: '' })
+        .update({ api_key: null })
         .eq('service', 'hubspot');
         
       if (error) {
@@ -250,80 +273,6 @@ export const HubspotProvider: React.FC<{ children: React.ReactNode }> = ({ child
         notification.id === id ? { ...notification, read: true } : notification
       )
     );
-  };
-
-  const fetchApiKeyFromSupabase = async () => {
-    try {
-      // Try to get API key from Supabase first
-      const { data, error } = await supabase
-        .from('api_keys')
-        .select('api_key')
-        .eq('service', 'hubspot')
-        .single();
-        
-      if (error) {
-        console.error("Error fetching HubSpot API key from Supabase:", error);
-        // Fall back to localStorage
-        return localStorage.getItem("hubspot_api_key") || "";
-      }
-      
-      return data?.api_key || "";
-    } catch (error) {
-      console.error("Error in fetchApiKeyFromSupabase:", error);
-      return localStorage.getItem("hubspot_api_key") || "";
-    }
-  };
-  
-  const refreshData = async () => {
-    setIsLoading(true);
-    setError(null);
-    
-    try {
-      // Get API key from Supabase with localStorage as fallback
-      const apiKey = await fetchApiKeyFromSupabase();
-      
-      if (!apiKey) {
-        setError("No API key found. Please add your HubSpot API key in the settings.");
-        setIsAuthenticated(false);
-        setIsLoading(false);
-        return;
-      }
-
-      // Fetch data from HubSpot API
-      const [contactsData, companiesData, dealsData] = await Promise.all([
-        fetchHubspotContacts(apiKey),
-        fetchHubspotCompanies(apiKey),
-        fetchHubspotDeals(apiKey)
-      ]);
-      
-      console.log(`Retrieved ${contactsData.length} contacts, ${companiesData.length} companies, and ${dealsData.length} deals from HubSpot`);
-      
-      // Convert the data to our local format
-      const { contacts: localContacts, accounts: localAccounts } = 
-        convertHubspotDataToLocalFormat(contactsData, companiesData, dealsData);
-      
-      // Update state
-      setContacts(localContacts);
-      setAccounts(localAccounts);
-      
-      // Calculate analytics based on the new data
-      if (localContacts.length > 0) {
-        calculateAnalytics(localContacts);
-      }
-      
-      toast({
-        title: "Data Synced",
-        description: `Successfully loaded ${localContacts.length} contacts and ${localAccounts.length} accounts from HubSpot`,
-      });
-      
-      return Promise.resolve();
-    } catch (error) {
-      console.error("Error refreshing HubSpot data:", error);
-      setError("Failed to fetch data from HubSpot API. Please check your API key.");
-      setIsAuthenticated(false);
-    } finally {
-      setIsLoading(false);
-    }
   };
 
   const parseCSV = async (file: File): Promise<any[]> => {

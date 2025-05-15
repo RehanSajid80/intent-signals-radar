@@ -3,11 +3,12 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useHubspot } from "@/context/HubspotContext";
-import { Loader2, Settings } from "lucide-react";
+import { Loader2, Settings, Shield } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import FileUpload from "./FileUpload";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 const HubspotConnect = () => {
   const { isConnecting, connectToHubspot, isAuthenticated, isProcessing } = useHubspot();
@@ -17,16 +18,6 @@ const HubspotConnect = () => {
   const navigate = useNavigate();
 
   const handleConnect = () => {
-    // Check for API key
-    const savedApiKey = localStorage.getItem("hubspot_api_key");
-    if (!savedApiKey) {
-      toast({
-        title: "API Key Required",
-        description: "Please configure your HubSpot API key in settings first",
-      });
-      return;
-    }
-    
     connectToHubspot();
   };
   
@@ -64,6 +55,15 @@ const HubspotConnect = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
+              <Alert className="mb-4 bg-blue-50 border-blue-200">
+                <Shield className="h-5 w-5 text-blue-600" />
+                <AlertTitle className="text-blue-700">Secure Connection</AlertTitle>
+                <AlertDescription className="text-blue-600">
+                  Your API key is securely stored and never exposed to the frontend.
+                  You need to add your API key in Settings before connecting.
+                </AlertDescription>
+              </Alert>
+              
               {showDetails ? (
                 <div className="space-y-4 text-sm">
                   <div className="bg-muted p-3 rounded-md">
