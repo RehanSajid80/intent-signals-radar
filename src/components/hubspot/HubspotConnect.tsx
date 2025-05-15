@@ -6,7 +6,7 @@ import { useHubspot } from "@/context/HubspotContext";
 import { Loader2, Settings } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import FileUpload from "./FileUpload";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 
 const HubspotConnect = () => {
@@ -24,7 +24,11 @@ const HubspotConnect = () => {
         title: "API Key Required",
         description: "Please configure your HubSpot API key in settings first",
       });
-      navigate("/settings");
+      
+      // Navigate after a small delay
+      setTimeout(() => {
+        navigate("/settings");
+      }, 100);
       return;
     }
     
@@ -36,7 +40,11 @@ const HubspotConnect = () => {
       title: "Settings",
       description: "Opening HubSpot API configuration...",
     });
-    navigate("/settings");
+    
+    // Navigate after a small delay
+    setTimeout(() => {
+      navigate("/settings");
+    }, 100);
   };
 
   return (
@@ -118,16 +126,14 @@ const HubspotConnect = () => {
                 )}
               </Button>
               {!isAuthenticated && (
-                <Link to="/settings">
-                  <Button
-                    variant="outline"
-                    className="text-sm w-full"
-                    onClick={goToSettings}
-                  >
-                    <Settings className="mr-2 h-4 w-4" />
-                    Configure API Key in Settings
-                  </Button>
-                </Link>
+                <Button
+                  variant="outline"
+                  className="text-sm w-full"
+                  onClick={goToSettings}
+                >
+                  <Settings className="mr-2 h-4 w-4" />
+                  Configure API Key in Settings
+                </Button>
               )}
               <Button
                 variant="link"

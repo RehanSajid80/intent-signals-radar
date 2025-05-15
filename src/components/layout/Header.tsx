@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Settings } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
@@ -14,7 +14,11 @@ const Header: React.FC = () => {
       title: "Settings",
       description: "Opening settings page..."
     });
-    navigate('/settings');
+    
+    // Force navigation with a small delay to ensure toast shows
+    setTimeout(() => {
+      navigate('/settings');
+    }, 100);
   };
   
   return (
@@ -22,28 +26,26 @@ const Header: React.FC = () => {
       <div className="container mx-auto px-4">
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-3">
-            <Link to="/">
+            <a href="/">
               <img 
                 src="https://www.zyter.com/wp-content/uploads/2023/04/ZTC_LOGO_FINAL1.png" 
                 alt="Zyter Logo" 
                 className="h-10" 
               />
-            </Link>
+            </a>
             <h1 className="text-2xl font-bold text-teal-500">
               Lead Priority Radar
             </h1>
           </div>
           <div className="flex items-center gap-3">
-            <Link to="/settings">
-              <Button 
-                variant="outline" 
-                className="flex items-center gap-2"
-                onClick={handleSettingsClick}
-              >
-                <Settings className="h-4 w-4" />
-                Settings
-              </Button>
-            </Link>
+            <Button 
+              variant="outline" 
+              className="flex items-center gap-2"
+              onClick={handleSettingsClick}
+            >
+              <Settings className="h-4 w-4" />
+              Settings
+            </Button>
             <Button className="bg-teal-500 hover:bg-teal-600">
               <a 
                 href="https://app.hubspot.com" 

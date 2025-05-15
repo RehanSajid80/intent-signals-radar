@@ -18,7 +18,11 @@ const MainContent: React.FC = () => {
       title: "Settings",
       description: "Opening settings page..."
     });
-    navigate('/settings');
+    
+    // Force navigation with a small delay to ensure toast shows
+    setTimeout(() => {
+      navigate('/settings');
+    }, 100);
   };
 
   return (
@@ -61,15 +65,13 @@ const MainContent: React.FC = () => {
                 Set up your HubSpot API connection to start analyzing your marketing and sales data.
               </p>
               <div className="flex flex-wrap gap-3">
-                <Link to="/settings">
-                  <Button 
-                    onClick={handleNavigateToSettings}
-                    className="bg-blue-500 hover:bg-blue-600"
-                  >
-                    <Settings className="h-4 w-4 mr-2" />
-                    Configure HubSpot API
-                  </Button>
-                </Link>
+                <Button 
+                  onClick={handleNavigateToSettings}
+                  className="bg-blue-500 hover:bg-blue-600"
+                >
+                  <Settings className="h-4 w-4 mr-2" />
+                  Configure HubSpot API
+                </Button>
               </div>
             </CardContent>
           </Card>

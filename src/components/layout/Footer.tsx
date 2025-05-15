@@ -3,7 +3,7 @@ import React from 'react';
 import { Button } from "@/components/ui/button";
 import { Settings } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 const Footer: React.FC = () => {
   const { toast } = useToast();
@@ -14,7 +14,11 @@ const Footer: React.FC = () => {
       title: "Settings",
       description: "Opening settings page..."
     });
-    navigate('/settings');
+    
+    // Force navigation with a small delay to ensure toast shows
+    setTimeout(() => {
+      navigate('/settings');
+    }, 100);
   };
   
   return (
@@ -29,17 +33,15 @@ const Footer: React.FC = () => {
         </div>
         <p>© 2025 Zyter Lead Priority Radar. All rights reserved.</p>
         <div className="mt-3">
-          <Link to="/settings">
-            <Button 
-              variant="link" 
-              size="sm" 
-              className="text-muted-foreground"
-              onClick={handleSettingsClick}
-            >
-              <Settings className="h-3 w-3 mr-1" />
-              Settings
-            </Button>
-          </Link>
+          <Button 
+            variant="link" 
+            size="sm" 
+            className="text-muted-foreground"
+            onClick={handleSettingsClick}
+          >
+            <Settings className="h-3 w-3 mr-1" />
+            Settings
+          </Button>
         </div>
       </div>
     </footer>
