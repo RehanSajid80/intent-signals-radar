@@ -6,23 +6,17 @@ import FeaturesSection from './FeaturesSection';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { BarChart, Upload, Settings } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 
 const MainContent: React.FC = () => {
-  const navigate = useNavigate();
   const { toast } = useToast();
   
-  const handleNavigateToSettings = () => {
+  const handleSettingsClick = () => {
     toast({
       title: "Settings",
       description: "Opening settings page..."
     });
-    
-    // Force navigation with a small delay to ensure toast shows
-    setTimeout(() => {
-      navigate('/settings');
-    }, 100);
   };
 
   return (
@@ -66,11 +60,14 @@ const MainContent: React.FC = () => {
               </p>
               <div className="flex flex-wrap gap-3">
                 <Button 
-                  onClick={handleNavigateToSettings}
+                  asChild
                   className="bg-blue-500 hover:bg-blue-600"
+                  onClick={handleSettingsClick}
                 >
-                  <Settings className="h-4 w-4 mr-2" />
-                  Configure HubSpot API
+                  <Link to="/settings">
+                    <Settings className="h-4 w-4 mr-2" />
+                    Configure HubSpot API
+                  </Link>
                 </Button>
               </div>
             </CardContent>

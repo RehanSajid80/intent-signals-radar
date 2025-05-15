@@ -6,14 +6,13 @@ import { useHubspot } from "@/context/HubspotContext";
 import { Loader2, Settings } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import FileUpload from "./FileUpload";
-import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 
 const HubspotConnect = () => {
   const { isConnecting, connectToHubspot, isAuthenticated, isProcessing } = useHubspot();
   const [showDetails, setShowDetails] = useState(false);
   const [activeTab, setActiveTab] = useState("connect");
-  const navigate = useNavigate();
   const { toast } = useToast();
 
   const handleConnect = () => {
@@ -24,27 +23,17 @@ const HubspotConnect = () => {
         title: "API Key Required",
         description: "Please configure your HubSpot API key in settings first",
       });
-      
-      // Navigate after a small delay
-      setTimeout(() => {
-        navigate("/settings");
-      }, 100);
       return;
     }
     
     connectToHubspot();
   };
 
-  const goToSettings = () => {
+  const handleSettingsClick = () => {
     toast({
       title: "Settings",
       description: "Opening HubSpot API configuration...",
     });
-    
-    // Navigate after a small delay
-    setTimeout(() => {
-      navigate("/settings");
-    }, 100);
   };
 
   return (
@@ -129,10 +118,13 @@ const HubspotConnect = () => {
                 <Button
                   variant="outline"
                   className="text-sm w-full"
-                  onClick={goToSettings}
+                  onClick={handleSettingsClick}
+                  asChild
                 >
-                  <Settings className="mr-2 h-4 w-4" />
-                  Configure API Key in Settings
+                  <Link to="/settings">
+                    <Settings className="mr-2 h-4 w-4" />
+                    Configure API Key in Settings
+                  </Link>
                 </Button>
               )}
               <Button

@@ -1,24 +1,18 @@
 
 import React from 'react';
-import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Settings } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 const Header: React.FC = () => {
   const { toast } = useToast();
-  const navigate = useNavigate();
   
   const handleSettingsClick = () => {
     toast({
       title: "Settings",
       description: "Opening settings page..."
     });
-    
-    // Force navigation with a small delay to ensure toast shows
-    setTimeout(() => {
-      navigate('/settings');
-    }, 100);
   };
   
   return (
@@ -26,13 +20,13 @@ const Header: React.FC = () => {
       <div className="container mx-auto px-4">
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-3">
-            <a href="/">
+            <Link to="/">
               <img 
                 src="https://www.zyter.com/wp-content/uploads/2023/04/ZTC_LOGO_FINAL1.png" 
                 alt="Zyter Logo" 
                 className="h-10" 
               />
-            </a>
+            </Link>
             <h1 className="text-2xl font-bold text-teal-500">
               Lead Priority Radar
             </h1>
@@ -42,9 +36,12 @@ const Header: React.FC = () => {
               variant="outline" 
               className="flex items-center gap-2"
               onClick={handleSettingsClick}
+              asChild
             >
-              <Settings className="h-4 w-4" />
-              Settings
+              <Link to="/settings">
+                <Settings className="h-4 w-4" />
+                Settings
+              </Link>
             </Button>
             <Button className="bg-teal-500 hover:bg-teal-600">
               <a 
