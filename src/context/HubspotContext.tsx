@@ -131,7 +131,6 @@ export const HubspotProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [isProcessing, setIsProcessing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [apiKey, setApiKey] = useState<string | null>(null);
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [notifications, setNotifications] = useState<Notification[]>([]);
@@ -143,20 +142,31 @@ export const HubspotProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [engagementByOwner, setEngagementByOwner] = useState<Record<string, {high: number, medium: number, low: number}>>({});
 
   useEffect(() => {
-    // Check for saved API key on component mount
-    const savedApiKey = localStorage.getItem("hubspot_api_key");
-    if (savedApiKey) {
-      setApiKey(savedApiKey);
-      // We don't automatically set isAuthenticated here anymore
-      // We'll validate the API key first in connectToHubspot
-    }
+    // Check if there's a valid API key saved on component mount
+    checkForValidApiKey();
   }, []);
 
-  const connectToHubspot = () => {
-    // Get the API key from localStorage
-    const savedApiKey = localStorage.getItem("hubspot_api_key");
+  // Check if a valid API key exists
+  const checkForValidApiKey = async () => {
+    const key = await fetchApiKeyFromSupabase();
+    if (key) {
+      // Just check if key exists but don't store it in state
+      try {
+        const isValid = await testHubspotConnection(key);
+        if (isValid) {
+          setIsAuthenticated(true);
+        }
+      } catch (error) {
+        console.error("Error validating saved API key:", error);
+      }
+    }
+  };
+
+  const connectToHubspot = async () => {
+    // Get the API key securely
+    const apiKey = await fetchApiKeyFromSupabase();
     
-    if (!savedApiKey) {
+    if (!apiKey) {
       toast({
         title: "API Key Required",
         description: "Please set your HubSpot API key in Settings first.",
@@ -168,37 +178,35 @@ export const HubspotProvider: React.FC<{ children: React.ReactNode }> = ({ child
     setIsConnecting(true);
     
     // Test the API key by making an actual API request
-    testHubspotConnection(savedApiKey)
-      .then(isValid => {
-        if (isValid) {
-          setApiKey(savedApiKey);
-          setIsAuthenticated(true);
-          toast({
-            title: "Connected to HubSpot",
-            description: "Your API key is valid. Fetching data...",
-          });
-          
-          // Automatically fetch data after successful connection
-          refreshData();
-        } else {
-          toast({
-            title: "Connection Failed",
-            description: "Your HubSpot API key appears to be invalid.",
-            variant: "destructive",
-          });
-        }
-      })
-      .catch(error => {
-        console.error("Error connecting to HubSpot:", error);
+    try {
+      const isValid = await testHubspotConnection(apiKey);
+      
+      if (isValid) {
+        setIsAuthenticated(true);
         toast({
-          title: "Connection Error",
-          description: "Failed to connect to HubSpot API. Please check your API key and try again.",
+          title: "Connected to HubSpot",
+          description: "Your API key is valid. Fetching data...",
+        });
+        
+        // Automatically fetch data after successful connection
+        refreshData();
+      } else {
+        toast({
+          title: "Connection Failed",
+          description: "Your HubSpot API key appears to be invalid.",
           variant: "destructive",
         });
-      })
-      .finally(() => {
-        setIsConnecting(false);
+      }
+    } catch (error) {
+      console.error("Error connecting to HubSpot:", error);
+      toast({
+        title: "Connection Error",
+        description: "Failed to connect to HubSpot API. Please check your API key and try again.",
+        variant: "destructive",
       });
+    } finally {
+      setIsConnecting(false);
+    }
   };
 
   const disconnectFromHubspot = async () => {
@@ -220,6 +228,7 @@ export const HubspotProvider: React.FC<{ children: React.ReactNode }> = ({ child
       setContacts([]);
       setAccounts([]);
       setNotifications([]);
+      setIsAuthenticated(false);
       
       toast({
         title: "Disconnected",

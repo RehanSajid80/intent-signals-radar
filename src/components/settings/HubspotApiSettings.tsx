@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Eye, EyeOff, Save, RefreshCw, CheckCircle, XCircle } from "lucide-react";
+import { Eye, EyeOff, Save, RefreshCw, CheckCircle, XCircle, Key } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useHubspot } from "@/context/HubspotContext";
 import { testHubspotConnection } from "@/lib/hubspot-api";
@@ -19,14 +19,15 @@ const HubspotApiSettings = () => {
   const [connectionStatus, setConnectionStatus] = useState<"connected" | "disconnected" | "unknown">("unknown");
   const { toast } = useToast();
   const { refreshData, isAuthenticated } = useHubspot();
+  const [hasStoredKey, setHasStoredKey] = useState(false);
 
-  // Load API key from Supabase on component mount
+  // Load API key status from Supabase on component mount
   useEffect(() => {
-    const fetchApiKey = async () => {
+    const checkApiKeyStatus = async () => {
       try {
         setFetchingKey(true);
         
-        // First try to get the API key from Supabase
+        // Check if we have an API key stored in Supabase
         const { data, error } = await supabase
           .from('api_keys')
           .select('api_key')
@@ -34,28 +35,33 @@ const HubspotApiSettings = () => {
           .single();
           
         if (error) {
-          console.error("Error fetching API key:", error);
-          // Fallback to localStorage if Supabase fails
+          console.error("Error checking API key status:", error);
+          // Check localStorage as fallback
           const localKey = localStorage.getItem("hubspot_api_key");
           if (localKey) {
-            setApiKey(localKey);
+            setApiKey("••••••••••••••••••••"); // Masked key
+            setHasStoredKey(true);
             checkConnectionStatus(localKey);
+          } else {
+            setHasStoredKey(false);
           }
         } else if (data && data.api_key) {
-          setApiKey(data.api_key);
-          checkConnectionStatus(data.api_key);
+          // If API key exists, just show masked version
+          setApiKey(data.api_key ? "••••••••••••••••••••" : "");
+          setHasStoredKey(!!data.api_key);
           
-          // If we found a key in Supabase, save it to localStorage as backup
-          localStorage.setItem("hubspot_api_key", data.api_key);
+          if (data.api_key) {
+            checkConnectionStatus(data.api_key);
+          }
         }
       } catch (error) {
-        console.error("Error in fetchApiKey:", error);
+        console.error("Error in checkApiKeyStatus:", error);
       } finally {
         setFetchingKey(false);
       }
     };
     
-    fetchApiKey();
+    checkApiKeyStatus();
   }, []);
 
   // Update connection status based on HubSpot context
@@ -143,6 +149,11 @@ const HubspotApiSettings = () => {
           title: "API Key Saved",
           description: "Your HubSpot API key has been securely saved to the database.",
         });
+        
+        setHasStoredKey(true);
+        // Mask the displayed key after saving
+        setApiKey("••••••••••••••••••••");
+        setShowKey(false);
       } else {
         toast({
           title: "API Key Saved Locally",
@@ -205,6 +216,30 @@ const HubspotApiSettings = () => {
     }
   };
 
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    // Only allow direct editing if we don't have a stored key or if showKey is true
+    if (!hasStoredKey || showKey) {
+      setApiKey(e.target.value);
+    }
+  };
+
+  const toggleShowKey = () => {
+    if (showKey) {
+      // When hiding the key, if we have a stored key, mask it
+      if (hasStoredKey) {
+        setApiKey("••••••••••••••••••••");
+      }
+      setShowKey(false);
+    } else {
+      // When showing the key, if we have a stored key, load it from storage
+      if (hasStoredKey) {
+        const savedKey = localStorage.getItem("hubspot_api_key") || "";
+        setApiKey(savedKey);
+      }
+      setShowKey(true);
+    }
+  };
+
   return (
     <Card className="border-2 border-blue-200 shadow-md">
       <CardHeader className="bg-blue-50">
@@ -242,7 +277,7 @@ const HubspotApiSettings = () => {
             {connectionStatus === "connected" && (
               <Alert className="bg-green-50 border-green-200">
                 <AlertDescription className="text-green-800">
-                  Your HubSpot API connection is active and working properly. Your API key is securely stored in the database.
+                  Your HubSpot API connection is active and working properly. Your API key is securely stored.
                 </AlertDescription>
               </Alert>
             )}
@@ -250,26 +285,31 @@ const HubspotApiSettings = () => {
             <div className="space-y-2">
               <Label htmlFor="api-key" className="text-base font-medium">API Key</Label>
               <div className="flex">
-                <Input
-                  id="api-key"
-                  value={apiKey}
-                  onChange={(e) => setApiKey(e.target.value)}
-                  type={showKey ? "text" : "password"}
-                  placeholder="Enter your HubSpot API key"
-                  className="flex-1"
-                />
+                <div className="relative flex-1">
+                  <Input
+                    id="api-key"
+                    value={apiKey}
+                    onChange={handleInputChange}
+                    type={showKey ? "text" : "password"}
+                    placeholder={hasStoredKey ? "API key stored securely" : "Enter your HubSpot API key"}
+                    className="flex-1 pr-10"
+                  />
+                  {hasStoredKey && !showKey && (
+                    <Key className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  )}
+                </div>
                 <Button
                   type="button"
                   variant="outline"
                   size="icon"
-                  onClick={() => setShowKey(!showKey)}
+                  onClick={toggleShowKey}
                   className="ml-2"
                 >
                   {showKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </Button>
               </div>
               <p className="text-sm text-muted-foreground mt-1">
-                Your API key will be securely stored in the database.
+                Your API key will be securely stored in the database and masked for security.
               </p>
               <p className="text-sm text-muted-foreground">
                 <a 
@@ -305,7 +345,7 @@ const HubspotApiSettings = () => {
               <Button 
                 variant="outline" 
                 onClick={handleTestConnection}
-                disabled={loading || !apiKey}
+                disabled={loading || !hasStoredKey}
               >
                 Test Connection
               </Button>
