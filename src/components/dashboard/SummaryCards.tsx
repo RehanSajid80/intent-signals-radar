@@ -1,6 +1,5 @@
-
 import React from 'react';
-import { useHubspot } from "@/context/HubspotContext";
+import { useHubspot } from "@/context/hubspot";
 import DataCard from "@/components/ui/DataCard";
 
 const SummaryCards = () => {

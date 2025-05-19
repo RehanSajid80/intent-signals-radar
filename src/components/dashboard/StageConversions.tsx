@@ -1,7 +1,6 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useHubspot, FunnelStage } from "@/context/HubspotContext";
+import { useHubspot } from "@/context/hubspot";
 import { Calendar, ChevronLeft, ChevronRight } from "lucide-react";
 import { format } from "date-fns";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";

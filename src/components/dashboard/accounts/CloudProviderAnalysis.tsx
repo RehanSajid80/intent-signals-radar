@@ -1,7 +1,6 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useHubspot } from "@/context/HubspotContext";
+import { useHubspot } from "@/context/hubspot";
 import { Cloud } from "lucide-react";
 import { CloudProviderLookupForm } from "./CloudProviderLookupForm";
 import { CloudProviderTable } from "./CloudProviderTable";

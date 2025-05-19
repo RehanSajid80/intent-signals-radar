@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { 
   Table, 
@@ -8,7 +7,7 @@ import {
   TableHeader, 
   TableRow 
 } from "@/components/ui/table";
-import { useHubspot, Account } from "@/context/HubspotContext";
+import { useHubspot } from "@/context/hubspot";
 import { Input } from "@/components/ui/input";
 import { 
   ArrowUpDown, 
