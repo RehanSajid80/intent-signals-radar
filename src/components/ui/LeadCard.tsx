@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -23,7 +22,7 @@ const LeadCard: React.FC<LeadCardProps> = ({ contact, showDetails = false }) => 
       case 'high':
         return 'destructive';
       case 'medium':
-        return 'warning';
+        return 'secondary';
       default:
         return 'secondary';
     }
