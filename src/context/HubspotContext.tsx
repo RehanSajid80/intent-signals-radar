@@ -5,6 +5,7 @@ import { testHubspotConnection } from "@/lib/hubspot-api";
 import { fetchApiKeyFromSupabase } from "@/utils/hubspotApiKeyUtils";
 import { useHubspotOperations } from "@/hooks/useHubspotOperations";
 import { useFileUpload } from "@/hooks/useFileUpload";
+import { useHubspotDemoData } from "@/hooks/useHubspotDemoData";
 import { 
   Contact, 
   Account, 
@@ -37,6 +38,9 @@ export const HubspotProvider: React.FC<{ children: React.ReactNode }> = ({ child
   } = useHubspotOperations();
   
   const { isProcessing, processFileUpload: processFiles } = useFileUpload();
+  
+  // Import demo data hook
+  const { useDemoData, getDemoData } = useHubspotDemoData();
 
   // Check for API key and connection status on mount and reconnect if needed
   useEffect(() => {
@@ -59,6 +63,26 @@ export const HubspotProvider: React.FC<{ children: React.ReactNode }> = ({ child
     
     checkConnectionStatus();
   }, []);
+
+  // Apply demo data if needed
+  useEffect(() => {
+    if (useDemoData) {
+      const demoData = getDemoData();
+      setContacts(demoData.contacts);
+      setAccounts(demoData.accounts);
+      setNotifications(demoData.notifications);
+      setContactOwnerStats(demoData.contactOwnerStats);
+      setContactLifecycleStats(demoData.contactLifecycleStats);
+      setJobTitleStats(demoData.jobTitleStats);
+      setEngagementByOwner(demoData.engagementByOwner);
+      setIsAuthenticated(true);
+      
+      toast({
+        title: "Using sample data",
+        description: "Displaying sample data for demonstration purposes."
+      });
+    }
+  }, [useDemoData]);
 
   const connectToHubspot = async () => {
     try {
@@ -91,6 +115,9 @@ export const HubspotProvider: React.FC<{ children: React.ReactNode }> = ({ child
       setJobTitleStats({});
       setEngagementByOwner({});
       setIsAuthenticated(false);
+      
+      // Also disable demo data
+      localStorage.removeItem('hubspot_use_demo_data');
     } catch (error) {
       console.error("Error in disconnectFromHubspot:", error);
     }

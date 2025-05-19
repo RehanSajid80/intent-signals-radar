@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useHubspot } from "@/context/HubspotContext";
 import Sidebar from "@/components/Sidebar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -10,13 +10,26 @@ import LeadScoring from "@/components/dashboard/LeadScoring";
 import AccountsTabContent from "@/components/dashboard/AccountsTabContent";
 import ContactsTabContent from "@/components/dashboard/ContactsTabContent";
 import { Button } from "@/components/ui/button";
-import { RefreshCw } from "lucide-react";
+import { RefreshCw, AlertTriangle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import ConnectionHelp from "@/components/settings/hubspot/ConnectionHelp";
 
 const Dashboard = () => {
-  const { isAuthenticated, refreshData } = useHubspot();
+  const { isAuthenticated, refreshData, contacts } = useHubspot();
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [corsError, setCorsError] = useState(false);
   const { toast } = useToast();
+  
+  // Check if we might be experiencing CORS issues
+  useEffect(() => {
+    // If authenticated but no data, might be CORS
+    if (isAuthenticated && contacts.length === 0) {
+      setCorsError(true);
+    } else {
+      setCorsError(false);
+    }
+  }, [isAuthenticated, contacts]);
   
   const handleRefreshData = async () => {
     if (!isAuthenticated) {
@@ -37,6 +50,7 @@ const Dashboard = () => {
       });
     } catch (error) {
       console.error("Error refreshing data:", error);
+      setCorsError(true);
       toast({
         title: "Refresh failed",
         description: "There was a problem refreshing your HubSpot data.",
@@ -45,6 +59,16 @@ const Dashboard = () => {
     } finally {
       setIsRefreshing(false);
     }
+  };
+  
+  const enableDemoData = () => {
+    toast({
+      title: "Demo data enabled",
+      description: "Sample data is now being displayed for demonstration purposes."
+    });
+    // This will be handled by useHubspotDemoData hook in context
+    localStorage.setItem('hubspot_use_demo_data', 'true');
+    window.location.reload(); // Refresh to apply changes
   };
   
   return (
@@ -89,6 +113,32 @@ const Dashboard = () => {
             <UnauthenticatedView />
           ) : (
             <>
+              {corsError && (
+                <div className="space-y-4 mb-6">
+                  <Alert variant="warning" className="bg-amber-50 border-amber-200">
+                    <AlertTriangle className="h-5 w-5 text-amber-600" />
+                    <AlertTitle className="text-amber-800">Data Connection Issue</AlertTitle>
+                    <AlertDescription className="text-amber-700">
+                      <p className="mb-2">
+                        We're having trouble retrieving your HubSpot data due to browser security limitations (CORS).
+                        Your API key may still be valid, but direct access is restricted in the browser.
+                      </p>
+                      <div className="flex flex-wrap gap-2 mt-4">
+                        <Button 
+                          size="sm" 
+                          variant="secondary"
+                          className="bg-amber-100 hover:bg-amber-200 text-amber-800"
+                          onClick={enableDemoData}
+                        >
+                          Show Sample Data
+                        </Button>
+                      </div>
+                    </AlertDescription>
+                  </Alert>
+                  <ConnectionHelp />
+                </div>
+              )}
+              
               <SummaryCards />
               
               <Tabs defaultValue="overview" className="mb-4">
