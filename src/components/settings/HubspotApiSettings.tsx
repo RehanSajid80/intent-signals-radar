@@ -9,11 +9,12 @@ import ApiKeyInput from "./hubspot/ApiKeyInput";
 import ActionButtons from "./hubspot/ActionButtons";
 import ConnectionHelp from "./hubspot/ConnectionHelp";
 import { Button } from "@/components/ui/button";
+import { useState } from "react";
 
 const HubspotApiSettings = () => {
   const {
     apiKey,
-    loading,
+    loading: apiKeyLoading,
     fetchingKey,
     showKey,
     connectionStatus,
@@ -31,13 +32,22 @@ const HubspotApiSettings = () => {
     disconnectFromHubspot 
   } = useHubspot();
 
+  const [disconnecting, setDisconnecting] = useState(false);
+  
   const handleRefreshData = async () => {
     await refreshData();
   };
 
   const handleDisconnect = async () => {
-    await disconnectFromHubspot();
+    try {
+      setDisconnecting(true);
+      await disconnectFromHubspot();
+    } finally {
+      setDisconnecting(false);
+    }
   };
+
+  const loading = apiKeyLoading || disconnecting;
 
   return (
     <Card className="border-2 border-blue-200 shadow-md">
@@ -99,10 +109,20 @@ const HubspotApiSettings = () => {
                 <Button 
                   variant="destructive" 
                   onClick={handleDisconnect}
+                  disabled={disconnecting}
                   className="flex items-center gap-2"
                 >
-                  <LogOut className="h-4 w-4" />
-                  Disconnect from HubSpot
+                  {disconnecting ? (
+                    <>
+                      <RefreshCw className="h-4 w-4 animate-spin" />
+                      Disconnecting...
+                    </>
+                  ) : (
+                    <>
+                      <LogOut className="h-4 w-4" />
+                      Disconnect from HubSpot
+                    </>
+                  )}
                 </Button>
               </div>
             )}
