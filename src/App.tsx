@@ -6,7 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
-import { HubspotProvider } from "./context/HubspotContext";
+import { HubspotProvider } from "./context/hubspot";
 import Dashboard from "./pages/Dashboard";
 import AccountDetails from "./pages/AccountDetails";
 import ContactDetails from "./pages/ContactDetails";

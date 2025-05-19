@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { useHubspot } from "@/context/HubspotContext";
+import { useHubspot } from "@/context/hubspot";
 import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 import Header from "@/components/layout/Header";
