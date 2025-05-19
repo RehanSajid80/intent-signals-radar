@@ -1,6 +1,5 @@
-
 import React, { useState, useEffect } from 'react';
-import { useHubspot } from "@/context/HubspotContext";
+import { useHubspot } from "@/context/hubspot";
 import Sidebar from "@/components/Sidebar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import SummaryCards from "@/components/dashboard/SummaryCards";
