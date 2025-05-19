@@ -61,18 +61,6 @@ export default function ActionButtons({
           Refresh Data
         </Button>
       )}
-
-      {isConnected && onDisconnect && (
-        <Button
-          variant="outline"
-          onClick={onDisconnect}
-          disabled={loading}
-          className="bg-red-50 border-red-200 text-red-700 hover:bg-red-100 hover:text-red-800"
-        >
-          <Unlink className="mr-2 h-4 w-4" />
-          Disconnect
-        </Button>
-      )}
     </div>
   );
 }
