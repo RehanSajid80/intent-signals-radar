@@ -110,8 +110,8 @@ export const HubspotProvider: React.FC<{ children: React.ReactNode }> = ({ child
         setEngagementByOwner(result.analytics.engagementByOwner);
       }
     } catch (error) {
-      setIsAuthenticated(false);
       console.error("Error in refreshData:", error);
+      throw error; // Rethrow to allow consumers to catch the error
     }
   };
 

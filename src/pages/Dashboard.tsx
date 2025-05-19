@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useHubspot } from "@/context/HubspotContext";
 import Sidebar from "@/components/Sidebar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -9,9 +9,43 @@ import UnauthenticatedView from "@/components/dashboard/UnauthenticatedView";
 import LeadScoring from "@/components/dashboard/LeadScoring";
 import AccountsTabContent from "@/components/dashboard/AccountsTabContent";
 import ContactsTabContent from "@/components/dashboard/ContactsTabContent";
+import { Button } from "@/components/ui/button";
+import { RefreshCw } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 const Dashboard = () => {
-  const { isAuthenticated } = useHubspot();
+  const { isAuthenticated, refreshData } = useHubspot();
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const { toast } = useToast();
+  
+  const handleRefreshData = async () => {
+    if (!isAuthenticated) {
+      toast({
+        title: "Not connected",
+        description: "Please connect to HubSpot in Settings before refreshing data.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    setIsRefreshing(true);
+    try {
+      await refreshData();
+      toast({
+        title: "Data refreshed",
+        description: "HubSpot data has been successfully refreshed."
+      });
+    } catch (error) {
+      console.error("Error refreshing data:", error);
+      toast({
+        title: "Refresh failed",
+        description: "There was a problem refreshing your HubSpot data.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
   
   return (
     <div className="flex min-h-screen bg-background">
@@ -28,12 +62,24 @@ const Dashboard = () => {
               />
               <h1 className="text-2xl font-bold">Dashboard</h1>
             </div>
-            <div className="text-sm text-muted-foreground">
-              {isAuthenticated ? (
-                <>Last updated: {new Date().toLocaleDateString()} {new Date().toLocaleTimeString()}</>
-              ) : (
-                <>Not connected to HubSpot</>
-              )}
+            <div className="flex items-center gap-2">
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={handleRefreshData}
+                disabled={isRefreshing}
+                className="flex items-center gap-1"
+              >
+                <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+                {isRefreshing ? 'Refreshing...' : 'Refresh HubSpot Data'}
+              </Button>
+              <div className="text-sm text-muted-foreground">
+                {isAuthenticated ? (
+                  <>Last updated: {new Date().toLocaleDateString()} {new Date().toLocaleTimeString()}</>
+                ) : (
+                  <>Not connected to HubSpot</>
+                )}
+              </div>
             </div>
           </div>
         </header>
