@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { FileUploadItem } from "@/types/hubspot";
+import { FileUploadItem, Notification } from "@/types/hubspot";
 
 export const useFileUpload = () => {
   const [isProcessing, setIsProcessing] = useState(false);
@@ -21,7 +21,7 @@ export const useFileUpload = () => {
           id: "upload-notif-1",
           type: "intent_signal" as const, // Using const assertion to ensure TypeScript knows this is a specific string
           entityId: "contact-1",
-          entityType: "contact",
+          entityType: "contact" as const, // Explicitly type this as "contact" to match the Notification interface
           message: "New contact data uploaded",
           timestamp: new Date().toISOString(),
           read: false

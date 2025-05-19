@@ -131,27 +131,27 @@ export const useHubspotDemoData = () => {
     const demoNotifications: Notification[] = [
       {
         id: "notif-1",
-        type: "intent_signal", // Use the exact enum value
+        type: "intent_signal", // This is now properly typed due to Notification interface
         entityId: "demo-1",
-        entityType: "contact",
+        entityType: "contact", // This is now explicitly "contact" to match the Notification interface
         message: "High intent signal from John Smith at Acme Corp",
         timestamp: "2023-05-09T10:20:00Z",
         read: false
       },
       {
         id: "notif-2",
-        type: "stage_change", // Use the exact enum value
+        type: "stage_change",
         entityId: "acct-2",
-        entityType: "account",
+        entityType: "account", // This is now explicitly "account" to match the Notification interface
         message: "Tech Firm Inc moved to Demo stage",
         timestamp: "2023-05-10T16:25:00Z",
         read: false
       },
       {
         id: "notif-3",
-        type: "priority_change", // Use the exact enum value
+        type: "priority_change",
         entityId: "demo-2",
-        entityType: "contact",
+        entityType: "contact", // This is now explicitly "contact" to match the Notification interface
         message: "Jane Doe priority increased to High",
         timestamp: "2023-05-11T09:50:00Z",
         read: true
