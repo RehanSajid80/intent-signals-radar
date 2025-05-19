@@ -1,22 +1,28 @@
 
-import { Save, RefreshCw } from "lucide-react";
+import { Save, RefreshCw, Link, Unlink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 type ActionButtonsProps = {
   loading: boolean;
   hasStoredKey: boolean;
+  isConnected: boolean;
   onSaveApiKey: () => void;
   onTestConnection: () => void;
+  onRefreshData?: () => void;
+  onDisconnect?: () => void;
 };
 
 export default function ActionButtons({
   loading,
   hasStoredKey,
+  isConnected,
   onSaveApiKey,
-  onTestConnection
+  onTestConnection,
+  onRefreshData,
+  onDisconnect
 }: ActionButtonsProps) {
   return (
-    <div className="flex gap-2 pt-2">
+    <div className="flex flex-wrap gap-2 pt-2">
       <Button 
         onClick={onSaveApiKey} 
         disabled={loading}
@@ -40,8 +46,33 @@ export default function ActionButtons({
         onClick={onTestConnection}
         disabled={loading || !hasStoredKey}
       >
+        <Link className="mr-2 h-4 w-4" />
         Test Connection
       </Button>
+
+      {isConnected && onRefreshData && (
+        <Button
+          variant="outline"
+          onClick={onRefreshData}
+          disabled={loading}
+          className="bg-green-50 border-green-200 text-green-700 hover:bg-green-100 hover:text-green-800"
+        >
+          <RefreshCw className="mr-2 h-4 w-4" />
+          Refresh Data
+        </Button>
+      )}
+
+      {isConnected && onDisconnect && (
+        <Button
+          variant="outline"
+          onClick={onDisconnect}
+          disabled={loading}
+          className="bg-red-50 border-red-200 text-red-700 hover:bg-red-100 hover:text-red-800"
+        >
+          <Unlink className="mr-2 h-4 w-4" />
+          Disconnect
+        </Button>
+      )}
     </div>
   );
 }

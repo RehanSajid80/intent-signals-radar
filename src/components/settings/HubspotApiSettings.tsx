@@ -3,9 +3,11 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { RefreshCw } from "lucide-react";
 import { useHubspotApiKey } from "@/hooks/useHubspotApiKey";
+import { useHubspot } from "@/context/HubspotContext";
 import ConnectionStatus from "./hubspot/ConnectionStatus";
 import ApiKeyInput from "./hubspot/ApiKeyInput";
 import ActionButtons from "./hubspot/ActionButtons";
+import ConnectionHelp from "./hubspot/ConnectionHelp";
 
 const HubspotApiSettings = () => {
   const {
@@ -14,12 +16,27 @@ const HubspotApiSettings = () => {
     fetchingKey,
     showKey,
     connectionStatus,
+    connectionError,
     hasStoredKey,
     handleSaveApiKey,
     handleTestConnection,
     handleInputChange,
     toggleShowKey
   } = useHubspotApiKey();
+  
+  const { 
+    isAuthenticated, 
+    refreshData, 
+    disconnectFromHubspot 
+  } = useHubspot();
+
+  const handleRefreshData = async () => {
+    await refreshData();
+  };
+
+  const handleDisconnect = async () => {
+    await disconnectFromHubspot();
+  };
 
   return (
     <Card className="border-2 border-blue-200 shadow-md">
@@ -31,7 +48,10 @@ const HubspotApiSettings = () => {
               Configure your HubSpot API connection to sync your data
             </CardDescription>
           </div>
-          <ConnectionStatus status={connectionStatus} />
+          <ConnectionStatus 
+            status={connectionStatus} 
+            errorMessage={connectionError}
+          />
         </div>
       </CardHeader>
       <CardContent className="space-y-4 p-6">
@@ -49,6 +69,8 @@ const HubspotApiSettings = () => {
               </Alert>
             )}
             
+            {connectionStatus === "error" && <ConnectionHelp />}
+            
             <ApiKeyInput
               apiKey={apiKey}
               showKey={showKey}
@@ -60,8 +82,11 @@ const HubspotApiSettings = () => {
             <ActionButtons
               loading={loading}
               hasStoredKey={hasStoredKey}
+              isConnected={connectionStatus === "connected"}
               onSaveApiKey={handleSaveApiKey}
               onTestConnection={handleTestConnection}
+              onRefreshData={handleRefreshData}
+              onDisconnect={handleDisconnect}
             />
           </>
         )}
