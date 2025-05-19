@@ -5,7 +5,7 @@ import AccountEngagementList from "@/components/dashboard/accounts/AccountEngage
 import ContactRoleMapping from "@/components/dashboard/accounts/ContactRoleMapping";
 import CloudProviderAnalysis from "@/components/dashboard/accounts/CloudProviderAnalysis";
 import IntentUpload from "@/components/dashboard/IntentUpload";
-import { useHubspot } from "@/context/HubspotContext";
+import { useHubspot } from "@/context/hubspot";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Layers, ListFilter, ChevronRight, BarChart } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";

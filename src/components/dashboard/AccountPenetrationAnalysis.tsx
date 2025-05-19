@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useHubspot, Account } from "@/context/HubspotContext";
+import { useHubspot, Account } from "@/context/hubspot";
 import { BarChart, Bar, ResponsiveContainer, XAxis, YAxis, Tooltip, Cell, CartesianGrid } from "recharts";
 import { Building, Filter, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";

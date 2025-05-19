@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { useHubspot } from "@/context/HubspotContext";
+import { useHubspot } from "@/context/hubspot";
 import { Card, CardContent } from "@/components/ui/card";
 
 const ContactsList = () => {

@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { useHubspot } from "@/context/HubspotContext";
+import { useHubspot } from "@/context/hubspot";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Users } from 'lucide-react';
 
@@ -48,7 +48,7 @@ const ContactBreakdown = () => {
                 <TableCell className="font-medium">{owner}</TableCell>
                 <TableCell className="text-right">{count}</TableCell>
                 <TableCell className="text-right">
-                  {Math.round((count / contacts.length) * 100)}%
+                  {contacts.length > 0 ? Math.round((count / contacts.length) * 100) : 0}%
                 </TableCell>
               </TableRow>
             ))}

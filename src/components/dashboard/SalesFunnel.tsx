@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useHubspot, FunnelStage } from "@/context/HubspotContext";
+import { useHubspot } from "@/context/hubspot";
 import { 
   BarChart, 
   Bar, 
