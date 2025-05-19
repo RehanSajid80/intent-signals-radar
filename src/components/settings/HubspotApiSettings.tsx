@@ -3,7 +3,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { RefreshCw } from "lucide-react";
 import { useHubspotApiKey } from "@/hooks/useHubspotApiKey";
-import { useHubspot } from "@/context/HubspotContext";
+import { useHubspot } from "@/context/hubspot";
 import ConnectionStatus from "./hubspot/ConnectionStatus";
 import ApiKeyInput from "./hubspot/ApiKeyInput";
 import ActionButtons from "./hubspot/ActionButtons";
