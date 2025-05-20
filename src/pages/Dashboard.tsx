@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+
+import React, { useState, useEffect, useCallback } from 'react';
 import { useHubspot } from "@/context/hubspot";
 import Sidebar from "@/components/Sidebar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -18,19 +19,20 @@ const Dashboard = () => {
   const { isAuthenticated, refreshData, contacts } = useHubspot();
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [corsError, setCorsError] = useState(false);
+  const [hasAttemptedFetch, setHasAttemptedFetch] = useState(false);
   const { toast } = useToast();
   
   // Check if we might be experiencing CORS issues
   useEffect(() => {
-    // If authenticated but no data, might be CORS
-    if (isAuthenticated && contacts.length === 0) {
+    // Only check for CORS issues if we've attempted to fetch data
+    if (isAuthenticated && contacts.length === 0 && hasAttemptedFetch) {
       setCorsError(true);
-    } else {
+    } else if (contacts.length > 0) {
       setCorsError(false);
     }
-  }, [isAuthenticated, contacts]);
+  }, [isAuthenticated, contacts, hasAttemptedFetch]);
   
-  const handleRefreshData = async () => {
+  const handleRefreshData = useCallback(async () => {
     if (!isAuthenticated) {
       toast({
         title: "Not connected",
@@ -41,6 +43,8 @@ const Dashboard = () => {
     }
     
     setIsRefreshing(true);
+    setHasAttemptedFetch(true);
+    
     try {
       await refreshData();
       toast({
@@ -58,9 +62,18 @@ const Dashboard = () => {
     } finally {
       setIsRefreshing(false);
     }
-  };
+  }, [isAuthenticated, refreshData, toast]);
   
-  const enableDemoData = () => {
+  // Attempt to fetch data once on initial mount if authenticated
+  useEffect(() => {
+    if (isAuthenticated && !hasAttemptedFetch && !isRefreshing) {
+      // Mark that we've attempted a fetch to prevent multiple attempts
+      setHasAttemptedFetch(true);
+      handleRefreshData();
+    }
+  }, [isAuthenticated, hasAttemptedFetch, isRefreshing, handleRefreshData]);
+  
+  const enableDemoData = useCallback(() => {
     toast({
       title: "Demo data enabled",
       description: "Sample data is now being displayed for demonstration purposes."
@@ -68,7 +81,7 @@ const Dashboard = () => {
     // This will be handled by useHubspotDemoData hook in context
     localStorage.setItem('hubspot_use_demo_data', 'true');
     window.location.reload(); // Refresh to apply changes
-  };
+  }, [toast]);
   
   return (
     <div className="flex min-h-screen bg-background">
