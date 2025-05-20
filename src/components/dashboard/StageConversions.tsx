@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useHubspot } from "@/context/hubspot";
@@ -23,11 +22,13 @@ const StageConversions = () => {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [timeframe, setTimeframe] = useState("month");
   const [hasShownError, setHasShownError] = useState(false);
+  const [errorCount, setErrorCount] = useState(0);
   
-  // Reset error state when component re-mounts
+  // Reset error state when component mounts or when authentication status changes
   useEffect(() => {
     setHasShownError(false);
-  }, []);
+    setErrorCount(0);
+  }, [isAuthenticated]);
   
   // Navigate to previous/next month
   const prevMonth = () => {
@@ -89,7 +90,10 @@ const StageConversions = () => {
       });
     } catch (error) {
       console.error("Error calculating conversion data:", error);
-      if (!hasShownError) {
+      
+      // Limit error messages to prevent spam
+      setErrorCount(prev => prev + 1);
+      if (!hasShownError && errorCount < 2) {
         setHasShownError(true);
       }
       

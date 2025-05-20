@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback } from 'react';
 import { useHubspot } from "@/context/hubspot";
 import Sidebar from "@/components/Sidebar";
@@ -20,6 +19,7 @@ const Dashboard = () => {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [corsError, setCorsError] = useState(false);
   const [hasAttemptedFetch, setHasAttemptedFetch] = useState(false);
+  const [refreshAttempts, setRefreshAttempts] = useState(0);
   const { toast } = useToast();
   
   // Check if we might be experiencing CORS issues
@@ -42,6 +42,17 @@ const Dashboard = () => {
       return;
     }
     
+    // Limit refresh attempts to prevent spamming API calls
+    setRefreshAttempts(prev => prev + 1);
+    if (refreshAttempts > 3) {
+      toast({
+        title: "Too many refresh attempts",
+        description: "Please wait a moment before trying again.",
+        variant: "default"
+      });
+      return;
+    }
+    
     setIsRefreshing(true);
     setHasAttemptedFetch(true);
     
@@ -51,18 +62,24 @@ const Dashboard = () => {
         title: "Data refreshed",
         description: "HubSpot data has been successfully refreshed."
       });
+      // Reset refresh attempts on success
+      setRefreshAttempts(0);
     } catch (error) {
       console.error("Error refreshing data:", error);
       setCorsError(true);
-      toast({
-        title: "Refresh failed",
-        description: "There was a problem refreshing your HubSpot data.",
-        variant: "destructive"
-      });
+      
+      // Only show error toast on first attempt
+      if (refreshAttempts <= 1) {
+        toast({
+          title: "Refresh failed",
+          description: "There was a problem refreshing your HubSpot data.",
+          variant: "destructive"
+        });
+      }
     } finally {
       setIsRefreshing(false);
     }
-  }, [isAuthenticated, refreshData, toast]);
+  }, [isAuthenticated, refreshData, toast, refreshAttempts]);
   
   // Attempt to fetch data once on initial mount if authenticated
   useEffect(() => {
@@ -82,6 +99,17 @@ const Dashboard = () => {
     localStorage.setItem('hubspot_use_demo_data', 'true');
     window.location.reload(); // Refresh to apply changes
   }, [toast]);
+  
+  // Reset refresh attempts periodically
+  useEffect(() => {
+    if (refreshAttempts > 0) {
+      const timer = setTimeout(() => {
+        setRefreshAttempts(0);
+      }, 60000); // Reset after 1 minute
+      
+      return () => clearTimeout(timer);
+    }
+  }, [refreshAttempts]);
   
   return (
     <div className="flex min-h-screen bg-background">
@@ -103,7 +131,7 @@ const Dashboard = () => {
                 variant="outline" 
                 size="sm"
                 onClick={handleRefreshData}
-                disabled={isRefreshing}
+                disabled={isRefreshing || refreshAttempts > 3}
                 className="flex items-center gap-1"
               >
                 <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />

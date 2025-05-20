@@ -8,6 +8,7 @@ export const useDataFiltering = (setIntentData: (data: IntentData[]) => void) =>
   const [dateFilter, setDateFilter] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [lastFetchFailed, setLastFetchFailed] = useState(false);
+  const [lastFailedParams, setLastFailedParams] = useState<{date?: string, week?: string} | null>(null);
   const { toast } = useToast();
 
   const handleDateFilterChange = (date: string | null) => {
@@ -15,19 +16,24 @@ export const useDataFiltering = (setIntentData: (data: IntentData[]) => void) =>
   };
 
   const fetchFilteredData = async (date?: string, week?: string): Promise<IntentData[]> => {
-    // Skip fetch if the last attempt failed and we're trying the same params
+    // Skip fetch if the last attempt failed with the same parameters to prevent error spam
     if (lastFetchFailed && 
-        ((date === dateFilter) || (date === undefined && dateFilter === null))) {
+        lastFailedParams && 
+        lastFailedParams.date === date && 
+        lastFailedParams.week === week) {
+      console.log("Skipping repeated failed fetch with same parameters");
       return [];
     }
     
     setIsLoading(true);
-    setLastFetchFailed(false);
     
     try {
       const data = await fetchSupabaseData(date, week);
       if (data && data.length > 0) {
         setIntentData(data);
+        // Reset failure state on success
+        setLastFetchFailed(false);
+        setLastFailedParams(null);
         return data;
       } else {
         // Only show toast if we're filtering specifically
@@ -47,13 +53,19 @@ export const useDataFiltering = (setIntentData: (data: IntentData[]) => void) =>
     } catch (err) {
       console.error("Error fetching data:", err);
       setLastFetchFailed(true);
+      setLastFailedParams({ date, week });
       
-      // Only show error toast once per session for the same error
-      toast({
-        title: "Error Loading Data",
-        description: "Could not load data from database",
-        variant: "destructive",
-      });
+      // Prevent error message spam - only show one toast per session for the same error
+      if (!lastFetchFailed || 
+          !lastFailedParams ||
+          lastFailedParams.date !== date || 
+          lastFailedParams.week !== week) {
+        toast({
+          title: "Error Loading Data",
+          description: "Could not load data from database",
+          variant: "destructive",
+        });
+      }
       return [];
     } finally {
       setIsLoading(false);
