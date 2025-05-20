@@ -11,15 +11,25 @@ import CorsErrorAlert from "@/components/dashboard/CorsErrorAlert";
 interface DashboardContentProps {
   corsError: boolean;
   enableDemoData: () => void;
+  pauseApiCalls: boolean;
+  togglePauseApiCalls: () => void;
 }
 
 const DashboardContent: React.FC<DashboardContentProps> = ({
   corsError,
-  enableDemoData
+  enableDemoData,
+  pauseApiCalls,
+  togglePauseApiCalls
 }) => {
   return (
     <>
-      {corsError && <CorsErrorAlert enableDemoData={enableDemoData} />}
+      {corsError && (
+        <CorsErrorAlert 
+          enableDemoData={enableDemoData} 
+          pauseApiCalls={pauseApiCalls}
+          togglePauseApiCalls={togglePauseApiCalls}
+        />
+      )}
       
       <SummaryCards />
       

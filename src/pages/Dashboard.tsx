@@ -13,7 +13,29 @@ const Dashboard = () => {
   const [corsError, setCorsError] = useState(false);
   const [hasAttemptedFetch, setHasAttemptedFetch] = useState(false);
   const [refreshAttempts, setRefreshAttempts] = useState(0);
+  const [pauseApiCalls, setPauseApiCalls] = useState(false);
   const { toast } = useToast();
+  
+  const togglePauseApiCalls = useCallback(() => {
+    const newValue = !pauseApiCalls;
+    setPauseApiCalls(newValue);
+    localStorage.setItem('hubspot_pause_api_calls', newValue.toString());
+    
+    toast({
+      title: newValue ? "API Calls Paused" : "API Calls Resumed",
+      description: newValue 
+        ? "All HubSpot API calls have been paused to reduce network requests." 
+        : "HubSpot API calls have been resumed."
+    });
+  }, [pauseApiCalls, toast]);
+  
+  // Load pause setting from localStorage on mount
+  useEffect(() => {
+    const savedPauseSetting = localStorage.getItem('hubspot_pause_api_calls');
+    if (savedPauseSetting) {
+      setPauseApiCalls(savedPauseSetting === 'true');
+    }
+  }, []);
   
   // Check if we might be experiencing CORS issues
   useEffect(() => {
@@ -31,6 +53,16 @@ const Dashboard = () => {
         title: "Not connected",
         description: "Please connect to HubSpot in Settings before refreshing data.",
         variant: "destructive"
+      });
+      return;
+    }
+    
+    // Don't attempt API calls if paused
+    if (pauseApiCalls) {
+      toast({
+        title: "API Calls Paused",
+        description: "API calls are currently paused. Please unpause to refresh data.",
+        variant: "default"
       });
       return;
     }
@@ -72,16 +104,16 @@ const Dashboard = () => {
     } finally {
       setIsRefreshing(false);
     }
-  }, [isAuthenticated, refreshData, toast, refreshAttempts]);
+  }, [isAuthenticated, refreshData, toast, refreshAttempts, pauseApiCalls]);
   
   // Attempt to fetch data once on initial mount if authenticated
   useEffect(() => {
-    if (isAuthenticated && !hasAttemptedFetch && !isRefreshing) {
+    if (isAuthenticated && !hasAttemptedFetch && !isRefreshing && !pauseApiCalls) {
       // Mark that we've attempted a fetch to prevent multiple attempts
       setHasAttemptedFetch(true);
       handleRefreshData();
     }
-  }, [isAuthenticated, hasAttemptedFetch, isRefreshing, handleRefreshData]);
+  }, [isAuthenticated, hasAttemptedFetch, isRefreshing, handleRefreshData, pauseApiCalls]);
   
   const enableDemoData = useCallback(() => {
     toast({
@@ -123,6 +155,8 @@ const Dashboard = () => {
             <DashboardContent 
               corsError={corsError}
               enableDemoData={enableDemoData}
+              pauseApiCalls={pauseApiCalls}
+              togglePauseApiCalls={togglePauseApiCalls}
             />
           )}
         </main>

@@ -1,8 +1,7 @@
 
 import React from 'react';
 import { Button } from "@/components/ui/button";
-import { RefreshCw } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { RefreshCw, WifiOff } from "lucide-react";
 
 interface DashboardHeaderProps {
   isAuthenticated: boolean;
@@ -17,6 +16,9 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
   isRefreshing,
   refreshAttempts
 }) => {
+  // Check if API calls are paused from localStorage
+  const apiCallsPaused = localStorage.getItem('hubspot_pause_api_calls') === 'true';
+
   return (
     <header className="border-b bg-card p-4">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between">
@@ -33,11 +35,20 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
             variant="outline" 
             size="sm"
             onClick={handleRefreshData}
-            disabled={isRefreshing || refreshAttempts > 3}
+            disabled={isRefreshing || refreshAttempts > 3 || apiCallsPaused}
             className="flex items-center gap-1"
           >
-            <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-            {isRefreshing ? 'Refreshing...' : 'Refresh HubSpot Data'}
+            {apiCallsPaused ? (
+              <>
+                <WifiOff className="h-4 w-4 text-gray-400" />
+                API Calls Paused
+              </>
+            ) : (
+              <>
+                <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+                {isRefreshing ? 'Refreshing...' : 'Refresh HubSpot Data'}
+              </>
+            )}
           </Button>
           <div className="text-sm text-muted-foreground">
             {isAuthenticated ? (
