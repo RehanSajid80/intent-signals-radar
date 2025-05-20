@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { fetchApiKeyFromSupabase, saveApiKeyToSupabase } from "@/utils/hubspotApiKeyUtils";
@@ -29,6 +30,9 @@ export const useHubspotOperations = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
+
+  // Track if we've already shown a toast to prevent duplicate notifications
+  const [hasShownSyncToast, setHasShownSyncToast] = useState(false);
 
   const refreshData = async (): Promise<OperationResult | null> => {
     setIsLoading(true);
@@ -96,10 +100,14 @@ export const useHubspotOperations = () => {
         engagementByOwner: {}
       };
       
-      toast({
-        title: "Data Synced",
-        description: `Successfully loaded ${localContacts.length} contacts and ${localAccounts.length} accounts from HubSpot`
-      });
+      // Only show the sync notification if we haven't shown it already
+      if (!hasShownSyncToast && (localContacts.length > 0 || localAccounts.length > 0)) {
+        toast({
+          title: "Data Synced",
+          description: `Successfully loaded ${localContacts.length} contacts and ${localAccounts.length} accounts from HubSpot`
+        });
+        setHasShownSyncToast(true);
+      }
       
       return {
         contacts: localContacts,
@@ -128,6 +136,9 @@ export const useHubspotOperations = () => {
   };
 
   const connectToHubspot = async (): Promise<OperationResult | null> => {
+    // Reset toast state when connecting
+    setHasShownSyncToast(false);
+    
     // Get the API key securely
     const apiKey = await fetchApiKeyFromSupabase();
     
@@ -237,6 +248,9 @@ export const useHubspotOperations = () => {
       
       // Also clear from localStorage
       localStorage.removeItem("hubspot_api_key");
+      
+      // Reset toast state on disconnect
+      setHasShownSyncToast(false);
       
       toast({
         title: "Disconnected",

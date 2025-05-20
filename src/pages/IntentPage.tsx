@@ -20,40 +20,47 @@ const IntentPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [availableWeeks, setAvailableWeeks] = useState<string[]>([]);
   const [selectedWeek, setSelectedWeek] = useState<string>("");
+  const [initialDataFetched, setInitialDataFetched] = useState(false);
   
   // Format current date for display
   const currentDate = format(new Date(), "MMMM d, yyyy");
   
   useEffect(() => {
-    const fetchIntentData = async () => {
-      try {
-        setIsLoading(true);
-        
-        // Fetch available weeks first
-        const weeks = await fetchAvailableWeeks();
-        setAvailableWeeks(weeks);
-        
-        // If there are weeks available, fetch data for the most recent week
-        if (weeks.length > 0) {
-          setSelectedWeek(weeks[0]);
-          const data = await fetchSupabaseData(undefined, weeks[0]);
-          setDatabaseData(data);
-        } else {
-          // Otherwise fetch all data
-          const data = await fetchSupabaseData();
-          setDatabaseData(data);
+    // Only fetch data once on initial load
+    if (!initialDataFetched) {
+      const fetchIntentData = async () => {
+        try {
+          setIsLoading(true);
+          
+          // Fetch available weeks first
+          const weeks = await fetchAvailableWeeks();
+          setAvailableWeeks(weeks);
+          
+          // If there are weeks available, fetch data for the most recent week
+          if (weeks.length > 0) {
+            setSelectedWeek(weeks[0]);
+            const data = await fetchSupabaseData(undefined, weeks[0]);
+            setDatabaseData(data);
+          } else {
+            // Otherwise fetch all data
+            const data = await fetchSupabaseData();
+            setDatabaseData(data);
+          }
+        } catch (err) {
+          console.error("Error fetching data:", err);
+        } finally {
+          setIsLoading(false);
+          setInitialDataFetched(true);
         }
-      } catch (err) {
-        console.error("Error fetching data:", err);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    
-    fetchIntentData();
-  }, []);
+      };
+      
+      fetchIntentData();
+    }
+  }, [initialDataFetched]);
 
   const handleWeekChange = async (week: string) => {
+    if (week === selectedWeek) return; // Don't fetch if same week is selected
+    
     setSelectedWeek(week);
     setIsLoading(true);
     
