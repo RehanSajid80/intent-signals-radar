@@ -1,6 +1,7 @@
+
 import React, { useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { useHubspot } from "@/context/hubspot";
+import { useHubspot } from "@/context/HubspotContext";
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { LifeBuoy } from 'lucide-react';
 

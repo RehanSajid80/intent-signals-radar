@@ -2,7 +2,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { LogOut, Shield } from "lucide-react";
-import { useHubspot } from "@/context/hubspot";
+import { useHubspot } from "@/context/HubspotContext";
 
 const IntegrationSettings = () => {
   const { disconnectFromHubspot, isAuthenticated } = useHubspot();

@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useHubspot } from "@/context/hubspot";
 import { 
@@ -12,16 +11,6 @@ import {
   LabelList 
 } from "recharts";
 import { Activity } from "lucide-react";
-
-type FunnelStage = 
-  | "awareness"
-  | "prospecting"
-  | "qualification"
-  | "demo"
-  | "proposal"
-  | "negotiation"
-  | "closed_won"
-  | "closed_lost";
 
 const stageTitles: Record<FunnelStage, string> = {
   awareness: "Awareness",

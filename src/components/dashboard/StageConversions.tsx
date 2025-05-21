@@ -1,6 +1,7 @@
-import { useState, useEffect } from "react";
+
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useHubspot } from "@/context/hubspot";
+import { useHubspot, FunnelStage } from "@/context/HubspotContext";
 import { Calendar, ChevronLeft, ChevronRight } from "lucide-react";
 import { format } from "date-fns";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -21,14 +22,6 @@ const StageConversions = () => {
   const { contacts, accounts, isAuthenticated } = useHubspot();
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [timeframe, setTimeframe] = useState("month");
-  const [hasShownError, setHasShownError] = useState(false);
-  const [errorCount, setErrorCount] = useState(0);
-  
-  // Reset error state when component mounts or when authentication status changes
-  useEffect(() => {
-    setHasShownError(false);
-    setErrorCount(0);
-  }, [isAuthenticated]);
   
   // Navigate to previous/next month
   const prevMonth = () => {
@@ -45,71 +38,33 @@ const StageConversions = () => {
   
   // Filter contacts by stage change within the selected month
   const getConversionData = () => {
-    // Don't attempt to fetch data if we're not authenticated to avoid errors
-    if (!isAuthenticated) {
-      return TRACKED_STAGES.slice(0, -1).map((fromStage, index) => {
-        const toStage = TRACKED_STAGES[index + 1];
-        return {
-          fromStage,
-          toStage,
-          fromLabel: STAGE_LABELS[fromStage],
-          toLabel: STAGE_LABELS[toStage],
-          count: 0,
-          rate: "0.0%"
-        };
-      });
-    }
-    
     // In a real app, you'd have historical data
     // This is a simplified mock implementation
     const monthStart = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
     const monthEnd = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0);
     
-    try {
-      // Calculate conversions between each stage
-      return TRACKED_STAGES.slice(0, -1).map((fromStage, index) => {
-        const toStage = TRACKED_STAGES[index + 1];
-        
-        // Simulate conversion counts
-        const contactsCount = contacts?.length || 0;
-        const conversionCount = contactsCount > 0
-          ? (monthStart.getDate() + index) % 7 + (contactsCount / 3)
-          : 0;
-        const conversionRate = contactsCount > 0
-          ? ((conversionCount / contactsCount) * 100).toFixed(1)
-          : "0.0";
-        
-        return {
-          fromStage,
-          toStage,
-          fromLabel: STAGE_LABELS[fromStage],
-          toLabel: STAGE_LABELS[toStage],
-          count: Math.floor(conversionCount),
-          rate: `${conversionRate}%`
-        };
-      });
-    } catch (error) {
-      console.error("Error calculating conversion data:", error);
+    // Calculate conversions between each stage
+    return TRACKED_STAGES.slice(0, -1).map((fromStage, index) => {
+      const toStage = TRACKED_STAGES[index + 1];
       
-      // Limit error messages to prevent spam
-      setErrorCount(prev => prev + 1);
-      if (!hasShownError && errorCount < 2) {
-        setHasShownError(true);
-      }
+      // Simulate conversion counts - in a real app would use actual conversion timestamps
+      // Here we're using the day of the month modulo to create varied mock data
+      const conversionCount = isAuthenticated 
+        ? (monthStart.getDate() + index) % 7 + (contacts.length / 3)
+        : 0;
+      const conversionRate = isAuthenticated
+        ? ((conversionCount / (contacts.length || 1)) * 100).toFixed(1)
+        : "0.0";
       
-      // Return zeros if there's an error
-      return TRACKED_STAGES.slice(0, -1).map((fromStage, index) => {
-        const toStage = TRACKED_STAGES[index + 1];
-        return {
-          fromStage,
-          toStage,
-          fromLabel: STAGE_LABELS[fromStage],
-          toLabel: STAGE_LABELS[toStage],
-          count: 0,
-          rate: "0.0%"
-        };
-      });
-    }
+      return {
+        fromStage,
+        toStage,
+        fromLabel: STAGE_LABELS[fromStage],
+        toLabel: STAGE_LABELS[toStage],
+        count: Math.floor(conversionCount),
+        rate: `${conversionRate}%`
+      };
+    });
   };
   
   const conversionData = getConversionData();

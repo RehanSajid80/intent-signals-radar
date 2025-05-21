@@ -42,9 +42,7 @@ export const useHubspotActions = (state: any, setters: any) => {
   const disconnectFromHubspot = async () => {
     try {
       await disconnectFromHubspotAPI();
-      
       // Reset state
-      setters.setIsAuthenticated(false);
       setters.setContacts([]);
       setters.setAccounts([]);
       setters.setNotifications([]);
@@ -52,21 +50,12 @@ export const useHubspotActions = (state: any, setters: any) => {
       setters.setContactLifecycleStats({});
       setters.setJobTitleStats({});
       setters.setEngagementByOwner({});
+      setters.setIsAuthenticated(false);
       
       // Also disable demo data
       localStorage.removeItem('hubspot_use_demo_data');
-      
-      toast({
-        title: "Disconnected",
-        description: "Successfully disconnected from HubSpot. All data has been cleared.",
-      });
     } catch (error) {
       console.error("Error in disconnectFromHubspot:", error);
-      toast({
-        title: "Error",
-        description: "Failed to disconnect from HubSpot. Please try again.",
-        variant: "destructive",
-      });
     }
   };
 

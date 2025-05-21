@@ -1,4 +1,5 @@
-import { useHubspot } from "@/context/hubspot";
+
+import { useHubspot, Contact } from "@/context/HubspotContext";
 
 interface AccountData {
   name: string;

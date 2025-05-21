@@ -7,14 +7,7 @@ import { HubspotContextType } from "./types";
 
 // Export all the types from the hubspot context
 export * from "./types";
-// Export types from the hubspot types file
-export type { 
-  Contact, 
-  Account, 
-  Notification, 
-  FileUploadItem,
-  IntentSignal 
-} from "@/types/hubspot";
+export * from "@/types/hubspot";
 
 const HubspotContext = createContext<HubspotContextType | undefined>(undefined);
 

@@ -1,90 +1,144 @@
 
-import React, { useState } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Contact, IntentSignal } from "@/context/HubspotContext";
+import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
-import { ChevronDown, ChevronUp, Mail, Phone, Building2 } from "lucide-react";
-import { Contact } from "@/types/hubspot";
+import { 
+  Mail, 
+  Phone, 
+  Building2, 
+  Calendar, 
+  ArrowUpRight, 
+  MousePointer, 
+  FileText, 
+  Download, 
+  CreditCard
+} from "lucide-react";
+import { format } from "date-fns";
+import { Link } from "react-router-dom";
 
-export interface LeadCardProps {
+interface LeadCardProps {
   contact: Contact;
   showDetails?: boolean;
+  className?: string;
 }
 
-const LeadCard: React.FC<LeadCardProps> = ({ contact, showDetails = false }) => {
-  const [expanded, setExpanded] = useState(showDetails);
-
-  const toggleExpanded = () => {
-    setExpanded(!expanded);
-  };
-
-  const getBadgeVariant = (priorityLevel: string) => {
-    switch (priorityLevel?.toLowerCase()) {
-      case 'high':
-        return 'destructive';
-      case 'medium':
-        return 'secondary';
+const IntentSignalBadge = ({ signal }: { signal: IntentSignal }) => {
+  const getIcon = () => {
+    switch (signal.type) {
+      case "email_open":
+        return <Mail className="h-3 w-3" />;
+      case "website_visit":
+        return <MousePointer className="h-3 w-3" />;
+      case "form_submission":
+        return <FileText className="h-3 w-3" />;
+      case "content_download":
+        return <Download className="h-3 w-3" />;
+      case "pricing_visit":
+        return <CreditCard className="h-3 w-3" />;
+      case "demo_request":
+        return <Calendar className="h-3 w-3" />;
       default:
-        return 'secondary';
+        return <ArrowUpRight className="h-3 w-3" />;
     }
   };
 
+  const getStyle = () => {
+    if (signal.strength >= 90) return "bg-alert-50 text-alert-600 border-alert-200";
+    if (signal.strength >= 70) return "bg-warning-50 text-warning-600 border-warning-200";
+    return "bg-neutral-50 text-neutral-600 border-neutral-200";
+  };
+
   return (
-    <Card className="mb-3 overflow-hidden">
-      <CardHeader className="p-4 pb-0">
-        <div className="flex justify-between items-center">
-          <div>
-            <div className="flex items-center gap-2">
-              <h3 className="font-medium">{contact.firstName} {contact.lastName}</h3>
-              <Badge variant={getBadgeVariant(contact.priorityLevel)}>{contact.priorityLevel}</Badge>
-            </div>
-            <p className="text-sm text-muted-foreground">{contact.title}</p>
-          </div>
-          <Button variant="ghost" size="sm" onClick={toggleExpanded}>
-            {expanded ? 
-              <ChevronUp className="h-4 w-4" /> :
-              <ChevronDown className="h-4 w-4" />
-            }
-          </Button>
-        </div>
-      </CardHeader>
-      {expanded && (
-        <CardContent className="p-4 pt-2">
-          <div className="space-y-2 text-sm">
-            <div className="flex items-center gap-2">
-              <Mail className="h-4 w-4 text-muted-foreground" />
-              <a href={`mailto:${contact.email}`} className="text-primary">{contact.email}</a>
-            </div>
-            {contact.phone && (
-              <div className="flex items-center gap-2">
-                <Phone className="h-4 w-4 text-muted-foreground" />
-                <a href={`tel:${contact.phone}`} className="text-primary">{contact.phone}</a>
-              </div>
-            )}
-            <div className="flex items-center gap-2">
-              <Building2 className="h-4 w-4 text-muted-foreground" />
-              <span>{contact.company}</span>
-            </div>
-            <div className="mt-2 pt-2 border-t">
-              <div className="flex justify-between items-center mt-1">
-                <span>Score:</span>
-                <span className="font-medium">{contact.score}</span>
-              </div>
-              <div className="flex justify-between items-center mt-1">
-                <span>Last Activity:</span>
-                <span className="font-medium">{new Date(contact.lastActivity).toLocaleDateString()}</span>
-              </div>
-              {contact.lifecycleStage && (
-                <div className="flex justify-between items-center mt-1">
-                  <span>Stage:</span>
-                  <span className="font-medium">{contact.lifecycleStage}</span>
+    <div className={cn("text-xs flex items-center gap-1 px-2 py-1 rounded border", getStyle())}>
+      {getIcon()}
+      <span className="truncate">{signal.description}</span>
+    </div>
+  );
+};
+
+const LeadCard = ({ contact, showDetails = false, className }: LeadCardProps) => {
+  const initials = `${contact.firstName.charAt(0)}${contact.lastName.charAt(0)}`;
+  const lastActivityDate = format(new Date(contact.lastActivity), "MMM d");
+  
+  return (
+    <Link to={`/contacts/${contact.id}`}>
+      <Card className={cn("hover:shadow-md transition-shadow", className)}>
+        <CardHeader className="pb-2">
+          <div className="flex justify-between items-start">
+            <div className="flex items-center space-x-3">
+              <Avatar>
+                <AvatarImage src={`https://ui-avatars.com/api/?name=${contact.firstName}+${contact.lastName}&background=random`} />
+                <AvatarFallback>{initials}</AvatarFallback>
+              </Avatar>
+              <div>
+                <h3 className="font-medium">{contact.firstName} {contact.lastName}</h3>
+                <div className="flex items-center text-sm text-muted-foreground">
+                  <Mail className="h-3 w-3 mr-1" />
+                  <span className="truncate">{contact.email}</span>
                 </div>
+              </div>
+            </div>
+            <Badge 
+              className={cn(
+                "ml-auto",
+                contact.priorityLevel === "high" && "bg-alert-500",
+                contact.priorityLevel === "medium" && "bg-warning-500",
+                contact.priorityLevel === "low" && "bg-success-500",
               )}
+            >
+              {contact.priorityLevel}
+            </Badge>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 gap-2 mb-3 text-sm">
+            <div className="flex items-center text-muted-foreground">
+              <Building2 className="h-3.5 w-3.5 mr-1" />
+              <span className="truncate">{contact.company}</span>
+            </div>
+            <div className="flex items-center text-muted-foreground">
+              <Phone className="h-3.5 w-3.5 mr-1" />
+              <span className="truncate">{contact.phone}</span>
             </div>
           </div>
+          
+          <div className="flex justify-between mt-2 text-xs">
+            <div className="flex items-center gap-1">
+              <span className="font-medium">Score:</span>
+              <div className="bg-neutral-100 rounded-full h-2 w-16 overflow-hidden">
+                <div 
+                  className={cn(
+                    "h-full rounded-full",
+                    contact.score >= 80 ? "bg-alert-500" : 
+                    contact.score >= 60 ? "bg-warning-500" : 
+                    "bg-success-500"
+                  )}
+                  style={{ width: `${contact.score}%` }}
+                />
+              </div>
+              <span className="font-semibold">{contact.score}</span>
+            </div>
+            <div className="flex items-center gap-1 text-muted-foreground">
+              <Calendar className="h-3 w-3" />
+              <span>Last: {lastActivityDate}</span>
+            </div>
+          </div>
+          
+          {showDetails && contact.intentSignals.length > 0 && (
+            <div className="mt-3 space-y-2">
+              <p className="text-xs font-medium">Recent Signals:</p>
+              <div className="flex flex-col gap-2">
+                {contact.intentSignals.map(signal => (
+                  <IntentSignalBadge key={signal.id} signal={signal} />
+                ))}
+              </div>
+            </div>
+          )}
         </CardContent>
-      )}
-    </Card>
+      </Card>
+    </Link>
   );
 };
 

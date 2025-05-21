@@ -1,5 +1,6 @@
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useHubspot } from "@/context/hubspot";
+import { useHubspot } from "@/context/HubspotContext";
 import LeadCard from "@/components/ui/LeadCard";
 import { Button } from "@/components/ui/button";
 import { Users, RefreshCw } from "lucide-react";

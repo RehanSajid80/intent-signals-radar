@@ -1,12 +1,11 @@
 
-import { Save, RefreshCw, Link, Unlink, WifiOff } from "lucide-react";
+import { Save, RefreshCw, Link, Unlink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 type ActionButtonsProps = {
   loading: boolean;
   hasStoredKey: boolean;
   isConnected: boolean;
-  apiCallsPaused?: boolean;
   onSaveApiKey: () => void;
   onTestConnection: () => void;
   onRefreshData?: () => void;
@@ -17,7 +16,6 @@ export default function ActionButtons({
   loading,
   hasStoredKey,
   isConnected,
-  apiCallsPaused = false,
   onSaveApiKey,
   onTestConnection,
   onRefreshData,
@@ -46,41 +44,33 @@ export default function ActionButtons({
       <Button 
         variant="outline" 
         onClick={onTestConnection}
-        disabled={loading || !hasStoredKey || apiCallsPaused}
+        disabled={loading || !hasStoredKey}
       >
-        {apiCallsPaused ? (
-          <>
-            <WifiOff className="mr-2 h-4 w-4 text-amber-500" />
-            API Calls Paused
-          </>
-        ) : (
-          <>
-            <Link className="mr-2 h-4 w-4" />
-            Test Connection
-          </>
-        )}
+        <Link className="mr-2 h-4 w-4" />
+        Test Connection
       </Button>
 
       {isConnected && onRefreshData && (
         <Button
           variant="outline"
           onClick={onRefreshData}
-          disabled={loading || apiCallsPaused}
-          className={apiCallsPaused 
-            ? "bg-amber-50 border-amber-200 text-amber-700" 
-            : "bg-green-50 border-green-200 text-green-700 hover:bg-green-100 hover:text-green-800"}
+          disabled={loading}
+          className="bg-green-50 border-green-200 text-green-700 hover:bg-green-100 hover:text-green-800"
         >
-          {apiCallsPaused ? (
-            <>
-              <WifiOff className="mr-2 h-4 w-4" />
-              API Calls Paused
-            </>
-          ) : (
-            <>
-              <RefreshCw className="mr-2 h-4 w-4" />
-              Refresh Data
-            </>
-          )}
+          <RefreshCw className="mr-2 h-4 w-4" />
+          Refresh Data
+        </Button>
+      )}
+
+      {isConnected && onDisconnect && (
+        <Button
+          variant="outline"
+          onClick={onDisconnect}
+          disabled={loading}
+          className="bg-red-50 border-red-200 text-red-700 hover:bg-red-100 hover:text-red-800"
+        >
+          <Unlink className="mr-2 h-4 w-4" />
+          Disconnect
         </Button>
       )}
     </div>

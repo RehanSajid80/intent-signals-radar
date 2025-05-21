@@ -1,5 +1,6 @@
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useHubspot } from "@/context/hubspot";
+import { useHubspot } from "@/context/HubspotContext";
 import { Bell, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { formatDistanceToNow } from "date-fns";
