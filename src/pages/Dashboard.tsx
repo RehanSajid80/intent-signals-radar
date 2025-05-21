@@ -106,8 +106,9 @@ const Dashboard = () => {
     }
   }, [isAuthenticated, refreshData, toast, refreshAttempts, pauseApiCalls]);
   
-  // Attempt to fetch data once on initial mount if authenticated
+  // Attempt to fetch data once on initial mount if authenticated - but only if API calls aren't paused
   useEffect(() => {
+    // Only attempt a fetch if we haven't tried yet, we're authenticated, not currently refreshing, and API calls aren't paused
     if (isAuthenticated && !hasAttemptedFetch && !isRefreshing && !pauseApiCalls) {
       // Mark that we've attempted a fetch to prevent multiple attempts
       setHasAttemptedFetch(true);
