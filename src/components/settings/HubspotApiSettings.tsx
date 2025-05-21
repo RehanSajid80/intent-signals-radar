@@ -1,7 +1,7 @@
 
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { RefreshCw, LogOut } from "lucide-react";
+import { RefreshCw, LogOut, WifiOff } from "lucide-react";
 import { useHubspotApiKey } from "@/hooks/useHubspotApiKey";
 import { useHubspot } from "@/context/hubspot";
 import ConnectionStatus from "./hubspot/ConnectionStatus";
@@ -9,7 +9,9 @@ import ApiKeyInput from "./hubspot/ApiKeyInput";
 import ActionButtons from "./hubspot/ActionButtons";
 import ConnectionHelp from "./hubspot/ConnectionHelp";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { useState, useEffect } from "react";
 
 const HubspotApiSettings = () => {
   const {
@@ -33,6 +35,22 @@ const HubspotApiSettings = () => {
   } = useHubspot();
 
   const [disconnecting, setDisconnecting] = useState(false);
+  const [apiCallsPaused, setApiCallsPaused] = useState(false);
+  
+  // Load pause setting from localStorage on mount
+  useEffect(() => {
+    const savedPauseSetting = localStorage.getItem('hubspot_pause_api_calls');
+    if (savedPauseSetting) {
+      setApiCallsPaused(savedPauseSetting === 'true');
+    }
+  }, []);
+  
+  // Toggle API calls pause setting
+  const toggleApiCallsPause = () => {
+    const newValue = !apiCallsPaused;
+    setApiCallsPaused(newValue);
+    localStorage.setItem('hubspot_pause_api_calls', newValue.toString());
+  };
   
   const handleRefreshData = async () => {
     await refreshData();
@@ -72,6 +90,38 @@ const HubspotApiSettings = () => {
           </div>
         ) : (
           <>
+            {/* API Calls Pause Switch - New prominent section at the top */}
+            <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="font-semibold text-amber-800 flex items-center">
+                    <WifiOff className="h-4 w-4 mr-2" />
+                    API Connection Control
+                  </h3>
+                  <p className="text-sm text-amber-700 mt-1">
+                    {apiCallsPaused 
+                      ? "API calls are currently paused. No data will be fetched from HubSpot." 
+                      : "API calls are active. The application will try to fetch data from HubSpot."}
+                  </p>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Switch
+                    id="api-pause-switch"
+                    checked={apiCallsPaused}
+                    onCheckedChange={toggleApiCallsPause}
+                  />
+                  <Label htmlFor="api-pause-switch" className="font-medium cursor-pointer">
+                    {apiCallsPaused ? "Resume API Calls" : "Pause API Calls"}
+                  </Label>
+                </div>
+              </div>
+              {apiCallsPaused && (
+                <p className="text-xs text-amber-600 mt-2">
+                  Tip: Use this when experiencing connection issues to prevent repeated error messages.
+                </p>
+              )}
+            </div>
+
             {connectionStatus === "connected" && (
               <Alert className="bg-green-50 border-green-200">
                 <AlertDescription className="text-green-800">
@@ -98,6 +148,7 @@ const HubspotApiSettings = () => {
               onTestConnection={handleTestConnection}
               onRefreshData={handleRefreshData}
               onDisconnect={handleDisconnect}
+              apiCallsPaused={apiCallsPaused}
             />
 
             {isAuthenticated && (

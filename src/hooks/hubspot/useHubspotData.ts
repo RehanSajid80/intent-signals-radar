@@ -28,8 +28,20 @@ export const useHubspotData = () => {
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
   const [hasShownSyncToast, setHasShownSyncToast] = useState(false);
+  const [consecutiveErrors, setConsecutiveErrors] = useState(0);
 
   const refreshData = async (): Promise<OperationResult | null> => {
+    // ALWAYS check pause status FIRST before making any API calls
+    const apiCallsPaused = localStorage.getItem('hubspot_pause_api_calls') === 'true';
+    if (apiCallsPaused) {
+      console.log("Skipping data refresh - API calls are paused");
+      toast({
+        title: "API Calls Paused",
+        description: "API calls are currently paused. Please unpause to refresh data.",
+      });
+      return null;
+    }
+    
     setIsLoading(true);
     setError(null);
     try {
@@ -57,11 +69,22 @@ export const useHubspotData = () => {
       
       if (networkErrors.length > 0) {
         console.warn("Network errors detected when fetching HubSpot data. This may be due to CORS restrictions.");
-        toast({
-          title: "Connection Limited",
-          description: "Due to browser security restrictions, direct API access is limited. Your API key may still be valid.",
-          variant: "default"
-        });
+        setConsecutiveErrors(prev => prev + 1);
+        
+        // If we've had multiple consecutive errors, suggest pausing API calls
+        if (consecutiveErrors >= 2) {
+          toast({
+            title: "Persistent Connection Issues",
+            description: "Consider pausing API calls in Settings to prevent repeated errors.",
+            variant: "destructive"
+          });
+        } else {
+          toast({
+            title: "Connection Limited",
+            description: "Due to browser security restrictions, direct API access is limited. Your API key may still be valid.",
+            variant: "default"
+          });
+        }
         
         // Return empty data structure but don't consider it a failure
         return {
@@ -75,6 +98,9 @@ export const useHubspotData = () => {
           }
         };
       }
+      
+      // Reset consecutive errors count on success
+      setConsecutiveErrors(0);
       
       // If we get here, extract successful results
       const [contactsResult, companiesResult, dealsResult] = results;
@@ -111,13 +137,19 @@ export const useHubspotData = () => {
       };
     } catch (error) {
       console.error("Error refreshing HubSpot data:", error);
+      setConsecutiveErrors(prev => prev + 1);
       
       // More descriptive error message
       if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
         setError("Network error when connecting to HubSpot API. This may be due to browser security restrictions.");
+        
+        const toastMessage = consecutiveErrors >= 2 
+          ? "Consider pausing API calls in Settings to prevent repeated errors."
+          : "Browser security may be preventing direct API access. Your API key may still be valid.";
+        
         toast({
           title: "Connection Error",
-          description: "Browser security may be preventing direct API access. Your API key may still be valid.",
+          description: toastMessage,
           variant: "default"
         });
       } else {
@@ -135,6 +167,7 @@ export const useHubspotData = () => {
     error,
     refreshData,
     hasShownSyncToast,
-    setHasShownSyncToast
+    setHasShownSyncToast,
+    consecutiveErrors
   };
 };

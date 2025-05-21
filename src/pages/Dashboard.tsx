@@ -48,21 +48,20 @@ const Dashboard = () => {
   }, [isAuthenticated, contacts, hasAttemptedFetch]);
   
   const handleRefreshData = useCallback(async () => {
+    // Always check if API calls are paused FIRST
+    if (pauseApiCalls) {
+      toast({
+        title: "API Calls Paused",
+        description: "API calls are currently paused. Please unpause to refresh data.",
+      });
+      return;
+    }
+
     if (!isAuthenticated) {
       toast({
         title: "Not connected",
         description: "Please connect to HubSpot in Settings before refreshing data.",
         variant: "destructive"
-      });
-      return;
-    }
-    
-    // Don't attempt API calls if paused
-    if (pauseApiCalls) {
-      toast({
-        title: "API Calls Paused",
-        description: "API calls are currently paused. Please unpause to refresh data.",
-        variant: "default"
       });
       return;
     }
@@ -147,6 +146,8 @@ const Dashboard = () => {
           handleRefreshData={handleRefreshData}
           isRefreshing={isRefreshing}
           refreshAttempts={refreshAttempts}
+          pauseApiCalls={pauseApiCalls}
+          togglePauseApiCalls={togglePauseApiCalls}
         />
         
         <main className="p-4 md:p-6">

@@ -1,11 +1,12 @@
 
-import { Save, RefreshCw, Link, Unlink } from "lucide-react";
+import { Save, RefreshCw, Link, Unlink, WifiOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 type ActionButtonsProps = {
   loading: boolean;
   hasStoredKey: boolean;
   isConnected: boolean;
+  apiCallsPaused?: boolean;
   onSaveApiKey: () => void;
   onTestConnection: () => void;
   onRefreshData?: () => void;
@@ -16,6 +17,7 @@ export default function ActionButtons({
   loading,
   hasStoredKey,
   isConnected,
+  apiCallsPaused = false,
   onSaveApiKey,
   onTestConnection,
   onRefreshData,
@@ -44,21 +46,41 @@ export default function ActionButtons({
       <Button 
         variant="outline" 
         onClick={onTestConnection}
-        disabled={loading || !hasStoredKey}
+        disabled={loading || !hasStoredKey || apiCallsPaused}
       >
-        <Link className="mr-2 h-4 w-4" />
-        Test Connection
+        {apiCallsPaused ? (
+          <>
+            <WifiOff className="mr-2 h-4 w-4 text-amber-500" />
+            API Calls Paused
+          </>
+        ) : (
+          <>
+            <Link className="mr-2 h-4 w-4" />
+            Test Connection
+          </>
+        )}
       </Button>
 
       {isConnected && onRefreshData && (
         <Button
           variant="outline"
           onClick={onRefreshData}
-          disabled={loading}
-          className="bg-green-50 border-green-200 text-green-700 hover:bg-green-100 hover:text-green-800"
+          disabled={loading || apiCallsPaused}
+          className={apiCallsPaused 
+            ? "bg-amber-50 border-amber-200 text-amber-700" 
+            : "bg-green-50 border-green-200 text-green-700 hover:bg-green-100 hover:text-green-800"}
         >
-          <RefreshCw className="mr-2 h-4 w-4" />
-          Refresh Data
+          {apiCallsPaused ? (
+            <>
+              <WifiOff className="mr-2 h-4 w-4" />
+              API Calls Paused
+            </>
+          ) : (
+            <>
+              <RefreshCw className="mr-2 h-4 w-4" />
+              Refresh Data
+            </>
+          )}
         </Button>
       )}
     </div>
