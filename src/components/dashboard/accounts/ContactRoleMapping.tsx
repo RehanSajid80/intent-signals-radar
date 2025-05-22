@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { useHubspot, Contact, Account } from "@/context/HubspotContext";
+import { useHubspot, Contact, Account } from "@/context/hubspot";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { User, ShieldX, MessagesSquare, Crown, Users, CalendarClock } from "lucide-react";
 
