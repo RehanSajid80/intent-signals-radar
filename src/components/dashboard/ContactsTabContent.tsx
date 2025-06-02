@@ -42,7 +42,7 @@ const ContactsTabContent = () => {
           
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
             <EngagementByOwner />
-            <OwnerLifecycleBreakdown />
+            <OwnerLifecycleBreakdown ownerId="default" />
           </div>
           
           <div className="grid grid-cols-1 gap-4 mb-4">

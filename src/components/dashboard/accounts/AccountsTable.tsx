@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -11,7 +12,9 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useHubspot, Account } from "@/context/hubspot";
+import { Building, Search, ArrowUpDown, Calendar, PhoneCall, MapPin, Users, Activity } from "lucide-react";
 
 type SortField = 'name' | 'industry' | 'contacts' | 'lastActivity' | 'city' | 'country';
 type SortDirection = 'asc' | 'desc';
