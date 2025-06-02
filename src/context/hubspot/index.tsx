@@ -1,17 +1,34 @@
-
-import React, { createContext, useContext, useMemo } from "react";
+import React, { createContext, useContext, ReactNode, useMemo } from "react";
 import { useHubspotState } from "./useHubspotState";
 import { useHubspotActions } from "./useHubspotActions";
 import { useHubspotInitialization } from "./useHubspotInitialization";
-import { HubspotContextType } from "./types";
 
-// Export all the types from the hubspot context
-export * from "./types";
-export * from "@/types/hubspot";
+// Re-export types for easier importing
+export type { 
+  Contact, 
+  Account, 
+  HubspotContextType, 
+  Deal, 
+  DealStage, 
+  OwnerStats, 
+  LifecycleStage 
+} from "./types";
 
-const HubspotContext = createContext<HubspotContextType | undefined>(undefined);
+const HubspotContext = createContext<any>(undefined);
 
-export const HubspotProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const useHubspot = () => {
+  const context = useContext(HubspotContext);
+  if (!context) {
+    throw new Error("useHubspot must be used within a HubspotProvider");
+  }
+  return context;
+};
+
+interface HubspotProviderProps {
+  children: ReactNode;
+}
+
+export const HubspotProvider: React.FC<HubspotProviderProps> = ({ children }) => {
   // Get state and setters
   const { state, setters } = useHubspotState();
   
@@ -34,7 +51,7 @@ export const HubspotProvider: React.FC<{ children: React.ReactNode }> = ({ child
   );
 
   // Combine all the context values
-  const value: HubspotContextType = {
+  const contextValue: HubspotContextType = {
     ...state,
     ...actions,
     isConnecting,
@@ -43,16 +60,8 @@ export const HubspotProvider: React.FC<{ children: React.ReactNode }> = ({ child
   };
 
   return (
-    <HubspotContext.Provider value={value}>
+    <HubspotContext.Provider value={contextValue}>
       {children}
     </HubspotContext.Provider>
   );
-};
-
-export const useHubspot = () => {
-  const context = useContext(HubspotContext);
-  if (context === undefined) {
-    throw new Error("useHubspot must be used within a HubspotProvider");
-  }
-  return context;
 };

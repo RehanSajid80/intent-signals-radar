@@ -1,8 +1,6 @@
-
-import React, { useState } from 'react';
-import { useHubspot, Account } from "@/context/HubspotContext";
+import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Circle, ChevronRight, Users } from "lucide-react";
+import { useHubspot, Account } from "@/context/hubspot";
 
 // Define engagement level types
 type EngagementLevel = 'not-engaged' | 'slightly-engaged' | 'highly-engaged';

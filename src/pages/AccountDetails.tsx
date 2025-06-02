@@ -1,31 +1,26 @@
-
-import { useParams, useNavigate } from "react-router-dom";
-import { useHubspot } from "@/context/HubspotContext";
+import React from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { useHubspot } from "@/context/hubspot";
 import Sidebar from "@/components/Sidebar";
-import { 
-  Card, 
-  CardContent, 
-  CardDescription, 
-  CardHeader, 
-  CardTitle 
-} from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { 
-  Building2, 
-  Globe, 
-  Users, 
-  Contact2, 
-  ArrowLeft,
-  FileBarChart,
-  BarChart3,
-  Clock
-} from "lucide-react";
-import LeadCard from "@/components/ui/LeadCard";
-import { FunnelStage } from "@/context/HubspotContext";
-import { useEffect } from "react";
+import { Badge } from "@/components/ui/badge";
+import { ArrowLeft, Building2, Users, Mail, Phone, Globe, Calendar, Target, TrendingUp, MapPin, Briefcase } from "lucide-react";
+import { format } from "date-fns";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import ContactRoleMapping from "@/components/dashboard/accounts/ContactRoleMapping";
+import CloudProviderAnalysis from "@/components/dashboard/accounts/CloudProviderAnalysis";
+import { Account } from "@/context/hubspot";
 
-const stageBadgeStyles: Record<FunnelStage, string> = {
+const stageBadgeStyles: Record<Account['stage'], string> = {
   awareness: "bg-neutral-100 text-neutral-700",
   prospecting: "bg-neutral-100 text-neutral-700",
   qualification: "bg-blue-100 text-blue-700",

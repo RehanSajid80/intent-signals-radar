@@ -1,10 +1,10 @@
-
+import React from 'react';
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Shield } from "lucide-react";
 import Sidebar from "@/components/Sidebar";
-import { useHubspot } from "@/context/HubspotContext";
+import { useHubspot } from "@/context/hubspot";
 import HubspotApiSettings from "@/components/settings/HubspotApiSettings";
 import IntegrationSettings from "@/components/settings/IntegrationSettings";
 import GeneralSettings from "@/components/settings/GeneralSettings";

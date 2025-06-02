@@ -1,94 +1,68 @@
-
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import React, { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { RefreshCw } from "lucide-react";
-import { useHubspotApiKey } from "@/hooks/useHubspotApiKey";
-import { useHubspot } from "@/context/HubspotContext";
-import ConnectionStatus from "./hubspot/ConnectionStatus";
-import ApiKeyInput from "./hubspot/ApiKeyInput";
-import ActionButtons from "./hubspot/ActionButtons";
-import ConnectionHelp from "./hubspot/ConnectionHelp";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { useHubspot } from "@/context/hubspot";
 
 const HubspotApiSettings = () => {
-  const {
-    apiKey,
-    loading,
-    fetchingKey,
-    showKey,
-    connectionStatus,
-    connectionError,
-    hasStoredKey,
-    handleSaveApiKey,
-    handleTestConnection,
-    handleInputChange,
-    toggleShowKey
-  } = useHubspotApiKey();
-  
-  const { 
-    isAuthenticated, 
-    refreshData, 
-    disconnectFromHubspot 
-  } = useHubspot();
+  const { apiKey, setApiKey, isAuthenticated, testHubspotConnection, refreshData } = useHubspot();
+  const [newApiKey, setNewApiKey] = useState(apiKey || "");
+  const [isTesting, setIsTesting] = useState(false);
 
-  const handleRefreshData = async () => {
-    await refreshData();
+  const handleApiKeyChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setNewApiKey(e.target.value);
   };
 
-  const handleDisconnect = async () => {
-    await disconnectFromHubspot();
+  const handleSaveApiKey = async () => {
+    setIsTesting(true);
+    try {
+      const isValid = await testHubspotConnection(newApiKey);
+      if (isValid) {
+        setApiKey(newApiKey);
+        localStorage.setItem("hubspotApiKey", newApiKey);
+        await refreshData();
+        alert("API Key saved and connection is valid!");
+      } else {
+        alert("Invalid API Key. Please check your key and try again.");
+      }
+    } catch (error) {
+      console.error("Error testing connection:", error);
+      alert("Failed to test connection. Please check your API key and try again.");
+    } finally {
+      setIsTesting(false);
+    }
   };
 
   return (
-    <Card className="border-2 border-blue-200 shadow-md">
-      <CardHeader className="bg-blue-50">
-        <div className="flex items-center justify-between">
-          <div>
-            <CardTitle className="text-blue-700">HubSpot API Connection</CardTitle>
-            <CardDescription>
-              Configure your HubSpot API connection to sync your data
-            </CardDescription>
-          </div>
-          <ConnectionStatus 
-            status={connectionStatus} 
-            errorMessage={connectionError}
+    <Card>
+      <CardHeader>
+        <CardTitle>HubSpot API Settings</CardTitle>
+        <CardDescription>
+          Configure your HubSpot API key to connect your account.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="space-y-2">
+          <Label htmlFor="hubspot-api-key">HubSpot API Key</Label>
+          <Input
+            id="hubspot-api-key"
+            type="password"
+            value={newApiKey}
+            onChange={handleApiKeyChange}
           />
         </div>
-      </CardHeader>
-      <CardContent className="space-y-4 p-6">
-        {fetchingKey ? (
-          <div className="flex justify-center py-4">
-            <RefreshCw className="h-8 w-8 animate-spin text-blue-500" />
-          </div>
+        <Button onClick={handleSaveApiKey} disabled={isTesting}>
+          {isTesting ? "Testing Connection..." : "Save API Key"}
+        </Button>
+        {isAuthenticated ? (
+          <p className="text-sm text-green-500">
+            Connected to HubSpot!
+          </p>
         ) : (
-          <>
-            {connectionStatus === "connected" && (
-              <Alert className="bg-green-50 border-green-200">
-                <AlertDescription className="text-green-800">
-                  Your HubSpot API connection is active and working properly. Your API key is securely stored.
-                </AlertDescription>
-              </Alert>
-            )}
-            
-            {connectionStatus === "error" && <ConnectionHelp />}
-            
-            <ApiKeyInput
-              apiKey={apiKey}
-              showKey={showKey}
-              hasStoredKey={hasStoredKey}
-              onInputChange={handleInputChange}
-              onToggleShowKey={toggleShowKey}
-            />
-
-            <ActionButtons
-              loading={loading}
-              hasStoredKey={hasStoredKey}
-              isConnected={connectionStatus === "connected"}
-              onSaveApiKey={handleSaveApiKey}
-              onTestConnection={handleTestConnection}
-              onRefreshData={handleRefreshData}
-              onDisconnect={handleDisconnect}
-            />
-          </>
+          <p className="text-sm text-red-500">
+            Not connected to HubSpot. Please provide a valid API key.
+          </p>
         )}
       </CardContent>
     </Card>

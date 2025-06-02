@@ -1,6 +1,6 @@
-
-import { useParams, useNavigate } from "react-router-dom";
-import { useHubspot, IntentSignal } from "@/context/HubspotContext";
+import React from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { useHubspot, Contact, Account } from "@/context/hubspot";
 import Sidebar from "@/components/Sidebar";
 import { 
   Card, 

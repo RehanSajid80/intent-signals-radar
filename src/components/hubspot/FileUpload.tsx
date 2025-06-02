@@ -1,11 +1,12 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { FileIcon, HelpCircle, Upload } from "lucide-react";
-import { useHubspot } from "@/context/HubspotContext";
+import { FileIcon, HelpCircle, Upload, FileText, AlertCircle, CheckCircle, Download } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { useHubspot } from "@/context/hubspot";
 
 const FileUpload = () => {
   const { processFileUpload, isProcessing } = useHubspot();
