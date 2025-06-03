@@ -1,7 +1,9 @@
+
 import React, { createContext, useContext, ReactNode, useMemo } from "react";
 import { useHubspotState } from "./useHubspotState";
 import { useHubspotActions } from "./useHubspotActions";
 import { useHubspotInitialization } from "./useHubspotInitialization";
+import type { HubspotContextType } from "./types";
 
 // Re-export types for easier importing
 export type { 
@@ -14,7 +16,7 @@ export type {
   LifecycleStage 
 } from "./types";
 
-const HubspotContext = createContext<any>(undefined);
+const HubspotContext = createContext<HubspotContextType | undefined>(undefined);
 
 export const useHubspot = () => {
   const context = useContext(HubspotContext);

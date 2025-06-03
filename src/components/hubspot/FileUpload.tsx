@@ -1,10 +1,12 @@
-import React, { useState } from "react";
+import React, { useState, useCallback } from 'react';
+import { useDropzone } from 'react-dropzone';
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { FileIcon, HelpCircle, Upload, FileText, AlertCircle, CheckCircle, Download } from "lucide-react";
+import { FileIcon, HelpCircle, Upload, FileText, AlertCircle, CheckCircle, Download, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useHubspot } from "@/context/hubspot";
 

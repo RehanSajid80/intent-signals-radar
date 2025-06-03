@@ -1,8 +1,18 @@
+
 import React from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ExternalLink, Settings } from "lucide-react";
+import { Separator } from "@/components/ui/separator";
+import { 
+  Settings, 
+  Database, 
+  BarChart3, 
+  FileSpreadsheet, 
+  Shield,
+  LogOut,
+  ExternalLink 
+} from "lucide-react";
 import { useHubspot } from "@/context/hubspot";
 
 const IntegrationSettings = () => {

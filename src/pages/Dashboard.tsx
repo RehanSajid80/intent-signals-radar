@@ -1,3 +1,4 @@
+
 import React from 'react';
 import Sidebar from "@/components/Sidebar";
 import { useHubspot } from "@/context/hubspot";
@@ -13,11 +14,16 @@ import AccountsTable from "@/components/dashboard/accounts/AccountsTable";
 import IntentSignals from "@/components/dashboard/IntentSignals";
 
 const Dashboard = () => {
-  const { isAuthenticated } = useHubspot();
+  const { isAuthenticated, contacts } = useHubspot();
 
   if (!isAuthenticated) {
     return <div>Not authenticated. Please connect to HubSpot in the settings.</div>;
   }
+
+  const handleAccountSelected = (accountId: string) => {
+    console.log('Account selected:', accountId);
+    // Handle account selection logic here
+  };
 
   return (
     <div className="flex min-h-screen bg-background">
@@ -36,17 +42,17 @@ const Dashboard = () => {
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
           <Notifications />
-          <AccountEngagementList />
+          <AccountEngagementList onAccountSelected={handleAccountSelected} />
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-          <StageConversions />
-          <OwnerLifecycleBreakdown />
+          <StageConversions contacts={contacts} />
+          <OwnerLifecycleBreakdown ownerId="default" />
         </div>
         <div className="grid grid-cols-1 gap-4 mb-6">
           <LifecycleStages />
         </div>
         <div className="grid grid-cols-1 gap-4 mb-6">
-          <AccountsTable />
+          <AccountsTable onSelectAccount={handleAccountSelected} />
         </div>
       </div>
     </div>
