@@ -6,7 +6,7 @@ import Sidebar from "@/components/Sidebar";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Building2, Users, Mail, Phone, Globe, Calendar, Target, TrendingUp, MapPin, Briefcase, BarChart3, Clock } from "lucide-react";
+import { ArrowLeft, Building2, Users, Mail, Phone, Globe, Calendar, Target, TrendingUp, MapPin, Briefcase, BarChart3, Clock, FileBarChart } from "lucide-react";
 import { format } from "date-fns";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
