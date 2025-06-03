@@ -63,14 +63,14 @@ const AccountsTabContent = () => {
           
           <TabsContent value="table" className="mt-4">
             <div className="space-y-4">
-              <CloudProviderAnalysis />
+              <CloudProviderAnalysis accountId="default" />
               <AccountsTable onSelectAccount={handleAccountSelected} />
             </div>
           </TabsContent>
           
           <TabsContent value="engagement" className="mt-4">
             <div className="space-y-4">
-              <CloudProviderAnalysis />
+              <CloudProviderAnalysis accountId="default" />
               <AccountEngagementList onAccountSelected={handleAccountSelected} />
             </div>
           </TabsContent>

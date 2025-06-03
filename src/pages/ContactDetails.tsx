@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useHubspot, Contact, Account } from "@/context/hubspot";
+import { useHubspot, Contact, Account, IntentSignal } from "@/context/hubspot";
 import Sidebar from "@/components/Sidebar";
 import { 
   Card, 
@@ -37,7 +37,6 @@ import {
   Tooltip, 
   ResponsiveContainer 
 } from "recharts";
-import { useEffect } from "react";
 
 const SignalIcon = ({ type }: { type: IntentSignal["type"] }) => {
   switch (type) {

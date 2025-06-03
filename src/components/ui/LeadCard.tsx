@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -7,9 +6,10 @@ import { User, Mail, Building, Phone, Calendar } from "lucide-react";
 
 interface LeadCardProps {
   contact: Contact;
+  showDetails?: boolean;
 }
 
-const LeadCard = ({ contact }: LeadCardProps) => {
+const LeadCard = ({ contact, showDetails = false }: LeadCardProps) => {
   const getPriorityColor = (priority: string) => {
     switch (priority) {
       case 'high':

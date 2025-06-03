@@ -1,11 +1,12 @@
-import React from 'react';
+
+import React, { useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useHubspot } from "@/context/hubspot";
 import Sidebar from "@/components/Sidebar";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Building2, Users, Mail, Phone, Globe, Calendar, Target, TrendingUp, MapPin, Briefcase } from "lucide-react";
+import { ArrowLeft, Building2, Users, Mail, Phone, Globe, Calendar, Target, TrendingUp, MapPin, Briefcase, BarChart3, Clock } from "lucide-react";
 import { format } from "date-fns";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -18,6 +19,7 @@ import {
 } from "@/components/ui/table";
 import ContactRoleMapping from "@/components/dashboard/accounts/ContactRoleMapping";
 import CloudProviderAnalysis from "@/components/dashboard/accounts/CloudProviderAnalysis";
+import LeadCard from "@/components/ui/LeadCard";
 import { Account } from "@/context/hubspot";
 
 const stageBadgeStyles: Record<Account['stage'], string> = {

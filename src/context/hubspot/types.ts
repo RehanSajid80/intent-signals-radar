@@ -1,4 +1,3 @@
-
 // Types for HubSpot integration
 export interface Contact {
   id: string;
@@ -137,6 +136,14 @@ export interface HubspotState {
   engagementByOwner: Record<string, {high: number, medium: number, low: number}>;
 }
 
+export interface HubspotActions {
+  connectToHubspot: () => void;
+  disconnectFromHubspot: () => void;
+  markNotificationAsRead: (id: string) => void;
+  refreshData: () => Promise<void>;
+  processFileUpload: (files: any[]) => Promise<void>;
+}
+
 export interface HubspotContextType extends HubspotState {
   isConnecting: boolean;
   isProcessing: boolean;
@@ -147,4 +154,9 @@ export interface HubspotContextType extends HubspotState {
   refreshData: () => Promise<void>;
   processFileUpload: (files: any[]) => Promise<void>;
   deals?: Deal[];
+  
+  // API key management
+  apiKey?: string;
+  setApiKey: (key: string) => void;
+  testHubspotConnection: (key?: string) => Promise<boolean>;
 }

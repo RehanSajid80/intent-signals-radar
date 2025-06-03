@@ -1,5 +1,5 @@
 
-import React, { createContext, useContext, ReactNode, useMemo } from "react";
+import React, { createContext, useContext, ReactNode, useMemo, useState } from "react";
 import { useHubspotState } from "./useHubspotState";
 import { useHubspotActions } from "./useHubspotActions";
 import { useHubspotInitialization } from "./useHubspotInitialization";
@@ -13,7 +13,8 @@ export type {
   Deal, 
   DealStage, 
   OwnerStats, 
-  LifecycleStage 
+  LifecycleStage,
+  IntentSignal
 } from "./types";
 
 const HubspotContext = createContext<HubspotContextType | undefined>(undefined);
@@ -31,6 +32,8 @@ interface HubspotProviderProps {
 }
 
 export const HubspotProvider: React.FC<HubspotProviderProps> = ({ children }) => {
+  const [apiKey, setApiKey] = useState<string>("");
+  
   // Get state and setters
   const { state, setters } = useHubspotState();
   
@@ -52,13 +55,24 @@ export const HubspotProvider: React.FC<HubspotProviderProps> = ({ children }) =>
     [state.contacts]
   );
 
+  // Mock test connection function
+  const testHubspotConnection = async (key?: string): Promise<boolean> => {
+    // Mock implementation - always returns true
+    return new Promise((resolve) => {
+      setTimeout(() => resolve(true), 1000);
+    });
+  };
+
   // Combine all the context values
   const contextValue: HubspotContextType = {
     ...state,
     ...actions,
     isConnecting,
     isProcessing,
-    priorityContacts
+    priorityContacts,
+    apiKey,
+    setApiKey,
+    testHubspotConnection
   };
 
   return (

@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -35,7 +36,7 @@ const LifecycleStages = () => {
   const lifecycleStageData = Object.entries(lifecycleStageCounts).map(
     ([name, value]) => ({
       name,
-      value,
+      value: value as number,
     })
   );
 
@@ -90,7 +91,7 @@ const LifecycleStages = () => {
                       <td className="px-6 py-4 whitespace-nowrap">
                         {stage.name}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">{stage.value}</td>
+                      <td className="px-6 py-4 whitespace-nowrap">{String(stage.value)}</td>
                     </tr>
                   ))}
                 </tbody>
