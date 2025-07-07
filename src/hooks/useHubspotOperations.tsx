@@ -31,6 +31,7 @@ export const useHubspotOperations = () => {
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
   const lastToastTimeRef = useRef<number>(0);
+  const corsErrorShownRef = useRef<boolean>(false);
 
   // Debounced toast to prevent spam
   const showToast = (title: string, description: string, variant: "default" | "destructive" = "default") => {
@@ -39,6 +40,11 @@ export const useHubspotOperations = () => {
       lastToastTimeRef.current = now;
       toast({ title, description, variant });
     }
+  };
+
+  // Check if error is CORS related
+  const isCorsError = (error: any): boolean => {
+    return error instanceof TypeError && error.message.includes('Failed to fetch');
   };
 
   const refreshData = async (): Promise<OperationResult | null> => {
@@ -68,17 +74,21 @@ export const useHubspotOperations = () => {
       // Check if any promises were rejected due to network errors
       const networkErrors = results.filter(r => 
         r.status === 'rejected' && 
-        r.reason instanceof TypeError && 
-        r.reason.message.includes('Failed to fetch')
+        isCorsError(r.reason)
       );
       
       if (networkErrors.length > 0) {
-        console.warn("Network errors detected when fetching HubSpot data. This may be due to CORS restrictions.");
-        showToast(
-          "Connection Limited",
-          "Due to browser security restrictions, direct API access is limited. Your API key may still be valid.",
-          "default"
-        );
+        console.warn("CORS restrictions detected when fetching HubSpot data.");
+        
+        // Only show CORS error once per session
+        if (!corsErrorShownRef.current) {
+          corsErrorShownRef.current = true;
+          showToast(
+            "Connection Limited",
+            "Browser security prevents direct HubSpot API access. This is normal for web applications.",
+            "default"
+          );
+        }
         
         // Return empty data structure but don't consider it a failure
         return {
@@ -128,14 +138,17 @@ export const useHubspotOperations = () => {
     } catch (error) {
       console.error("Error refreshing HubSpot data:", error);
       
-      // More descriptive error message
-      if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
-        setError("Network error when connecting to HubSpot API. This may be due to browser security restrictions.");
-        showToast(
-          "Connection Error",
-          "Browser security may be preventing direct API access. Your API key may still be valid.",
-          "default"
-        );
+      // More descriptive error message for CORS
+      if (isCorsError(error)) {
+        if (!corsErrorShownRef.current) {
+          corsErrorShownRef.current = true;
+          setError("Browser security prevents direct HubSpot API access. This is normal for web applications.");
+          showToast(
+            "Connection Limited",
+            "Browser security prevents direct HubSpot API access. Consider using a backend integration.",
+            "default"
+          );
+        }
       } else {
         setError("Failed to fetch data from HubSpot API. Please check your API key.");
         showToast(
@@ -173,25 +186,26 @@ export const useHubspotOperations = () => {
       if (isValid) {
         showToast(
           "Connected to HubSpot",
-          "Your API key is valid. Fetching data..."
+          "Your API key is valid. Note: Direct data fetching may be limited by browser security."
         );
         
-        // Even if test passes, actual data fetching might still fail due to CORS
-        // So wrap in try/catch to handle gracefully
+        // Try to fetch data but handle CORS gracefully
         try {
-          // Automatically fetch data after successful connection
           const result = await refreshData();
           setIsConnecting(false);
           return result;
         } catch (fetchError) {
           console.error("Error fetching data after connection:", fetchError);
           
-          // If it's a network error, still consider connection successful
-          if (fetchError instanceof TypeError && fetchError.message.includes('Failed to fetch')) {
-            showToast(
-              "Connected with Limitations",
-              "Connected to HubSpot, but browser security may restrict some data access."
-            );
+          // If it's a CORS error, still consider connection successful
+          if (isCorsError(fetchError)) {
+            if (!corsErrorShownRef.current) {
+              corsErrorShownRef.current = true;
+              showToast(
+                "Connected with Limitations",
+                "Connected to HubSpot, but browser security restricts direct data access."
+              );
+            }
             
             setIsConnecting(false);
             return {
@@ -228,12 +242,15 @@ export const useHubspotOperations = () => {
       console.error("Error connecting to HubSpot:", error);
       
       // Improved error messages based on error type
-      if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
-        showToast(
-          "Connection Limited",
-          "Browser security may prevent direct API access. Try checking your API key in the HubSpot portal.",
-          "default"
-        );
+      if (isCorsError(error)) {
+        if (!corsErrorShownRef.current) {
+          corsErrorShownRef.current = true;
+          showToast(
+            "Connection Limited",
+            "Browser security prevents direct HubSpot API access. This is expected behavior.",
+            "default"
+          );
+        }
       } else {
         showToast(
           "Connection Error",
@@ -261,6 +278,9 @@ export const useHubspotOperations = () => {
       
       // Also clear from localStorage
       localStorage.removeItem("hubspot_api_key");
+      
+      // Reset CORS error flag
+      corsErrorShownRef.current = false;
       
       showToast(
         "Disconnected",

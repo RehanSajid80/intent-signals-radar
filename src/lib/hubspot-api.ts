@@ -50,6 +50,14 @@ const CONTACT_ENDPOINT = "/crm/v3/objects/contacts";
 const COMPANY_ENDPOINT = "/crm/v3/objects/companies";
 const DEAL_ENDPOINT = "/crm/v3/objects/deals";
 
+// Track if CORS error has been logged to prevent spam
+let corsErrorLogged = false;
+
+// Helper function to check if error is CORS related
+const isCorsError = (error: any): boolean => {
+  return error instanceof TypeError && error.message.includes('Failed to fetch');
+};
+
 // Helper function to make API requests
 async function makeHubspotRequest<T>(
   endpoint: string, 
@@ -77,7 +85,13 @@ async function makeHubspotRequest<T>(
     
     return await response.json();
   } catch (error) {
-    console.error("Error making HubSpot request:", error);
+    // Only log CORS errors once to prevent console spam
+    if (isCorsError(error) && !corsErrorLogged) {
+      console.error("CORS error detected - this is expected when calling HubSpot API directly from browser:", error);
+      corsErrorLogged = true;
+    } else if (!isCorsError(error)) {
+      console.error("Error making HubSpot request:", error);
+    }
     throw error;
   }
 }
@@ -108,17 +122,19 @@ export async function testHubspotConnection(apiKey: string): Promise<boolean> {
     // Check if the API key is valid by checking the response
     return response.ok;
   } catch (error) {
-    console.error("HubSpot connection test failed:", error);
-    
     // If this is a CORS error or network error, we can't tell if the API key is valid
     // So we'll assume it is and let the user proceed - they can verify through data retrieval
-    if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
-      console.log("Detected network error - may be CORS related. Proceeding with API key.");
+    if (isCorsError(error)) {
+      if (!corsErrorLogged) {
+        console.log("CORS error detected during connection test - this is expected behavior in browsers.");
+        corsErrorLogged = true;
+      }
       // Return true to allow the user to try using the API key
       // The subsequent data fetching will validate if it actually works
       return true;
     }
     
+    console.error("HubSpot connection test failed:", error);
     return false;
   }
 }
@@ -163,12 +179,15 @@ export async function fetchHubspotContacts(apiKey: string, limit: number = 100):
     
     return response.results || [];
   } catch (error) {
-    console.error("Error fetching HubSpot contacts:", error);
-    toast({
-      title: "Error fetching contacts",
-      description: "Could not fetch contacts from HubSpot. Please check your API key.",
-      variant: "destructive"
-    });
+    // Only show toast for non-CORS errors to prevent spam
+    if (!isCorsError(error)) {
+      console.error("Error fetching HubSpot contacts:", error);
+      toast({
+        title: "Error fetching contacts",
+        description: "Could not fetch contacts from HubSpot. Please check your API key.",
+        variant: "destructive"
+      });
+    }
     return [];
   }
 }
@@ -207,12 +226,15 @@ export async function fetchHubspotCompanies(apiKey: string, limit: number = 100)
     
     return response.results || [];
   } catch (error) {
-    console.error("Error fetching HubSpot companies:", error);
-    toast({
-      title: "Error fetching companies",
-      description: "Could not fetch companies from HubSpot. Please check your API key.",
-      variant: "destructive"
-    });
+    // Only show toast for non-CORS errors to prevent spam
+    if (!isCorsError(error)) {
+      console.error("Error fetching HubSpot companies:", error);
+      toast({
+        title: "Error fetching companies",
+        description: "Could not fetch companies from HubSpot. Please check your API key.",
+        variant: "destructive"
+      });
+    }
     return [];
   }
 }
@@ -250,12 +272,15 @@ export async function fetchHubspotDeals(apiKey: string, limit: number = 100): Pr
     
     return response.results || [];
   } catch (error) {
-    console.error("Error fetching HubSpot deals:", error);
-    toast({
-      title: "Error fetching deals",
-      description: "Could not fetch deals from HubSpot. Please check your API key.",
-      variant: "destructive"
-    });
+    // Only show toast for non-CORS errors to prevent spam
+    if (!isCorsError(error)) {
+      console.error("Error fetching HubSpot deals:", error);
+      toast({
+        title: "Error fetching deals",
+        description: "Could not fetch deals from HubSpot. Please check your API key.",
+        variant: "destructive"
+      });
+    }
     return [];
   }
 }
