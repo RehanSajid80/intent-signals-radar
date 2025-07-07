@@ -31,12 +31,13 @@ export function DatePicker({ date, onSelect }: DatePickerProps) {
           {date ? format(date, "PPP") : <span>Select date</span>}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-auto p-0">
+      <PopoverContent className="w-auto p-0" align="start">
         <Calendar
           mode="single"
           selected={date}
           onSelect={onSelect}
           initialFocus
+          className="p-3 pointer-events-auto"
         />
       </PopoverContent>
     </Popover>
