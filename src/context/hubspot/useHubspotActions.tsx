@@ -56,12 +56,13 @@ export const useHubspotActions = (
     },
 
     testHubspotConnection: async (apiKey?: string) => {
-      return await handleAsync(async () => {
+      const result = await handleAsync(async () => {
         // Mock implementation for now
         return new Promise<boolean>((resolve) => {
           setTimeout(() => resolve(true), 1000);
         });
-      }) !== null;
+      });
+      return result !== null;
     }
   };
 

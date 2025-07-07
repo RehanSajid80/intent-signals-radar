@@ -1,3 +1,4 @@
+
 // Types for HubSpot integration
 export interface Contact {
   id: string;
@@ -137,26 +138,27 @@ export interface HubspotState {
 }
 
 export interface HubspotActions {
-  connectToHubspot: () => void;
-  disconnectFromHubspot: () => void;
-  markNotificationAsRead: (id: string) => void;
-  refreshData: () => Promise<void>;
-  processFileUpload: (files: any[]) => Promise<void>;
+  connectToHubspot: () => Promise<boolean>;
+  disconnectFromHubspot: () => Promise<void>;
+  refreshData: () => Promise<boolean>;
+  testHubspotConnection: (apiKey?: string) => Promise<boolean>;
+  markNotificationAsRead?: (id: string) => void;
+  processFileUpload?: (files: any[]) => Promise<void>;
 }
 
 export interface HubspotContextType extends HubspotState {
   isConnecting: boolean;
   isProcessing: boolean;
   priorityContacts: Contact[];
-  connectToHubspot: () => void;
-  disconnectFromHubspot: () => void;
+  connectToHubspot: () => Promise<boolean>;
+  disconnectFromHubspot: () => Promise<void>;
+  refreshData: () => Promise<boolean>;
+  testHubspotConnection: (key?: string) => Promise<boolean>;
   markNotificationAsRead: (id: string) => void;
-  refreshData: () => Promise<void>;
   processFileUpload: (files: any[]) => Promise<void>;
   deals?: Deal[];
   
   // API key management
   apiKey?: string;
   setApiKey: (key: string) => void;
-  testHubspotConnection: (key?: string) => Promise<boolean>;
 }

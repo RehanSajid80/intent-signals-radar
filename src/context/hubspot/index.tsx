@@ -76,10 +76,29 @@ export const HubspotProvider: React.FC<HubspotProviderProps> = ({ children }) =>
     }
   }, [actions]);
 
+  // Mock implementations for missing required properties
+  const markNotificationAsRead = useCallback((id: string) => {
+    console.log('Marking notification as read:', id);
+  }, []);
+
+  const processFileUpload = useCallback(async (files: any[]) => {
+    console.log('Processing file upload:', files);
+  }, []);
+
   // Combine all the context values
   const contextValue: HubspotContextType = useMemo(() => ({
     ...state,
+    // Required properties with mock implementations
+    notifications: [],
+    contactOwnerStats: {},
+    contactLifecycleStats: {},
+    jobTitleStats: {},
+    engagementByOwner: {},
+    // Actions
     ...actions,
+    markNotificationAsRead,
+    processFileUpload,
+    // State
     isConnecting,
     isProcessing,
     priorityContacts,
@@ -89,6 +108,8 @@ export const HubspotProvider: React.FC<HubspotProviderProps> = ({ children }) =>
   }), [
     state,
     actions,
+    markNotificationAsRead,
+    processFileUpload,
     isConnecting,
     isProcessing,
     priorityContacts,
