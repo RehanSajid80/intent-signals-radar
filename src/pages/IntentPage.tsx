@@ -1,8 +1,9 @@
+
 import React, { useState, useEffect } from 'react';
 import Sidebar from "@/components/Sidebar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import IntentAnalysis from "@/components/dashboard/IntentAnalysis";
+import IntentAnalysis from "@/components/dashboard/intent/IntentAnalysis";
 import IntentUpload from "@/components/dashboard/IntentUpload";
 import { sampleIntentData } from "@/data/sampleIntentData";
 import { IntentData } from "@/components/dashboard/types/intentTypes";

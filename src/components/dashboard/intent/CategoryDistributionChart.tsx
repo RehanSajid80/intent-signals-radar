@@ -7,7 +7,7 @@ import {
   Tooltip, 
   ResponsiveContainer 
 } from "recharts";
-import { IntentData } from "../IntentUpload";
+import { IntentData } from "../types/intentTypes";
 
 interface CategoryDistributionChartProps {
   data: IntentData[];

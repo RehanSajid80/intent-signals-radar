@@ -8,7 +8,7 @@ import {
   CardTitle 
 } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { IntentData } from "../IntentUpload";
+import { IntentData } from "../types/intentTypes";
 
 import TopCompaniesChart from "./TopCompaniesChart";
 import TopCompaniesTable from "./TopCompaniesTable";
