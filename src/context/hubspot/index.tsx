@@ -1,5 +1,5 @@
 
-import React, { createContext, useContext, ReactNode, useMemo, useState, useCallback } from "react";
+import React, { createContext, useContext, ReactNode, useMemo, useState, useCallback, useRef } from "react";
 import { useHubspotState } from "./useHubspotState";
 import { useHubspotActions } from "./useHubspotActions";
 import { useHubspotInitialization } from "./useHubspotInitialization";
@@ -33,6 +33,7 @@ interface HubspotProviderProps {
 
 export const HubspotProvider: React.FC<HubspotProviderProps> = ({ children }) => {
   const [apiKey, setApiKey] = useState<string>("");
+  const isRefreshingRef = useRef<boolean>(false);
   
   // Get state and setters
   const { state, setters } = useHubspotState();
@@ -44,8 +45,24 @@ export const HubspotProvider: React.FC<HubspotProviderProps> = ({ children }) =>
     isProcessing
   } = useHubspotActions(state, setters);
 
+  // Wrap refreshData to prevent multiple simultaneous calls
+  const wrappedRefreshData = useCallback(async (): Promise<boolean> => {
+    if (isRefreshingRef.current) {
+      console.log("Refresh already in progress, skipping...");
+      return false;
+    }
+    
+    isRefreshingRef.current = true;
+    try {
+      const result = await actions.refreshData();
+      return result;
+    } finally {
+      isRefreshingRef.current = false;
+    }
+  }, [actions]);
+
   // Initialize connection status
-  useHubspotInitialization(setters.setIsAuthenticated, actions.refreshData);
+  useHubspotInitialization(setters.setIsAuthenticated, wrappedRefreshData);
 
   // Calculate derived state with proper error handling
   const priorityContacts = useMemo(() => {
@@ -96,6 +113,7 @@ export const HubspotProvider: React.FC<HubspotProviderProps> = ({ children }) =>
     engagementByOwner: {},
     // Actions
     ...actions,
+    refreshData: wrappedRefreshData,
     markNotificationAsRead,
     processFileUpload,
     // State
@@ -108,6 +126,7 @@ export const HubspotProvider: React.FC<HubspotProviderProps> = ({ children }) =>
   }), [
     state,
     actions,
+    wrappedRefreshData,
     markNotificationAsRead,
     processFileUpload,
     isConnecting,

@@ -1,4 +1,5 @@
-import { useState } from "react";
+
+import { useState, useRef } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { fetchApiKeyFromSupabase, saveApiKeyToSupabase } from "@/utils/hubspotApiKeyUtils";
 import { 
@@ -29,10 +30,25 @@ export const useHubspotOperations = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
+  const lastToastTimeRef = useRef<number>(0);
+
+  // Debounced toast to prevent spam
+  const showToast = (title: string, description: string, variant: "default" | "destructive" = "default") => {
+    const now = Date.now();
+    if (now - lastToastTimeRef.current > 5000) { // 5 second debounce
+      lastToastTimeRef.current = now;
+      toast({ title, description, variant });
+    }
+  };
 
   const refreshData = async (): Promise<OperationResult | null> => {
+    if (isLoading) {
+      return null; // Prevent multiple simultaneous calls
+    }
+    
     setIsLoading(true);
     setError(null);
+    
     try {
       // Get API key from Supabase with localStorage as fallback
       const apiKey = await fetchApiKeyFromSupabase();
@@ -58,11 +74,11 @@ export const useHubspotOperations = () => {
       
       if (networkErrors.length > 0) {
         console.warn("Network errors detected when fetching HubSpot data. This may be due to CORS restrictions.");
-        toast({
-          title: "Connection Limited",
-          description: "Due to browser security restrictions, direct API access is limited. Your API key may still be valid.",
-          variant: "default"
-        });
+        showToast(
+          "Connection Limited",
+          "Due to browser security restrictions, direct API access is limited. Your API key may still be valid.",
+          "default"
+        );
         
         // Return empty data structure but don't consider it a failure
         return {
@@ -96,10 +112,13 @@ export const useHubspotOperations = () => {
         engagementByOwner: {}
       };
       
-      toast({
-        title: "Data Synced",
-        description: `Successfully loaded ${localContacts.length} contacts and ${localAccounts.length} accounts from HubSpot`
-      });
+      // Only show success toast if we actually got data
+      if (localContacts.length > 0 || localAccounts.length > 0) {
+        showToast(
+          "Data Synced",
+          `Successfully loaded ${localContacts.length} contacts and ${localAccounts.length} accounts from HubSpot`
+        );
+      }
       
       return {
         contacts: localContacts,
@@ -112,13 +131,18 @@ export const useHubspotOperations = () => {
       // More descriptive error message
       if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
         setError("Network error when connecting to HubSpot API. This may be due to browser security restrictions.");
-        toast({
-          title: "Connection Error",
-          description: "Browser security may be preventing direct API access. Your API key may still be valid.",
-          variant: "default"
-        });
+        showToast(
+          "Connection Error",
+          "Browser security may be preventing direct API access. Your API key may still be valid.",
+          "default"
+        );
       } else {
         setError("Failed to fetch data from HubSpot API. Please check your API key.");
+        showToast(
+          "Error",
+          "Failed to fetch data from HubSpot API. Please check your API key.",
+          "destructive"
+        );
       }
       
       return null;
@@ -132,11 +156,11 @@ export const useHubspotOperations = () => {
     const apiKey = await fetchApiKeyFromSupabase();
     
     if (!apiKey) {
-      toast({
-        title: "API Key Required",
-        description: "Please set your HubSpot API key in Settings first.",
-        variant: "destructive",
-      });
+      showToast(
+        "API Key Required",
+        "Please set your HubSpot API key in Settings first.",
+        "destructive"
+      );
       return null;
     }
     
@@ -147,10 +171,10 @@ export const useHubspotOperations = () => {
       const isValid = await testHubspotConnection(apiKey);
       
       if (isValid) {
-        toast({
-          title: "Connected to HubSpot",
-          description: "Your API key is valid. Fetching data...",
-        });
+        showToast(
+          "Connected to HubSpot",
+          "Your API key is valid. Fetching data..."
+        );
         
         // Even if test passes, actual data fetching might still fail due to CORS
         // So wrap in try/catch to handle gracefully
@@ -164,10 +188,10 @@ export const useHubspotOperations = () => {
           
           // If it's a network error, still consider connection successful
           if (fetchError instanceof TypeError && fetchError.message.includes('Failed to fetch')) {
-            toast({
-              title: "Connected with Limitations",
-              description: "Connected to HubSpot, but browser security may restrict some data access.",
-            });
+            showToast(
+              "Connected with Limitations",
+              "Connected to HubSpot, but browser security may restrict some data access."
+            );
             
             setIsConnecting(false);
             return {
@@ -183,20 +207,20 @@ export const useHubspotOperations = () => {
           }
           
           // For other errors, show error but still consider connected
-          toast({
-            title: "Connected with Errors",
-            description: "Connected to HubSpot, but encountered errors fetching data.",
-          });
+          showToast(
+            "Connected with Errors",
+            "Connected to HubSpot, but encountered errors fetching data."
+          );
           
           setIsConnecting(false);
           return null;
         }
       } else {
-        toast({
-          title: "Connection Failed",
-          description: "Your HubSpot API key appears to be invalid.",
-          variant: "destructive",
-        });
+        showToast(
+          "Connection Failed",
+          "Your HubSpot API key appears to be invalid.",
+          "destructive"
+        );
         setIsConnecting(false);
         return null;
       }
@@ -205,17 +229,17 @@ export const useHubspotOperations = () => {
       
       // Improved error messages based on error type
       if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
-        toast({
-          title: "Connection Limited",
-          description: "Browser security may prevent direct API access. Try checking your API key in the HubSpot portal.",
-          variant: "default",
-        });
+        showToast(
+          "Connection Limited",
+          "Browser security may prevent direct API access. Try checking your API key in the HubSpot portal.",
+          "default"
+        );
       } else {
-        toast({
-          title: "Connection Error",
-          description: "Failed to connect to HubSpot API. Please check your API key and try again.",
-          variant: "destructive",
-        });
+        showToast(
+          "Connection Error",
+          "Failed to connect to HubSpot API. Please check your API key and try again.",
+          "destructive"
+        );
       }
       
       setIsConnecting(false);
@@ -238,17 +262,17 @@ export const useHubspotOperations = () => {
       // Also clear from localStorage
       localStorage.removeItem("hubspot_api_key");
       
-      toast({
-        title: "Disconnected",
-        description: "Successfully disconnected from HubSpot API.",
-      });
+      showToast(
+        "Disconnected",
+        "Successfully disconnected from HubSpot API."
+      );
     } catch (error) {
       console.error("Error disconnecting from HubSpot:", error);
-      toast({
-        title: "Error",
-        description: "Failed to disconnect from HubSpot API.",
-        variant: "destructive",
-      });
+      showToast(
+        "Error",
+        "Failed to disconnect from HubSpot API.",
+        "destructive"
+      );
     }
   };
 
