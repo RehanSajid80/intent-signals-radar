@@ -1,15 +1,31 @@
 
-import { createRoot } from 'react-dom/client'
-import App from './App.tsx'
-import './index.css'
+import { StrictMode } from 'react';
+import { createRoot } from 'react-dom/client';
+import { BrowserRouter } from 'react-router-dom';
+import App from './App.tsx';
+import './index.css';
+import { HubspotProvider } from './context/hubspot';
+import { Toaster } from '@/components/ui/toaster';
+import ErrorBoundary from './components/ErrorBoundary';
 
-const rootElement = document.getElementById("root");
-if (!rootElement) throw new Error("Root element not found");
+// Error reporting for production
+window.addEventListener('error', (event) => {
+  console.error('Global error:', event.error);
+});
 
-const root = createRoot(rootElement);
+window.addEventListener('unhandledrejection', (event) => {
+  console.error('Unhandled promise rejection:', event.reason);
+});
 
-// Wrap the App in the necessary providers
-root.render(<App />);
-
-// Add a console log to confirm that main.tsx is loading correctly
-console.log("Application initialized");
+createRoot(document.getElementById('root')!).render(
+  <StrictMode>
+    <ErrorBoundary>
+      <BrowserRouter>
+        <HubspotProvider>
+          <App />
+          <Toaster />
+        </HubspotProvider>
+      </BrowserRouter>
+    </ErrorBoundary>
+  </StrictMode>,
+);

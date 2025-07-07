@@ -1,42 +1,55 @@
 
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Index from "./pages/Index";
-import NotFound from "./pages/NotFound";
-import { HubspotProvider } from "./context/hubspot";
-import Dashboard from "./pages/Dashboard";
-import AccountDetails from "./pages/AccountDetails";
-import ContactDetails from "./pages/ContactDetails";
-import Settings from "./pages/Settings";
-import IntentPage from "./pages/IntentPage";
+import { Suspense, lazy } from 'react';
+import { Routes, Route } from 'react-router-dom';
+import { ThemeProvider } from '@/components/theme-provider';
+import PageLoader from './components/PageLoader';
+import ProtectedRoute from './components/ProtectedRoute';
 
-const queryClient = new QueryClient();
+// Lazy load pages for better performance
+const Index = lazy(() => import('./pages/Index'));
+const Dashboard = lazy(() => import('./pages/Dashboard'));
+const ContactDetails = lazy(() => import('./pages/ContactDetails'));
+const AccountDetails = lazy(() => import('./pages/AccountDetails'));
+const IntentPage = lazy(() => import('./pages/IntentPage'));
+const Settings = lazy(() => import('./pages/Settings'));
+const NotFound = lazy(() => import('./pages/NotFound'));
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <HubspotProvider>
-      <TooltipProvider>
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/accounts" element={<Dashboard />} />
-            <Route path="/accounts/:accountId" element={<AccountDetails />} />
-            <Route path="/contacts/:contactId" element={<ContactDetails />} />
-            <Route path="/contacts" element={<Dashboard />} />
-            <Route path="/intent" element={<IntentPage />} />
-            <Route path="/settings" element={<Settings />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-          <Toaster />
-          <Sonner />
-        </BrowserRouter>
-      </TooltipProvider>
-    </HubspotProvider>
-  </QueryClientProvider>
-);
+function App() {
+  return (
+    <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
+      <Suspense fallback={<PageLoader />}>
+        <Routes>
+          <Route path="/" element={<Index />} />
+          <Route path="/dashboard" element={
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
+          } />
+          <Route path="/contact/:contactId" element={
+            <ProtectedRoute>
+              <ContactDetails />
+            </ProtectedRoute>
+          } />
+          <Route path="/account/:accountId" element={
+            <ProtectedRoute>
+              <AccountDetails />
+            </ProtectedRoute>
+          } />
+          <Route path="/intent" element={
+            <ProtectedRoute>
+              <IntentPage />
+            </ProtectedRoute>
+          } />
+          <Route path="/settings" element={
+            <ProtectedRoute>
+              <Settings />
+            </ProtectedRoute>
+          } />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </Suspense>
+    </ThemeProvider>
+  );
+}
 
 export default App;

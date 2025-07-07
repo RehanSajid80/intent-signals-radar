@@ -1,65 +1,64 @@
 
-import { useState, useEffect } from "react";
-import { useToast } from "@/hooks/use-toast";
-import { useHubspotDemoData } from "@/hooks/useHubspotDemoData";
-import { Contact, Account, Notification } from "@/types/hubspot";
-import { HubspotState } from "./types";
+import { useState } from "react";
+import type { Contact, Account, Deal, DealStage, OwnerStats, LifecycleStage, IntentSignal } from "./types";
+
+export interface HubspotState {
+  contacts: Contact[];
+  accounts: Account[];
+  deals: Deal[];
+  dealStages: DealStage[];
+  ownerStats: OwnerStats[];
+  lifecycleStages: LifecycleStage[];
+  intentSignals: IntentSignal[];
+  isAuthenticated: boolean;
+  lastSyncTime: Date | null;
+}
+
+export interface HubspotStateSetters {
+  setContacts: React.Dispatch<React.SetStateAction<Contact[]>>;
+  setAccounts: React.Dispatch<React.SetStateAction<Account[]>>;
+  setDeals: React.Dispatch<React.SetStateAction<Deal[]>>;
+  setDealStages: React.Dispatch<React.SetStateAction<DealStage[]>>;
+  setOwnerStats: React.Dispatch<React.SetStateAction<OwnerStats[]>>;
+  setLifecycleStages: React.Dispatch<React.SetStateAction<LifecycleStage[]>>;
+  setIntentSignals: React.Dispatch<React.SetStateAction<IntentSignal[]>>;
+  setIsAuthenticated: React.Dispatch<React.SetStateAction<boolean>>;
+  setLastSyncTime: React.Dispatch<React.SetStateAction<Date | null>>;
+}
 
 export const useHubspotState = () => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [accounts, setAccounts] = useState<Account[]>([]);
-  const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [contactOwnerStats, setContactOwnerStats] = useState<Record<string, number>>({});
-  const [contactLifecycleStats, setContactLifecycleStats] = useState<Record<string, Record<string, number>>>({});
-  const [jobTitleStats, setJobTitleStats] = useState<Record<string, number>>({});
-  const [engagementByOwner, setEngagementByOwner] = useState<Record<string, {high: number, medium: number, low: number}>>({});
-
-  const { toast } = useToast();
-  
-  // Import demo data hook
-  const { useDemoData, getDemoData } = useHubspotDemoData();
-
-  // Apply demo data if needed
-  useEffect(() => {
-    if (useDemoData) {
-      const demoData = getDemoData();
-      setContacts(demoData.contacts);
-      setAccounts(demoData.accounts);
-      setNotifications(demoData.notifications);
-      setContactOwnerStats(demoData.contactOwnerStats);
-      setContactLifecycleStats(demoData.contactLifecycleStats);
-      setJobTitleStats(demoData.jobTitleStats);
-      setEngagementByOwner(demoData.engagementByOwner);
-      setIsAuthenticated(true);
-      
-      toast({
-        title: "Using sample data",
-        description: "Displaying sample data for demonstration purposes."
-      });
-    }
-  }, [useDemoData, toast]);
+  const [deals, setDeals] = useState<Deal[]>([]);
+  const [dealStages, setDealStages] = useState<DealStage[]>([]);
+  const [ownerStats, setOwnerStats] = useState<OwnerStats[]>([]);
+  const [lifecycleStages, setLifecycleStages] = useState<LifecycleStage[]>([]);
+  const [intentSignals, setIntentSignals] = useState<IntentSignal[]>([]);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [lastSyncTime, setLastSyncTime] = useState<Date | null>(null);
 
   const state: HubspotState = {
-    isAuthenticated,
     contacts,
     accounts,
-    notifications,
-    contactOwnerStats,
-    contactLifecycleStats,
-    jobTitleStats,
-    engagementByOwner
+    deals,
+    dealStages,
+    ownerStats,
+    lifecycleStages,
+    intentSignals,
+    isAuthenticated,
+    lastSyncTime,
   };
 
-  const setters = {
-    setIsAuthenticated,
+  const setters: HubspotStateSetters = {
     setContacts,
     setAccounts,
-    setNotifications,
-    setContactOwnerStats,
-    setContactLifecycleStats,
-    setJobTitleStats,
-    setEngagementByOwner
+    setDeals,
+    setDealStages,
+    setOwnerStats,
+    setLifecycleStages,
+    setIntentSignals,
+    setIsAuthenticated,
+    setLastSyncTime,
   };
 
   return { state, setters };

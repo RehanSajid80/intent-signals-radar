@@ -1,5 +1,4 @@
-
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useHubspot } from "@/context/hubspot";
 import Sidebar from "@/components/Sidebar";
@@ -20,6 +19,7 @@ import {
 import ContactRoleMapping from "@/components/dashboard/accounts/ContactRoleMapping";
 import CloudProviderAnalysis from "@/components/dashboard/accounts/CloudProviderAnalysis";
 import LeadCard from "@/components/ui/LeadCard";
+import LoadingSpinner from "@/components/LoadingSpinner";
 import { Account } from "@/context/hubspot";
 
 const stageBadgeStyles: Record<Account['stage'], string> = {
@@ -35,24 +35,60 @@ const stageBadgeStyles: Record<Account['stage'], string> = {
 
 const AccountDetails = () => {
   const { accountId } = useParams<{ accountId: string }>();
-  const { accounts, isAuthenticated } = useHubspot();
+  const { accounts, isAuthenticated, isConnecting } = useHubspot();
   const navigate = useNavigate();
   
-  const account = accounts.find(a => a.id === accountId);
+  // Memoize account lookup for performance
+  const account = useMemo(() => {
+    return accounts.find(a => a.id === accountId);
+  }, [accounts, accountId]);
   
   useEffect(() => {
-    if (!isAuthenticated) {
+    if (!isConnecting && !isAuthenticated) {
       navigate("/");
     }
-  }, [isAuthenticated, navigate]);
-  
-  if (!isAuthenticated || !account) {
-    return null;
-  }
+  }, [isAuthenticated, isConnecting, navigate]);
   
   const goBack = () => {
     navigate(-1);
   };
+  
+  // Show loading state
+  if (isConnecting) {
+    return (
+      <div className="flex min-h-screen bg-background">
+        <Sidebar />
+        <div className="flex-1 flex items-center justify-center">
+          <LoadingSpinner size="lg" />
+        </div>
+      </div>
+    );
+  }
+  
+  // Show not found state
+  if (!isAuthenticated || !account) {
+    return (
+      <div className="flex min-h-screen bg-background">
+        <Sidebar />
+        <div className="flex-1 flex items-center justify-center">
+          <Card className="w-full max-w-md">
+            <CardHeader className="text-center">
+              <CardTitle>Account Not Found</CardTitle>
+              <CardDescription>
+                The requested account could not be found.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="text-center">
+              <Button onClick={goBack}>
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Go Back
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
   
   return (
     <div className="flex min-h-screen bg-background">
@@ -81,9 +117,9 @@ const AccountDetails = () => {
                 </div>
               </div>
               <div className="mt-2 md:mt-0">
-                <span className={`text-xs px-3 py-1 rounded-full uppercase ${stageBadgeStyles[account.stage]}`}>
+                <Badge className={`text-xs px-3 py-1 rounded-full uppercase ${stageBadgeStyles[account.stage]}`}>
                   {account.stage.replace("_", " ")}
-                </span>
+                </Badge>
               </div>
             </div>
           </div>
@@ -187,20 +223,29 @@ const AccountDetails = () => {
             <TabsList>
               <TabsTrigger value="contacts">
                 <Users className="h-4 w-4 mr-2" />
-                Contacts ({account.contacts.length})
+                Contacts ({account.contacts?.length || 0})
               </TabsTrigger>
               <TabsTrigger value="deals">
                 <FileBarChart className="h-4 w-4 mr-2" />
-                Deals ({account.activeDeals})
+                Deals ({account.activeDeals || 0})
               </TabsTrigger>
             </TabsList>
             
             <TabsContent value="contacts" className="mt-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                {account.contacts.map(contact => (
-                  <LeadCard key={contact.id} contact={contact} showDetails={true} />
-                ))}
-              </div>
+              {account.contacts && account.contacts.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                  {account.contacts.map(contact => (
+                    <LeadCard key={contact.id} contact={contact} />
+                  ))}
+                </div>
+              ) : (
+                <Card>
+                  <CardContent className="text-center py-8">
+                    <Users className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+                    <p className="text-muted-foreground">No contacts found for this account</p>
+                  </CardContent>
+                </Card>
+              )}
             </TabsContent>
             
             <TabsContent value="deals" className="mt-6">

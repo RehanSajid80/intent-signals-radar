@@ -1,36 +1,44 @@
+
 import React, { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useHubspot } from "@/context/hubspot";
+import { useErrorHandler } from "@/hooks/useErrorHandler";
+import { AlertTriangle, CheckCircle } from "lucide-react";
+import LoadingSpinner from "@/components/LoadingSpinner";
 
 const HubspotApiSettings = () => {
-  const { apiKey, setApiKey, isAuthenticated, testHubspotConnection, refreshData } = useHubspot();
-  const [newApiKey, setNewApiKey] = useState(apiKey || "");
-  const [isTesting, setIsTesting] = useState(false);
+  const { isAuthenticated, testHubspotConnection, refreshData } = useHubspot();
+  const [newApiKey, setNewApiKey] = useState("");
+  const { error, isLoading, handleAsync, clearError } = useErrorHandler();
 
   const handleApiKeyChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setNewApiKey(e.target.value);
+    clearError();
   };
 
   const handleSaveApiKey = async () => {
-    setIsTesting(true);
-    try {
+    if (!newApiKey.trim()) {
+      return;
+    }
+
+    const result = await handleAsync(async () => {
       const isValid = await testHubspotConnection(newApiKey);
       if (isValid) {
-        setApiKey(newApiKey);
         localStorage.setItem("hubspotApiKey", newApiKey);
         await refreshData();
-        alert("API Key saved and connection is valid!");
+        setNewApiKey("");
+        return true;
       } else {
-        alert("Invalid API Key. Please check your key and try again.");
+        throw new Error("Invalid API Key. Please check your key and try again.");
       }
-    } catch (error) {
-      console.error("Error testing connection:", error);
-      alert("Failed to test connection. Please check your API key and try again.");
-    } finally {
-      setIsTesting(false);
+    });
+
+    if (result) {
+      // Success handled by the success state
     }
   };
 
@@ -50,19 +58,47 @@ const HubspotApiSettings = () => {
             type="password"
             value={newApiKey}
             onChange={handleApiKeyChange}
+            placeholder="Enter your HubSpot API key"
+            disabled={isLoading}
           />
         </div>
-        <Button onClick={handleSaveApiKey} disabled={isTesting}>
-          {isTesting ? "Testing Connection..." : "Save API Key"}
+        
+        {error && (
+          <Alert variant="destructive">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
+        
+        <Button 
+          onClick={handleSaveApiKey} 
+          disabled={isLoading || !newApiKey.trim()}
+          className="w-full"
+        >
+          {isLoading ? (
+            <>
+              <LoadingSpinner size="sm" className="mr-2" />
+              Testing Connection...
+            </>
+          ) : (
+            "Save API Key"
+          )}
         </Button>
+        
         {isAuthenticated ? (
-          <p className="text-sm text-green-500">
-            Connected to HubSpot!
-          </p>
+          <Alert>
+            <CheckCircle className="h-4 w-4" />
+            <AlertDescription className="text-green-600">
+              Connected to HubSpot successfully!
+            </AlertDescription>
+          </Alert>
         ) : (
-          <p className="text-sm text-red-500">
-            Not connected to HubSpot. Please provide a valid API key.
-          </p>
+          <Alert>
+            <AlertTriangle className="h-4 w-4" />
+            <AlertDescription>
+              Not connected to HubSpot. Please provide a valid API key.
+            </AlertDescription>
+          </Alert>
         )}
       </CardContent>
     </Card>

@@ -1,5 +1,5 @@
 
-import React, { createContext, useContext, ReactNode, useMemo, useState } from "react";
+import React, { createContext, useContext, ReactNode, useMemo, useState, useCallback } from "react";
 import { useHubspotState } from "./useHubspotState";
 import { useHubspotActions } from "./useHubspotActions";
 import { useHubspotInitialization } from "./useHubspotInitialization";
@@ -47,24 +47,37 @@ export const HubspotProvider: React.FC<HubspotProviderProps> = ({ children }) =>
   // Initialize connection status
   useHubspotInitialization(setters.setIsAuthenticated, actions.refreshData);
 
-  // Calculate derived state
-  const priorityContacts = useMemo(() => 
-    state.contacts
-      .sort((a, b) => b.score - a.score)
-      .slice(0, 10), 
-    [state.contacts]
-  );
+  // Calculate derived state with proper error handling
+  const priorityContacts = useMemo(() => {
+    try {
+      if (!Array.isArray(state.contacts)) {
+        return [];
+      }
+      return state.contacts
+        .filter(contact => contact && typeof contact.score === 'number')
+        .sort((a, b) => (b.score || 0) - (a.score || 0))
+        .slice(0, 10);
+    } catch (error) {
+      console.error('Error calculating priority contacts:', error);
+      return [];
+    }
+  }, [state.contacts]);
 
-  // Mock test connection function
-  const testHubspotConnection = async (key?: string): Promise<boolean> => {
-    // Mock implementation - always returns true
-    return new Promise((resolve) => {
-      setTimeout(() => resolve(true), 1000);
-    });
-  };
+  // Enhanced test connection function with proper error handling
+  const testHubspotConnection = useCallback(async (key?: string): Promise<boolean> => {
+    try {
+      if (key && key.trim()) {
+        setApiKey(key);
+      }
+      return await actions.testHubspotConnection(key);
+    } catch (error) {
+      console.error('Error testing HubSpot connection:', error);
+      return false;
+    }
+  }, [actions]);
 
   // Combine all the context values
-  const contextValue: HubspotContextType = {
+  const contextValue: HubspotContextType = useMemo(() => ({
     ...state,
     ...actions,
     isConnecting,
@@ -73,7 +86,15 @@ export const HubspotProvider: React.FC<HubspotProviderProps> = ({ children }) =>
     apiKey,
     setApiKey,
     testHubspotConnection
-  };
+  }), [
+    state,
+    actions,
+    isConnecting,
+    isProcessing,
+    priorityContacts,
+    apiKey,
+    testHubspotConnection
+  ]);
 
   return (
     <HubspotContext.Provider value={contextValue}>
