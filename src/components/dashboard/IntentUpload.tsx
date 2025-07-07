@@ -1,8 +1,9 @@
+
 import React, { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BarChart, Database, Upload, Check, Download, Calendar } from "lucide-react";
-import IntentAnalysis from "@/components/dashboard/IntentAnalysis";
+import IntentAnalysis from "@/components/dashboard/intent/IntentAnalysis";
 import FileUploadZone from "./upload/FileUploadZone";
 import StatusNotifications from "./upload/StatusNotifications";
 import IntentDataPreview from "./upload/IntentDataPreview";

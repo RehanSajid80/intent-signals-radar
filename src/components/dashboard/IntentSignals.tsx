@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { BarChart, Upload, ChevronDown } from "lucide-react";
 import IntentUpload from "./IntentUpload";
-import IntentAnalysis from "./IntentAnalysis";
+import IntentAnalysis from "./intent/IntentAnalysis";
 import { sampleIntentData } from "@/data/sampleIntentData";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
