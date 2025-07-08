@@ -86,11 +86,11 @@ export function WeekSelector({
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-[300px] p-0">
-        <Command>
+        <Command shouldFilter={false}>
           <CommandInput placeholder="Search week..." />
           <CommandEmpty>No week found.</CommandEmpty>
           <CommandGroup>
-            {weeks.map((week) => (
+            {weeks && weeks.length > 0 ? weeks.map((week) => (
               <CommandItem
                 key={week.value}
                 value={week.value}
@@ -104,7 +104,11 @@ export function WeekSelector({
                 />
                 {week.label}
               </CommandItem>
-            ))}
+            )) : (
+              <CommandItem value="no-weeks" disabled>
+                No weeks available
+              </CommandItem>
+            )}
           </CommandGroup>
         </Command>
       </PopoverContent>
