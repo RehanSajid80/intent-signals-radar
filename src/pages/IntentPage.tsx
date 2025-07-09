@@ -15,6 +15,7 @@ import {
 } from '@/components/dashboard/upload/utils/supabase';
 import { WeekSelector } from '@/components/dashboard/upload/WeekSelector';
 import WeekTrendsAnalysis from '@/components/dashboard/intent/WeekTrendsAnalysis';
+import ZyterOpportunityAnalysis from '@/components/dashboard/intent/ZyterOpportunityAnalysis';
 
 const IntentPage = () => {
   const [activeTab, setActiveTab] = useState("database");
@@ -163,6 +164,7 @@ const IntentPage = () => {
                       previousWeek={availableWeeks[availableWeeks.indexOf(selectedWeek) + 1] || ""}
                     />
                   )}
+                  <ZyterOpportunityAnalysis data={databaseData} />
                   <IntentAnalysis data={databaseData} />
                 </div>
               ) : (
