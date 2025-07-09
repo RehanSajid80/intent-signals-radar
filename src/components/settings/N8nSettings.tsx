@@ -20,15 +20,32 @@ const N8nSettings = () => {
   const fetchWebhookUrl = async () => {
     setIsLoading(true);
     try {
+      // Try to get from user settings first if user is logged in
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      const { data, error } = await supabase
-        .from('user_settings')
-        .select('setting_value')
-        .eq('user_id', user.id)
-        .eq('setting_key', 'n8n_webhook_url')
-        .single();
+      
+      let data, error;
+      
+      if (user) {
+        // User is logged in, get their specific setting
+        const result = await supabase
+          .from('user_settings')
+          .select('setting_value')
+          .eq('user_id', user.id)
+          .eq('setting_key', 'n8n_webhook_url')
+          .single();
+        data = result.data;
+        error = result.error;
+      } else {
+        // No user logged in, get the global setting (user_id = null)
+        const result = await supabase
+          .from('user_settings')
+          .select('setting_value')
+          .eq('setting_key', 'n8n_webhook_url')
+          .is('user_id', null)
+          .single();
+        data = result.data;
+        error = result.error;
+      }
 
       if (error && error.code !== 'PGRST116') {
         console.error('Error fetching webhook URL:', error);
@@ -49,19 +66,11 @@ const N8nSettings = () => {
     setIsSaving(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        toast({
-          title: "Error",
-          description: "You must be logged in to save settings",
-          variant: "destructive",
-        });
-        return;
-      }
-
+      
       const { error } = await supabase
         .from('user_settings')
         .upsert({
-          user_id: user.id,
+          user_id: user?.id || null, // Allow null for anonymous users
           setting_key: 'n8n_webhook_url',
           setting_value: webhookUrl
         });
