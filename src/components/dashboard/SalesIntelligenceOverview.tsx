@@ -235,11 +235,18 @@ const SalesIntelligenceOverview = () => {
   };
 
   const getFilteredCompanies = () => {
+    // First filter out companies with no website or N/A domains
+    let filtered = companies.filter(company => {
+      const domain = company.domain;
+      return domain && domain !== 'N/A' && domain.trim() !== '';
+    });
+    
+    // Then apply owner filter if any owners are selected
     if (selectedOwners.length === 0) {
-      return companies;
+      return filtered;
     }
     
-    return companies.filter(company => {
+    return filtered.filter(company => {
       const ownerName = getOwnerDisplayName(company.ownerId, company.ownerName);
       return selectedOwners.includes(ownerName);
     });
