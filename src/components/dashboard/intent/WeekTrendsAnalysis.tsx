@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { IntentData } from "../types/intentTypes";
 import { TrendingUp, TrendingDown, Minus, Users, BarChart3, Target } from "lucide-react";
 
@@ -17,27 +18,40 @@ const WeekTrendsAnalysis: React.FC<WeekTrendsAnalysisProps> = ({
   currentWeek,
   previousWeek
 }) => {
-  // Calculate metrics for current week
-  const currentAvgScore = currentWeekData.length > 0 
-    ? currentWeekData.reduce((sum, item) => sum + item.score, 0) / currentWeekData.length 
+  const [selectedTopic, setSelectedTopic] = useState<string>("all");
+  
+  // Get all unique topics from current week data
+  const allTopics = Array.from(new Set(currentWeekData.map(item => item.topic))).sort();
+  
+  // Filter data based on selected topic
+  const filteredCurrentData = selectedTopic === "all" 
+    ? currentWeekData 
+    : currentWeekData.filter(item => item.topic === selectedTopic);
+    
+  const filteredPreviousData = selectedTopic === "all" 
+    ? previousWeekData 
+    : previousWeekData.filter(item => item.topic === selectedTopic);
+  // Calculate metrics for current week (filtered data)
+  const currentAvgScore = filteredCurrentData.length > 0 
+    ? filteredCurrentData.reduce((sum, item) => sum + item.score, 0) / filteredCurrentData.length 
     : 0;
-  const currentUniqueCompanies = new Set(currentWeekData.map(item => item.companyName)).size;
-  const currentTopics = new Set(currentWeekData.map(item => item.topic)).size;
+  const currentUniqueCompanies = new Set(filteredCurrentData.map(item => item.companyName)).size;
+  const currentTopics = new Set(filteredCurrentData.map(item => item.topic)).size;
 
-  // Calculate metrics for previous week
-  const previousAvgScore = previousWeekData.length > 0 
-    ? previousWeekData.reduce((sum, item) => sum + item.score, 0) / previousWeekData.length 
+  // Calculate metrics for previous week (filtered data)
+  const previousAvgScore = filteredPreviousData.length > 0 
+    ? filteredPreviousData.reduce((sum, item) => sum + item.score, 0) / filteredPreviousData.length 
     : 0;
-  const previousUniqueCompanies = new Set(previousWeekData.map(item => item.companyName)).size;
-  const previousTopics = new Set(previousWeekData.map(item => item.topic)).size;
+  const previousUniqueCompanies = new Set(filteredPreviousData.map(item => item.companyName)).size;
+  const previousTopics = new Set(filteredPreviousData.map(item => item.topic)).size;
 
   // Calculate changes
   const scoreDiff = currentAvgScore - previousAvgScore;
   const companiesDiff = currentUniqueCompanies - previousUniqueCompanies;
   const topicsDiff = currentTopics - previousTopics;
 
-  // Get top companies for current week
-  const topCompanies = currentWeekData
+  // Get top companies for current week (filtered data)
+  const topCompanies = filteredCurrentData
     .reduce((acc, item) => {
       if (!acc[item.companyName]) {
         acc[item.companyName] = { totalScore: 0, count: 0 };
@@ -94,9 +108,27 @@ const WeekTrendsAnalysis: React.FC<WeekTrendsAnalysisProps> = ({
             <BarChart3 className="h-5 w-5" />
             Week-on-Week Trends
           </CardTitle>
-          <p className="text-sm text-muted-foreground">
-            Comparing {currentWeek} vs {previousWeek}
-          </p>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <p className="text-sm text-muted-foreground">
+              Comparing {currentWeek} vs {previousWeek}
+            </p>
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-muted-foreground">Filter by topic:</span>
+              <Select value={selectedTopic} onValueChange={setSelectedTopic}>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Select topic" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Topics</SelectItem>
+                  {allTopics.map((topic) => (
+                    <SelectItem key={topic} value={topic}>
+                      {topic}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
