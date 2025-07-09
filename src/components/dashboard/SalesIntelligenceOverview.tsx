@@ -112,11 +112,29 @@ const SalesIntelligenceOverview = () => {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      const data: ApiResponse[] = await response.json();
+      const data = await response.json();
+      console.log('Received data from webhook:', data);
       
-      if (data && data.length > 0 && data[0].companies) {
+      let companies: Company[] = [];
+      
+      // Handle different response formats
+      if (Array.isArray(data)) {
+        // Check if it's an array of companies directly
+        if (data.length > 0 && data[0].name) {
+          companies = data;
+        }
+        // Check if it's wrapped in an array with companies property
+        else if (data.length > 0 && data[0].companies) {
+          companies = data[0].companies;
+        }
+      } else if (data && data.companies) {
+        // Single object with companies property
+        companies = data.companies;
+      }
+      
+      if (companies.length > 0) {
         // Sort by priority: high page views, intent score, and recent activity
-        const sortedCompanies = data[0].companies.sort((a, b) => {
+        const sortedCompanies = companies.sort((a, b) => {
           const scoreA = a.pageViews + (a.intentScore * 10);
           const scoreB = b.pageViews + (b.intentScore * 10);
           return scoreB - scoreA;
