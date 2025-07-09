@@ -12,13 +12,15 @@ interface IntentTableRowProps {
   index: number;
   expanded: boolean;
   toggleExpand: (index: number) => void;
+  onCompanyAnalysis?: (companyName: string) => void;
 }
 
 const IntentTableRow: React.FC<IntentTableRowProps> = ({ 
   item, 
   index, 
   expanded, 
-  toggleExpand 
+  toggleExpand,
+  onCompanyAnalysis
 }) => {
   // Format date safely
   const formatDate = (dateString?: string) => {

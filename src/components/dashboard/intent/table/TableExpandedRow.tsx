@@ -1,15 +1,18 @@
 
 import React from "react";
 import { TableCell, TableRow } from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import { Brain } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { IntentData } from "../../types/intentTypes";
 import { format } from "date-fns";
 
 interface TableExpandedRowProps {
   item: IntentData;
+  onCompanyAnalysis?: (companyName: string) => void;
 }
 
-const TableExpandedRow: React.FC<TableExpandedRowProps> = ({ item }) => {
+const TableExpandedRow: React.FC<TableExpandedRowProps> = ({ item, onCompanyAnalysis }) => {
   // Format date safely
   const formatDate = (dateString?: string) => {
     if (!dateString) return "Invalid date";
@@ -71,14 +74,24 @@ const TableExpandedRow: React.FC<TableExpandedRowProps> = ({ item }) => {
               </div>
               <p>
                 <span className="font-medium">Recommendation:</span>{' '}
-                {item.score >= 90 ? "Immediate follow-up recommended" :
-                 item.score >= 80 ? "High priority follow-up" :
-                 item.score >= 70 ? "Schedule follow-up" :
-                 item.score >= 60 ? "Monitor interest" :
-                 "Low priority"}
-              </p>
-            </div>
-          </div>
+                 {item.score >= 90 ? "Immediate follow-up recommended" :
+                  item.score >= 80 ? "High priority follow-up" :
+                  item.score >= 70 ? "Schedule follow-up" :
+                  item.score >= 60 ? "Monitor interest" :
+                  "Low priority"}
+               </p>
+               {onCompanyAnalysis && (
+                 <Button 
+                   size="sm" 
+                   onClick={() => onCompanyAnalysis(item.companyName)}
+                   className="mt-3"
+                 >
+                   <Brain className="h-4 w-4 mr-2" />
+                   Analyze Company
+                 </Button>
+               )}
+             </div>
+           </div>
         </div>
       </TableCell>
     </TableRow>

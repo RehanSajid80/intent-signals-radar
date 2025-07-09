@@ -17,9 +17,10 @@ import { useIntentTableData } from "./table/useIntentTableData";
 
 interface IntentDataTableProps {
   data: IntentData[];
+  onCompanyAnalysis?: (companyName: string) => void;
 }
 
-const IntentDataTable: React.FC<IntentDataTableProps> = ({ data }) => {
+const IntentDataTable: React.FC<IntentDataTableProps> = ({ data, onCompanyAnalysis }) => {
   const {
     processedData,
     sortField,
@@ -93,10 +94,14 @@ const IntentDataTable: React.FC<IntentDataTableProps> = ({ data }) => {
                     index={index}
                     expanded={!!expanded[index]}
                     toggleExpand={toggleExpand}
+                    onCompanyAnalysis={onCompanyAnalysis}
                   />
                   
                   {expanded[index] && (
-                    <TableExpandedRow item={item} />
+                    <TableExpandedRow 
+                      item={item} 
+                      onCompanyAnalysis={onCompanyAnalysis}
+                    />
                   )}
                 </React.Fragment>
               ))}

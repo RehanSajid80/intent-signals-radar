@@ -14,6 +14,7 @@ import {
   fetchSupabaseData 
 } from '@/components/dashboard/upload/utils/supabase';
 import { WeekSelector } from '@/components/dashboard/upload/WeekSelector';
+import WeekTrendsAnalysis from '@/components/dashboard/intent/WeekTrendsAnalysis';
 
 const IntentPage = () => {
   const [activeTab, setActiveTab] = useState("database");
@@ -21,6 +22,7 @@ const IntentPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [availableWeeks, setAvailableWeeks] = useState<string[]>([]);
   const [selectedWeek, setSelectedWeek] = useState<string>("");
+  const [previousWeekData, setPreviousWeekData] = useState<IntentData[]>([]);
   
   // Format current date for display
   const currentDate = format(new Date(), "MMMM d, yyyy");
@@ -39,6 +41,12 @@ const IntentPage = () => {
           setSelectedWeek(weeks[0]);
           const data = await fetchSupabaseData(undefined, weeks[0]);
           setDatabaseData(data);
+          
+          // Fetch previous week data for comparison
+          if (weeks.length > 1) {
+            const prevData = await fetchSupabaseData(undefined, weeks[1]);
+            setPreviousWeekData(prevData);
+          }
         } else {
           // Otherwise fetch all data
           const data = await fetchSupabaseData();
@@ -61,6 +69,16 @@ const IntentPage = () => {
     try {
       const data = await fetchSupabaseData(undefined, week);
       setDatabaseData(data);
+      
+      // Fetch previous week data for comparison
+      const currentWeekIndex = availableWeeks.indexOf(week);
+      if (currentWeekIndex < availableWeeks.length - 1) {
+        const previousWeek = availableWeeks[currentWeekIndex + 1];
+        const prevData = await fetchSupabaseData(undefined, previousWeek);
+        setPreviousWeekData(prevData);
+      } else {
+        setPreviousWeekData([]);
+      }
     } catch (err) {
       console.error("Error fetching data for week:", week, err);
     } finally {
@@ -136,7 +154,17 @@ const IntentPage = () => {
                   </div>
                 </div>
               ) : databaseData.length > 0 ? (
-                <IntentAnalysis data={databaseData} />
+                <div className="space-y-6">
+                  {previousWeekData.length > 0 && (
+                    <WeekTrendsAnalysis 
+                      currentWeekData={databaseData}
+                      previousWeekData={previousWeekData}
+                      currentWeek={selectedWeek}
+                      previousWeek={availableWeeks[availableWeeks.indexOf(selectedWeek) + 1] || ""}
+                    />
+                  )}
+                  <IntentAnalysis data={databaseData} />
+                </div>
               ) : (
                 <Card className="py-12">
                   <CardContent className="text-center">

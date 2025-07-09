@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useState } from "react";
 import { 
   Card, 
   CardContent, 
@@ -8,7 +8,10 @@ import {
   CardTitle 
 } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
+import { Brain } from "lucide-react";
 import { IntentData } from "../types/intentTypes";
+import CompanyAnalysisModal from "./CompanyAnalysisModal";
 
 import TopCompaniesChart from "./TopCompaniesChart";
 import TopCompaniesTable from "./TopCompaniesTable";
@@ -21,7 +24,20 @@ interface IntentAnalysisProps {
 }
 
 const IntentAnalysis: React.FC<IntentAnalysisProps> = ({ data }) => {
+  const [selectedCompany, setSelectedCompany] = useState<string | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const handleCompanyAnalysis = (companyName: string) => {
+    setSelectedCompany(companyName);
+    setIsModalOpen(true);
+  };
+
+  const selectedCompanyData = selectedCompany 
+    ? data.filter(item => item.companyName === selectedCompany)
+    : [];
+
   return (
+    <>
     <Card className="mb-6">
       <CardHeader>
         <CardTitle>Intent Analysis</CardTitle>
@@ -66,11 +82,19 @@ const IntentAnalysis: React.FC<IntentAnalysisProps> = ({ data }) => {
           </TabsContent>
           
           <TabsContent value="table">
-            <IntentDataTable data={data} />
+            <IntentDataTable data={data} onCompanyAnalysis={handleCompanyAnalysis} />
           </TabsContent>
         </Tabs>
       </CardContent>
     </Card>
+
+    <CompanyAnalysisModal
+      company={selectedCompany}
+      companyData={selectedCompanyData}
+      isOpen={isModalOpen}
+      onClose={() => setIsModalOpen(false)}
+    />
+    </>
   );
 };
 
