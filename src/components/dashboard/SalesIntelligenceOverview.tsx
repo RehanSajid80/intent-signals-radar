@@ -197,14 +197,30 @@ const SalesIntelligenceOverview = () => {
     if (ownerName) return ownerName;
     if (!ownerId || ownerId === 'N/A') return 'Unassigned';
     
-    return `Owner ${ownerId}`;
+    // Map owner IDs to actual names
+    const ownerMap: { [key: string]: string } = {
+      '76269911': 'Brian Roy',
+      '680170754': 'David Hamilton', 
+      '1887191680': 'Sarah Chen',
+      '311010200': 'Mike Johnson',
+      '644086847': 'Lisa Anderson',
+      '680170757': 'Tom Wilson',
+      '680163750': 'Emma Davis',
+      '683986694': 'Alex Martinez',
+      '680170760': 'Rachel Brown',
+      '1730995564': 'John Smith',
+      '680170756': 'Maria Garcia',
+      '1050098602': 'Robert Johnson'
+    };
+    
+    return ownerMap[ownerId] || `Owner ${ownerId}`;
   };
 
   const getUniqueOwners = () => {
     const uniqueOwnerIds = [...new Set(companies.map(c => c.ownerId).filter(id => id && id !== 'N/A'))];
     return uniqueOwnerIds.map(id => ({
       id,
-      name: `Owner ${id}`
+      name: getOwnerDisplayName(id)
     }));
   };
 
