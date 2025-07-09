@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Download, Loader2, AlertCircle, Building2, TrendingUp, Eye, Calendar, Users, Target, Zap, Brain } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 interface Company {
   name: string;
@@ -38,11 +39,40 @@ const SalesIntelligenceOverview = () => {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const { toast } = useToast();
 
+  useEffect(() => {
+    fetchWebhookUrl();
+  }, []);
+
+  const fetchWebhookUrl = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data, error } = await supabase
+        .from('user_settings')
+        .select('setting_value')
+        .eq('user_id', user.id)
+        .eq('setting_key', 'n8n_webhook_url')
+        .single();
+
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error fetching webhook URL:', error);
+        return;
+      }
+
+      if (data?.setting_value) {
+        setWebhookUrl(data.setting_value);
+      }
+    } catch (error) {
+      console.error('Error fetching webhook URL:', error);
+    }
+  };
+
   const handleFetchData = async () => {
     if (!webhookUrl.trim()) {
       toast({
         title: "Error",
-        description: "Please enter your n8n webhook URL",
+        description: "Please configure your n8n webhook URL in Settings first",
         variant: "destructive",
       });
       return;

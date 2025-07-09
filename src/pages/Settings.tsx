@@ -10,6 +10,7 @@ import IntegrationSettings from "@/components/settings/IntegrationSettings";
 import GeneralSettings from "@/components/settings/GeneralSettings";
 import NotificationSettings from "@/components/settings/NotificationSettings";
 import ScoringSettings from "@/components/settings/ScoringSettings";
+import N8nSettings from "@/components/settings/N8nSettings";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 const Settings = () => {
@@ -48,10 +49,17 @@ const Settings = () => {
             </AlertDescription>
           </Alert>
           
-          {/* Highlight the HubSpot API settings card at the top */}
-          <div className="mb-8">
-            <h2 className="text-xl font-semibold mb-4">HubSpot Integration</h2>
-            <HubspotApiSettings />
+          {/* Integration settings at the top */}
+          <div className="mb-8 space-y-6">
+            <div>
+              <h2 className="text-xl font-semibold mb-4">HubSpot Integration</h2>
+              <HubspotApiSettings />
+            </div>
+            
+            <div>
+              <h2 className="text-xl font-semibold mb-4">n8n Integration</h2>
+              <N8nSettings />
+            </div>
           </div>
           
           <Tabs defaultValue="integrations">
