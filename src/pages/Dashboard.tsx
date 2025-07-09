@@ -9,6 +9,7 @@ import StageConversions from "@/components/dashboard/StageConversions";
 import OwnerLifecycleBreakdown from "@/components/dashboard/OwnerLifecycleBreakdown";
 import LifecycleStages from "@/components/dashboard/LifecycleStages";
 import IntentSignals from "@/components/dashboard/IntentSignals";
+import CompanyDataFetcher from "@/components/dashboard/CompanyDataFetcher";
 
 const Dashboard = () => {
   const { isAuthenticated, contacts } = useHubspot();
@@ -43,6 +44,9 @@ const Dashboard = () => {
         </div>
         <div className="grid grid-cols-1 gap-4 mb-6">
           <LifecycleStages />
+        </div>
+        <div className="grid grid-cols-1 gap-4 mb-6">
+          <CompanyDataFetcher />
         </div>
       </div>
     </div>
