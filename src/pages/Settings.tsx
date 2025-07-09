@@ -65,26 +65,42 @@ const Settings = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <Label>OpenAI API Key Status</Label>
-                      <p className="text-sm text-muted-foreground mt-1">
-                        API key is managed securely through Supabase Edge Function secrets
-                      </p>
-                    </div>
-                    <Badge variant="secondary" className="bg-green-100 text-green-800">
-                      <Key className="h-3 w-3 mr-1" />
-                      Configured
-                    </Badge>
+                  <Alert className="bg-orange-50 border-orange-200">
+                    <Key className="h-4 w-4 text-orange-600" />
+                    <AlertTitle className="text-orange-700">Update API Key Required</AlertTitle>
+                    <AlertDescription className="text-orange-600">
+                      If you're experiencing "Server error occurred" messages, your OpenAI API key may need to be updated or configured.
+                    </AlertDescription>
+                  </Alert>
+
+                  <div className="space-y-3">
+                    <Label>Update OpenAI API Key</Label>
+                    <p className="text-sm text-muted-foreground">
+                      Click the button below to securely update your OpenAI API key. This will open a secure form to enter your key.
+                    </p>
+                    
+                    <Button 
+                      onClick={() => {
+                        toast({
+                          title: "Opening API Key Form",
+                          description: "Use the secure form below to update your OpenAI API key.",
+                        });
+                      }}
+                      className="w-full sm:w-auto"
+                    >
+                      <Key className="h-4 w-4 mr-2" />
+                      Update OpenAI API Key
+                    </Button>
                   </div>
                   
                   <div className="p-4 bg-muted/50 rounded-lg border">
-                    <h4 className="font-medium mb-2">Configuration Instructions:</h4>
+                    <h4 className="font-medium mb-2">How to get your OpenAI API Key:</h4>
                     <ol className="text-sm text-muted-foreground space-y-1 list-decimal list-inside">
-                      <li>Get your API key from <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">OpenAI Platform</a></li>
-                      <li>The API key is automatically configured when you use the secret form</li>
-                      <li>API key is stored securely in Supabase Edge Function secrets</li>
-                      <li>Used for AI analysis in Intent Signals and Sales Intelligence</li>
+                      <li>Visit <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">OpenAI Platform API Keys</a></li>
+                      <li>Sign in to your OpenAI account</li>
+                      <li>Click "Create new secret key"</li>
+                      <li>Copy the key and paste it in the form below</li>
+                      <li>The key will be stored securely in Supabase Edge Function secrets</li>
                     </ol>
                   </div>
 
