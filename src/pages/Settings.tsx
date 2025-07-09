@@ -76,21 +76,21 @@ const Settings = () => {
                   <div className="space-y-3">
                     <Label>Update OpenAI API Key</Label>
                     <p className="text-sm text-muted-foreground">
-                      Click the button below to securely update your OpenAI API key. This will open a secure form to enter your key.
+                      Use the secure form below to update your OpenAI API key. The key will be stored securely in Supabase Edge Function secrets.
                     </p>
                     
-                    <Button 
-                      onClick={() => {
-                        toast({
-                          title: "Opening API Key Form",
-                          description: "Use the secure form below to update your OpenAI API key.",
-                        });
-                      }}
-                      className="w-full sm:w-auto"
-                    >
-                      <Key className="h-4 w-4 mr-2" />
-                      Update OpenAI API Key
-                    </Button>
+                    <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Key className="h-4 w-4 text-blue-600" />
+                        <h4 className="font-medium text-blue-900">OpenAI API Key</h4>
+                      </div>
+                      <p className="text-sm text-blue-700 mb-3">Enter your OpenAI API key to enable AI-powered features like Zyter Deep Dive analysis.</p>
+                      
+                      {/* This is where the secret form will appear when the user clicks the action */}
+                      <div className="text-sm text-muted-foreground">
+                        Click the "Update OpenAI API Key" button below to open the secure form.
+                      </div>
+                    </div>
                   </div>
                   
                   <div className="p-4 bg-muted/50 rounded-lg border">
