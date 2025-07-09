@@ -9,7 +9,7 @@ import StageConversions from "@/components/dashboard/StageConversions";
 import OwnerLifecycleBreakdown from "@/components/dashboard/OwnerLifecycleBreakdown";
 import LifecycleStages from "@/components/dashboard/LifecycleStages";
 import IntentSignals from "@/components/dashboard/IntentSignals";
-import CompanyDataFetcher from "@/components/dashboard/CompanyDataFetcher";
+import SalesIntelligenceOverview from "@/components/dashboard/SalesIntelligenceOverview";
 
 const Dashboard = () => {
   const { isAuthenticated, contacts } = useHubspot();
@@ -27,26 +27,26 @@ const Dashboard = () => {
     <div className="flex min-h-screen bg-background">
       <Sidebar />
       <div className="flex-1 p-4">
-        <h1 className="text-2xl font-bold mb-4">Dashboard</h1>
+        <h1 className="text-2xl font-bold mb-4">Sales Intelligence Dashboard</h1>
+        
+        {/* Priority: Company Intelligence */}
+        <div className="grid grid-cols-1 gap-4 mb-6">
+          <SalesIntelligenceOverview />
+        </div>
+        
+        {/* Secondary: Supporting Metrics */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
           <LeadScoring />
           <PriorityLeads />
         </div>
+        
         <div className="grid grid-cols-1 gap-4 mb-6">
           <IntentSignals />
         </div>
-        <div className="grid grid-cols-1 gap-4 mb-6">
-          <Notifications />
-        </div>
+        
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
           <StageConversions contacts={contacts} />
           <OwnerLifecycleBreakdown ownerId="default" />
-        </div>
-        <div className="grid grid-cols-1 gap-4 mb-6">
-          <LifecycleStages />
-        </div>
-        <div className="grid grid-cols-1 gap-4 mb-6">
-          <CompanyDataFetcher />
         </div>
       </div>
     </div>
