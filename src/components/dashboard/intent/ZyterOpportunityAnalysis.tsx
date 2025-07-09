@@ -2,8 +2,9 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { IntentData } from "../types/intentTypes";
-import { Target, TrendingUp, Building2, Star, ArrowRight } from "lucide-react";
+import { Target, TrendingUp, Building2, Star, ArrowRight, Brain, Loader2, Eye } from "lucide-react";
 
 interface ZyterOpportunityAnalysisProps {
   data: IntentData[];
@@ -11,6 +12,10 @@ interface ZyterOpportunityAnalysisProps {
 
 const ZyterOpportunityAnalysis: React.FC<ZyterOpportunityAnalysisProps> = ({ data }) => {
   const [showAll, setShowAll] = useState(false);
+  const [selectedCompany, setSelectedCompany] = useState<any>(null);
+  const [isDeepDiveOpen, setIsDeepDiveOpen] = useState(false);
+  const [analysis, setAnalysis] = useState<string>('');
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
 
   // Define Zyter's relevant categories and topics based on their healthcare technology focus
   const zyterRelevantCategories = [
@@ -140,6 +145,59 @@ const ZyterOpportunityAnalysis: React.FC<ZyterOpportunityAnalysisProps> = ({ dat
     return advantages.length > 0 ? advantages : ['Digital transformation & expert services'];
   };
 
+  const handleDeepDive = (opportunity: any) => {
+    setSelectedCompany(opportunity);
+    setIsDeepDiveOpen(true);
+    setAnalysis('');
+  };
+
+  const analyzeZyterOpportunity = async () => {
+    if (!selectedCompany) return;
+
+    setIsAnalyzing(true);
+    setAnalysis('');
+
+    try {
+      const companyData = data.filter(item => item.companyName === selectedCompany.company);
+      
+      const analysisPayload = {
+        company: selectedCompany.company,
+        zyterRelevanceScore: selectedCompany.zyterRelevanceScore,
+        relevantSignals: selectedCompany.relevantSignals,
+        avgScore: selectedCompany.avgScore,
+        categories: selectedCompany.categories,
+        topics: selectedCompany.topics,
+        advantages: getZyterAdvantage(selectedCompany.categories, selectedCompany.topics),
+        relevanceLevel: getRelevanceLevel(selectedCompany.zyterRelevanceScore).level,
+        companyIntentData: companyData,
+        zyterFocus: 'healthcare technology, AI orchestration, managed care solutions, population health'
+      };
+
+      const response = await fetch('https://hqyrwktqdzmdgzpyxpya.functions.supabase.co/company-analysis', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          companyData: analysisPayload,
+          analysisType: 'zyter-opportunity'
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to analyze Zyter opportunity');
+      }
+
+      const result = await response.json();
+      setAnalysis(result.analysis);
+    } catch (error) {
+      console.error('Error analyzing Zyter opportunity:', error);
+      setAnalysis('Failed to generate analysis. Please try again.');
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
+
   if (opportunities.length === 0) {
     return (
       <Card>
@@ -246,6 +304,19 @@ const ZyterOpportunityAnalysis: React.FC<ZyterOpportunityAnalysisProps> = ({ dat
                     </div>
                   </div>
                 </div>
+
+                {/* Deep Dive Button */}
+                <div className="flex justify-end pt-2 border-t">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => handleDeepDive(opportunity)}
+                    className="flex items-center gap-2"
+                  >
+                    <Eye className="h-4 w-4" />
+                    Zyter Deep Dive
+                  </Button>
+                </div>
               </div>
             );
           })}
@@ -280,6 +351,124 @@ const ZyterOpportunityAnalysis: React.FC<ZyterOpportunityAnalysisProps> = ({ dat
             </ul>
           </div>
         </div>
+
+        {/* Zyter Deep Dive Modal */}
+        <Dialog open={isDeepDiveOpen} onOpenChange={setIsDeepDiveOpen}>
+          <DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Brain className="h-5 w-5" />
+                Zyter Deep Dive Analysis: {selectedCompany?.company}
+              </DialogTitle>
+              <DialogDescription>
+                AI-powered analysis of how Zyter.com can showcase information and leverage this opportunity
+              </DialogDescription>
+            </DialogHeader>
+            
+            {selectedCompany && (
+              <div className="space-y-6">
+                {/* Company Overview */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 bg-muted/50 rounded-lg">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Relevance Score</p>
+                    <p className="font-bold text-lg text-primary">{selectedCompany.zyterRelevanceScore.toFixed(0)}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Fit Level</p>
+                    <p className="font-medium">{getRelevanceLevel(selectedCompany.zyterRelevanceScore).level}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Signals</p>
+                    <p className="font-medium">{selectedCompany.relevantSignals}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Avg Score</p>
+                    <p className="font-medium">{selectedCompany.avgScore.toFixed(1)}</p>
+                  </div>
+                </div>
+
+                {/* Intent Categories & Topics */}
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <h4 className="font-semibold text-sm">Intent Categories</h4>
+                    <div className="flex flex-wrap gap-2">
+                      {selectedCompany.categories.map((cat: string, i: number) => (
+                        <Badge key={i} variant="outline" className="text-xs">
+                          {cat}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <h4 className="font-semibold text-sm">Intent Topics</h4>
+                    <div className="flex flex-wrap gap-2">
+                      {selectedCompany.topics.map((topic: string, i: number) => (
+                        <Badge key={i} variant="outline" className="text-xs">
+                          {topic}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Zyter Advantages */}
+                <div className="space-y-2">
+                  <h4 className="font-semibold text-sm flex items-center gap-2">
+                    <Star className="h-4 w-4" />
+                    Zyter's Competitive Advantages for this Opportunity
+                  </h4>
+                  <div className="flex flex-wrap gap-2">
+                    {getZyterAdvantage(selectedCompany.categories, selectedCompany.topics).map((advantage: string, i: number) => (
+                      <Badge key={i} variant="secondary" className="text-xs">
+                        {advantage}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+
+                {/* AI Analysis */}
+                <div className="border rounded-lg p-4">
+                  <div className="flex items-center justify-between mb-4">
+                    <h4 className="font-semibold">AI Analysis: Zyter Opportunity Strategy</h4>
+                    <Button 
+                      onClick={analyzeZyterOpportunity}
+                      disabled={isAnalyzing}
+                      size="sm"
+                    >
+                      {isAnalyzing ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          Analyzing...
+                        </>
+                      ) : (
+                        <>
+                          <Brain className="h-4 w-4 mr-2" />
+                          Generate Strategy
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                  
+                  {isAnalyzing ? (
+                    <div className="flex items-center justify-center py-8">
+                      <Loader2 className="h-6 w-6 animate-spin mr-2" />
+                      <span>Generating Zyter-specific opportunity analysis...</span>
+                    </div>
+                  ) : analysis ? (
+                    <div className="prose prose-sm max-w-none">
+                      <pre className="whitespace-pre-wrap font-sans text-sm bg-muted/30 p-4 rounded border">{analysis}</pre>
+                    </div>
+                  ) : (
+                    <p className="text-muted-foreground">
+                      Click "Generate Strategy" to get AI-powered insights on how Zyter.com can leverage this opportunity, 
+                      including specific positioning, messaging, and showcase strategies.
+                    </p>
+                  )}
+                </div>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
       </CardContent>
     </Card>
   );

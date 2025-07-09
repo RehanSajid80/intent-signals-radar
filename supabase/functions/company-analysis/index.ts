@@ -14,9 +14,99 @@ serve(async (req) => {
   }
 
   try {
-    const { companyData } = await req.json();
+    const { companyData, analysisType = 'default' } = await req.json();
 
-    const prompt = `
+    let prompt = '';
+    
+    if (analysisType === 'zyter-opportunity') {
+      // Zyter-specific opportunity analysis
+      prompt = `
+You are a sales intelligence analyst specializing in healthcare technology and AI solutions. Analyze this opportunity for Zyter.com and provide a comprehensive strategy.
+
+Zyter.com Overview:
+- Leading healthcare technology company
+- Specializes in AI orchestration, managed care solutions, and population health
+- Key platforms: TruCare, Outcomes Orchestrator™
+- Focus areas: Healthcare operations, digital transformation, care management
+
+Company Opportunity Data:
+- Company: ${companyData.company}
+- Relevance Score: ${companyData.zyterRelevanceScore} (${companyData.relevanceLevel} fit)
+- Intent Signals: ${companyData.relevantSignals} signals
+- Average Score: ${companyData.avgScore}
+- Intent Categories: ${companyData.categories.join(', ')}
+- Intent Topics: ${companyData.topics.join(', ')}
+- Zyter Advantages: ${companyData.advantages.join(', ')}
+
+Recent Intent Activity:
+${companyData.companyIntentData.map(item => 
+  `- ${item.topic} (${item.category}) - Score: ${item.score} - Date: ${item.date}`
+).join('\n')}
+
+Please provide:
+
+1. **ZYTER POSITIONING STRATEGY**
+   - How should Zyter position itself specifically to this company?
+   - Which Zyter platform(s) are most relevant (TruCare, Outcomes Orchestrator™)?
+   - Key value propositions based on their intent signals
+
+2. **MESSAGING & TALKING POINTS**
+   - Specific messaging for their intent categories
+   - Pain points Zyter can address
+   - ROI/outcome metrics to emphasize
+
+3. **SHOWCASE STRATEGY**
+   - How should Zyter.com showcase relevant case studies?
+   - Which product demonstrations would be most impactful?
+   - Industry-specific examples to highlight
+
+4. **ENGAGEMENT RECOMMENDATIONS**
+   - Best timing for outreach based on intent signals
+   - Recommended touchpoints and frequency
+   - Key stakeholders to target
+
+5. **COMPETITIVE DIFFERENTIATION**
+   - How to position against likely competitors
+   - Unique Zyter advantages for this specific opportunity
+
+6. **NEXT STEPS & ACTION PLAN**
+   - Immediate actions for the sales team
+   - Content/materials to prepare
+   - Follow-up strategy
+
+Be specific to healthcare technology sales and focus on actionable insights that Zyter's sales team can implement immediately.
+`;
+    } else if (analysisType === 'intent') {
+      // Intent-specific analysis
+      prompt = `
+You are a sales intelligence analyst focusing on intent signal analysis. Analyze this company's intent data and provide actionable insights.
+
+Company Intent Analysis:
+- Company: ${companyData.company}
+- Total Signals: ${companyData.totalSignals}
+- Average Score: ${companyData.avgScore}
+- High Score Signals: ${companyData.highScoreSignals}
+- Categories: ${companyData.categories.join(', ')}
+- Top Topics: ${companyData.topTopics.map(([topic, count]) => `${topic} (${count} signals)`).join(', ')}
+
+Recent Activity:
+${companyData.recentActivity.map(item => 
+  `- ${item.topic} (${item.category}) - Score: ${item.score} - Date: ${item.date}`
+).join('\n')}
+
+Please provide:
+1. **Intent Signal Analysis** - What these signals indicate about their buying journey
+2. **Engagement Timing** - When and how to reach out based on signal strength
+3. **Topic Prioritization** - Which topics show strongest intent and why
+4. **Recommended Approach** - Specific talking points and value propositions
+5. **Risk Assessment** - Potential challenges or competition indicators
+6. **Next Steps** - Immediate actions and follow-up strategy
+
+Focus on actionable insights for sales teams working with intent data.
+`;
+    } else {
+      // Default company analysis
+      prompt = `
 You are a sales intelligence analyst. Analyze this company data and provide actionable insights for a salesperson.
 
 Company Data:
@@ -37,6 +127,7 @@ Please provide:
 
 Be specific and actionable. Focus on what a salesperson needs to know RIGHT NOW.
 `;
+    }
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
