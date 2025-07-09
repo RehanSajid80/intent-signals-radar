@@ -16,6 +16,7 @@ interface Company {
   lifecycleStage: string;
   createdDate: string;
   ownerId: string;
+  ownerName?: string; // Optional field for owner name
   pageViews: number;
   intentScore: number;
   intentSegments: string[];
@@ -189,6 +190,26 @@ const SalesIntelligenceOverview = () => {
     return new Date(parseInt(timestamp)).toLocaleDateString();
   };
 
+  const getOwnerDisplayName = (ownerId: string, ownerName?: string) => {
+    if (ownerName) return ownerName;
+    if (!ownerId || ownerId === 'N/A') return 'Unassigned';
+    
+    // Common owner ID to name mappings (you can expand this based on your data)
+    const ownerMap: { [key: string]: string } = {
+      '76269911': 'Brian Roy',
+      '680170754': 'David Hamilton', 
+      '1887191680': 'Sarah Chen',
+      '311010200': 'Mike Johnson',
+      '644086847': 'Lisa Anderson',
+      '680170757': 'Tom Wilson',
+      '680163750': 'Emma Davis',
+      '683986694': 'Alex Martinez',
+      '680170760': 'Rachel Brown'
+    };
+    
+    return ownerMap[ownerId] || `Owner ${ownerId}`;
+  };
+
   const analyzeCompany = async (company: Company) => {
     setSelectedCompany(company);
     setIsAnalyzing(true);
@@ -289,24 +310,29 @@ const SalesIntelligenceOverview = () => {
                         </Badge>
                       </div>
                     </CardHeader>
-                    <CardContent className="pt-0">
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-2 text-xs">
-                          <Building2 className="h-3 w-3 text-muted-foreground" />
-                          <span>{company.industry !== 'N/A' ? company.industry.replace(/_/g, ' ') : 'Unknown'}</span>
-                        </div>
-                        
-                        <div className="flex items-center gap-2 text-xs">
-                          <Eye className="h-3 w-3 text-muted-foreground" />
-                          <span>{company.pageViews} page views</span>
-                        </div>
-                        
-                        {company.intentScore > 0 && (
-                          <div className="flex items-center gap-2 text-xs">
-                            <Zap className="h-3 w-3 text-orange-500" />
-                            <span className="text-orange-600">Intent Score: {company.intentScore}</span>
-                          </div>
-                        )}
+                     <CardContent className="pt-0">
+                       <div className="space-y-2">
+                         <div className="flex items-center gap-2 text-xs">
+                           <Users className="h-3 w-3 text-muted-foreground" />
+                           <span className="font-medium">{getOwnerDisplayName(company.ownerId, company.ownerName)}</span>
+                         </div>
+                         
+                         <div className="flex items-center gap-2 text-xs">
+                           <Building2 className="h-3 w-3 text-muted-foreground" />
+                           <span>{company.industry !== 'N/A' ? company.industry.replace(/_/g, ' ') : 'Unknown'}</span>
+                         </div>
+                         
+                         <div className="flex items-center gap-2 text-xs">
+                           <Eye className="h-3 w-3 text-muted-foreground" />
+                           <span>{company.pageViews} page views</span>
+                         </div>
+                         
+                         {company.intentScore > 0 && (
+                           <div className="flex items-center gap-2 text-xs">
+                             <Zap className="h-3 w-3 text-orange-500" />
+                             <span className="text-orange-600">Intent Score: {company.intentScore}</span>
+                           </div>
+                         )}
                         
                         <div className="flex items-center justify-between pt-2">
                           <Badge variant="secondary" className="text-xs">
