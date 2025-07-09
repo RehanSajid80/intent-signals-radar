@@ -13,6 +13,14 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  if (!openAIApiKey) {
+    console.error('OpenAI API key not found');
+    return new Response(JSON.stringify({ error: 'OpenAI API key not configured' }), {
+      status: 500,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+  }
+
   try {
     const { companyData, analysisType = 'default' } = await req.json();
 
@@ -129,6 +137,8 @@ Be specific and actionable. Focus on what a salesperson needs to know RIGHT NOW.
 `;
     }
 
+    console.log('Making OpenAI API request for analysis type:', analysisType);
+    
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -136,30 +146,58 @@ Be specific and actionable. Focus on what a salesperson needs to know RIGHT NOW.
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4.1-2025-04-14',
+        model: 'gpt-4o-mini', // Using more reliable model
         messages: [
-          { role: 'system', content: 'You are a sales intelligence AI that provides actionable insights for B2B salespeople. Be concise, specific, and focus on immediate actions.' },
+          { 
+            role: 'system', 
+            content: analysisType === 'zyter-opportunity' 
+              ? 'You are a healthcare technology sales intelligence AI specializing in Zyter.com positioning and strategy. Provide detailed, actionable insights for sales teams.'
+              : 'You are a sales intelligence AI that provides actionable insights for B2B salespeople. Be concise, specific, and focus on immediate actions.' 
+          },
           { role: 'user', content: prompt }
         ],
         temperature: 0.3,
-        max_tokens: 1000,
+        max_tokens: analysisType === 'zyter-opportunity' ? 2000 : 1000,
       }),
     });
 
+    console.log('OpenAI API response status:', response.status);
+    
     const data = await response.json();
     
     if (!response.ok) {
-      throw new Error(data.error?.message || 'OpenAI API error');
+      console.error('OpenAI API error:', data);
+      throw new Error(data.error?.message || `OpenAI API error: ${response.status}`);
+    }
+
+    if (!data.choices || !data.choices[0] || !data.choices[0].message) {
+      console.error('Invalid OpenAI response structure:', data);
+      throw new Error('Invalid response from OpenAI API');
     }
 
     const analysis = data.choices[0].message.content;
+    console.log('Analysis generated successfully, length:', analysis.length);
 
     return new Response(JSON.stringify({ analysis }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (error) {
     console.error('Error in company-analysis function:', error);
-    return new Response(JSON.stringify({ error: error.message }), {
+    
+    // Provide more specific error messages
+    let errorMessage = 'Failed to generate analysis';
+    if (error.message.includes('API key')) {
+      errorMessage = 'Invalid OpenAI API key. Please check your configuration.';
+    } else if (error.message.includes('quota')) {
+      errorMessage = 'OpenAI API quota exceeded. Please check your usage limits.';
+    } else if (error.message.includes('network') || error.message.includes('fetch')) {
+      errorMessage = 'Network error connecting to OpenAI. Please try again.';
+    }
+    
+    return new Response(JSON.stringify({ 
+      error: errorMessage,
+      details: error.message 
+    }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
