@@ -197,39 +197,14 @@ const SalesIntelligenceOverview = () => {
     if (ownerName) return ownerName;
     if (!ownerId || ownerId === 'N/A') return 'Unassigned';
     
-    // Common owner ID to name mappings (you can expand this based on your data)
-    const ownerMap: { [key: string]: string } = {
-      '76269911': 'Brian Roy',
-      '680170754': 'David Hamilton', 
-      '1887191680': 'Sarah Chen',
-      '311010200': 'Mike Johnson',
-      '644086847': 'Lisa Anderson',
-      '680170757': 'Tom Wilson',
-      '680163750': 'Emma Davis',
-      '683986694': 'Alex Martinez',
-      '680170760': 'Rachel Brown'
-    };
-    
-    return ownerMap[ownerId] || `Owner ${ownerId}`;
+    return `Owner ${ownerId}`;
   };
 
   const getUniqueOwners = () => {
-    const ownerMap: { [key: string]: string } = {
-      '76269911': 'Brian Roy',
-      '680170754': 'David Hamilton', 
-      '1887191680': 'Sarah Chen',
-      '311010200': 'Mike Johnson',
-      '644086847': 'Lisa Anderson',
-      '680170757': 'Tom Wilson',
-      '680163750': 'Emma Davis',
-      '683986694': 'Alex Martinez',
-      '680170760': 'Rachel Brown'
-    };
-
     const uniqueOwnerIds = [...new Set(companies.map(c => c.ownerId).filter(id => id && id !== 'N/A'))];
     return uniqueOwnerIds.map(id => ({
       id,
-      name: ownerMap[id] || `Owner ${id}`
+      name: `Owner ${id}`
     }));
   };
 
@@ -238,18 +213,6 @@ const SalesIntelligenceOverview = () => {
       return companies;
     }
     
-    const ownerMap: { [key: string]: string } = {
-      '76269911': 'Brian Roy',
-      '680170754': 'David Hamilton', 
-      '1887191680': 'Sarah Chen',
-      '311010200': 'Mike Johnson',
-      '644086847': 'Lisa Anderson',
-      '680170757': 'Tom Wilson',
-      '680163750': 'Emma Davis',
-      '683986694': 'Alex Martinez',
-      '680170760': 'Rachel Brown'
-    };
-
     return companies.filter(company => {
       const ownerName = getOwnerDisplayName(company.ownerId, company.ownerName);
       return selectedOwners.includes(ownerName);
