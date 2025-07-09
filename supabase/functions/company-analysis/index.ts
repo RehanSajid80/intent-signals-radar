@@ -1,7 +1,12 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
+const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+
+const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -23,6 +28,39 @@ serve(async (req) => {
 
   try {
     const { companyData, analysisType = 'default' } = await req.json();
+    const companyName = companyData.company || companyData.name;
+
+    // Check if we have cached analysis for this company and analysis type
+    console.log('Checking cache for:', companyName, analysisType);
+    const { data: cachedAnalysis, error: cacheError } = await supabase
+      .from('ai_analysis_cache')
+      .select('analysis_result, created_at')
+      .eq('company_name', companyName)
+      .eq('analysis_type', analysisType)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (cacheError) {
+      console.error('Cache lookup error:', cacheError);
+    }
+
+    // If we have cached analysis less than 7 days old, return it
+    if (cachedAnalysis) {
+      const cacheAge = Date.now() - new Date(cachedAnalysis.created_at).getTime();
+      const maxCacheAge = 7 * 24 * 60 * 60 * 1000; // 7 days in milliseconds
+      
+      if (cacheAge < maxCacheAge) {
+        console.log('Returning cached analysis for:', companyName);
+        return new Response(JSON.stringify({ 
+          analysis: cachedAnalysis.analysis_result,
+          cached: true,
+          cacheAge: Math.floor(cacheAge / (1000 * 60 * 60 * 24)) // days
+        }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+    }
 
     let prompt = '';
     
@@ -178,7 +216,30 @@ Be specific and actionable. Focus on what a salesperson needs to know RIGHT NOW.
     const analysis = data.choices[0].message.content;
     console.log('Analysis generated successfully, length:', analysis.length);
 
-    return new Response(JSON.stringify({ analysis }), {
+    // Save the analysis to cache
+    console.log('Saving analysis to cache for:', companyName);
+    const { error: saveError } = await supabase
+      .from('ai_analysis_cache')
+      .insert({
+        company_name: companyName,
+        analysis_type: analysisType,
+        input_data: companyData,
+        analysis_result: analysis,
+        user_id: null // For now, making it accessible to all users
+      });
+
+    if (saveError) {
+      console.error('Error saving to cache:', saveError);
+      // Don't fail the request if cache save fails
+    } else {
+      console.log('Analysis saved to cache successfully');
+    }
+
+    return new Response(JSON.stringify({ 
+      analysis,
+      cached: false,
+      freshlyGenerated: true
+    }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (error) {
