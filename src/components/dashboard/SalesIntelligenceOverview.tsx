@@ -217,8 +217,17 @@ const SalesIntelligenceOverview = () => {
   };
 
   const getUniqueOwners = () => {
+    // Get all unique owner IDs from companies data
+    const allOwnerIds = [...new Set(companies.map(c => c.ownerId).filter(id => id && id !== 'N/A'))];
+    console.log('Available owner IDs:', allOwnerIds); // Debug log
+    
+    // Filter to only show Brian Roy and David Hamilton if they exist in the data
     const allowedOwnerIds = ['76269911', '680170754']; // Brian Roy and David Hamilton
-    const uniqueOwnerIds = [...new Set(companies.map(c => c.ownerId).filter(id => id && id !== 'N/A' && allowedOwnerIds.includes(id)))];
+    const filteredOwnerIds = allOwnerIds.filter(id => allowedOwnerIds.includes(id));
+    
+    // If no allowed owners found, show all available owners for debugging
+    const uniqueOwnerIds = filteredOwnerIds.length > 0 ? filteredOwnerIds : allOwnerIds;
+    
     return uniqueOwnerIds.map(id => ({
       id,
       name: getOwnerDisplayName(id)
