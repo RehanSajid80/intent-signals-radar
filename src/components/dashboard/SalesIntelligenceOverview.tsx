@@ -5,9 +5,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Download, Loader2, AlertCircle, Building2, TrendingUp, Eye, Calendar, Users, Target, Zap, Brain } from "lucide-react";
+import { Download, Loader2, AlertCircle, Building2, TrendingUp, Eye, Calendar, Users, Target, Zap, Brain, Filter, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { Checkbox } from "@/components/ui/checkbox";
 
 interface Company {
   name: string;
@@ -38,6 +39,8 @@ const SalesIntelligenceOverview = () => {
   const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
   const [analysis, setAnalysis] = useState<string>('');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [selectedOwners, setSelectedOwners] = useState<string[]>([]);
+  const [showFilters, setShowFilters] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -210,6 +213,61 @@ const SalesIntelligenceOverview = () => {
     return ownerMap[ownerId] || `Owner ${ownerId}`;
   };
 
+  const getUniqueOwners = () => {
+    const ownerMap: { [key: string]: string } = {
+      '76269911': 'Brian Roy',
+      '680170754': 'David Hamilton', 
+      '1887191680': 'Sarah Chen',
+      '311010200': 'Mike Johnson',
+      '644086847': 'Lisa Anderson',
+      '680170757': 'Tom Wilson',
+      '680163750': 'Emma Davis',
+      '683986694': 'Alex Martinez',
+      '680170760': 'Rachel Brown'
+    };
+
+    const uniqueOwnerIds = [...new Set(companies.map(c => c.ownerId).filter(id => id && id !== 'N/A'))];
+    return uniqueOwnerIds.map(id => ({
+      id,
+      name: ownerMap[id] || `Owner ${id}`
+    }));
+  };
+
+  const getFilteredCompanies = () => {
+    if (selectedOwners.length === 0) {
+      return companies;
+    }
+    
+    const ownerMap: { [key: string]: string } = {
+      '76269911': 'Brian Roy',
+      '680170754': 'David Hamilton', 
+      '1887191680': 'Sarah Chen',
+      '311010200': 'Mike Johnson',
+      '644086847': 'Lisa Anderson',
+      '680170757': 'Tom Wilson',
+      '680163750': 'Emma Davis',
+      '683986694': 'Alex Martinez',
+      '680170760': 'Rachel Brown'
+    };
+
+    return companies.filter(company => {
+      const ownerName = getOwnerDisplayName(company.ownerId, company.ownerName);
+      return selectedOwners.includes(ownerName);
+    });
+  };
+
+  const handleOwnerToggle = (ownerName: string) => {
+    setSelectedOwners(prev => 
+      prev.includes(ownerName) 
+        ? prev.filter(name => name !== ownerName)
+        : [...prev, ownerName]
+    );
+  };
+
+  const clearFilters = () => {
+    setSelectedOwners([]);
+  };
+
   const analyzeCompany = async (company: Company) => {
     setSelectedCompany(company);
     setIsAnalyzing(true);
@@ -275,97 +333,174 @@ const SalesIntelligenceOverview = () => {
         </div>
 
         {companies.length > 0 && (
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold">
-                Active Pipeline ({companies.length} companies)
-              </h3>
-              <Badge variant="outline" className="bg-blue-50">
-                Last updated: {new Date().toLocaleTimeString()}
-              </Badge>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {companies.slice(0, 12).map((company, index) => {
-                const priority = getPriorityLevel(company);
-                return (
-                  <Card 
-                    key={index} 
-                    className="hover:shadow-md transition-shadow cursor-pointer border-l-4"
-                    style={{ borderLeftColor: getLifecycleStageColor(company.lifecycleStage).replace('bg-', '#') }}
-                    onClick={() => analyzeCompany(company)}
+          <>
+            {/* Filter Section */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowFilters(!showFilters)}
+                  className="flex items-center gap-2"
+                >
+                  <Filter className="h-4 w-4" />
+                  Filter by Owner
+                  {selectedOwners.length > 0 && (
+                    <Badge variant="secondary" className="ml-1">
+                      {selectedOwners.length}
+                    </Badge>
+                  )}
+                </Button>
+                
+                {selectedOwners.length > 0 && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={clearFilters}
+                    className="flex items-center gap-2"
                   >
-                    <CardHeader className="pb-3">
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <CardTitle className="text-sm font-medium leading-tight">
-                            {company.name}
-                          </CardTitle>
-                          <p className="text-xs text-muted-foreground mt-1">
-                            {company.domain && company.domain !== 'N/A' ? company.domain : 'No website'}
-                          </p>
-                        </div>
-                        <Badge className={`${getPriorityColor(priority)} text-xs ml-2`}>
-                          {priority.toUpperCase()}
-                        </Badge>
+                    <X className="h-4 w-4" />
+                    Clear Filters
+                  </Button>
+                )}
+              </div>
+
+              {showFilters && (
+                <div className="p-4 border rounded-lg bg-muted/50">
+                  <h4 className="font-medium mb-3">Select Account Owners:</h4>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                    {getUniqueOwners().map((owner) => (
+                      <div key={owner.id} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={owner.id}
+                          checked={selectedOwners.includes(owner.name)}
+                          onCheckedChange={() => handleOwnerToggle(owner.name)}
+                        />
+                        <Label
+                          htmlFor={owner.id}
+                          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                        >
+                          {owner.name}
+                        </Label>
                       </div>
-                    </CardHeader>
-                     <CardContent className="pt-0">
-                       <div className="space-y-2">
-                         <div className="flex items-center gap-2 text-xs">
-                           <Users className="h-3 w-3 text-muted-foreground" />
-                           <span className="font-medium">{getOwnerDisplayName(company.ownerId, company.ownerName)}</span>
-                         </div>
-                         
-                         <div className="flex items-center gap-2 text-xs">
-                           <Building2 className="h-3 w-3 text-muted-foreground" />
-                           <span>{company.industry !== 'N/A' ? company.industry.replace(/_/g, ' ') : 'Unknown'}</span>
-                         </div>
-                         
-                         <div className="flex items-center gap-2 text-xs">
-                           <Eye className="h-3 w-3 text-muted-foreground" />
-                           <span>{company.pageViews} page views</span>
-                         </div>
-                         
-                         {company.intentScore > 0 && (
-                           <div className="flex items-center gap-2 text-xs">
-                             <Zap className="h-3 w-3 text-orange-500" />
-                             <span className="text-orange-600">Intent Score: {company.intentScore}</span>
-                           </div>
-                         )}
-                        
-                        <div className="flex items-center justify-between pt-2">
-                          <Badge variant="secondary" className="text-xs">
-                            {company.lifecycleStage}
-                          </Badge>
-                          <Button 
-                            size="sm" 
-                            variant="outline" 
-                            className="h-6 text-xs px-2"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              analyzeCompany(company);
-                            }}
-                          >
-                            <Brain className="h-3 w-3 mr-1" />
-                            Analyze
-                          </Button>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                );
-              })}
+                    ))}
+                  </div>
+                </div>
+              )}
+              
+              {selectedOwners.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  <span className="text-sm text-muted-foreground">Filtered by:</span>
+                  {selectedOwners.map((owner) => (
+                    <Badge key={owner} variant="secondary" className="flex items-center gap-1">
+                      {owner}
+                      <X 
+                        className="h-3 w-3 cursor-pointer" 
+                        onClick={() => handleOwnerToggle(owner)}
+                      />
+                    </Badge>
+                  ))}
+                </div>
+              )}
             </div>
-            
-            {companies.length > 12 && (
-              <div className="text-center pt-2">
-                <Badge variant="outline">
-                  +{companies.length - 12} more companies available
+
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold">
+                  Active Pipeline ({getFilteredCompanies().length} companies)
+                  {selectedOwners.length > 0 && (
+                    <span className="text-sm text-muted-foreground ml-2">
+                      (filtered from {companies.length} total)
+                    </span>
+                  )}
+                </h3>
+                <Badge variant="outline" className="bg-blue-50">
+                  Last updated: {new Date().toLocaleTimeString()}
                 </Badge>
               </div>
-            )}
-          </div>
+            
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {getFilteredCompanies().slice(0, 12).map((company, index) => {
+                  const priority = getPriorityLevel(company);
+                  return (
+                    <Card 
+                      key={index} 
+                      className="hover:shadow-md transition-shadow cursor-pointer border-l-4"
+                      style={{ borderLeftColor: getLifecycleStageColor(company.lifecycleStage).replace('bg-', '#') }}
+                      onClick={() => analyzeCompany(company)}
+                    >
+                      <CardHeader className="pb-3">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <CardTitle className="text-sm font-medium leading-tight">
+                              {company.name}
+                            </CardTitle>
+                            <p className="text-xs text-muted-foreground mt-1">
+                              {company.domain && company.domain !== 'N/A' ? company.domain : 'No website'}
+                            </p>
+                          </div>
+                          <Badge className={`${getPriorityColor(priority)} text-xs ml-2`}>
+                            {priority.toUpperCase()}
+                          </Badge>
+                        </div>
+                      </CardHeader>
+                      <CardContent className="pt-0">
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-2 text-xs">
+                            <Users className="h-3 w-3 text-muted-foreground" />
+                            <span className="font-medium">{getOwnerDisplayName(company.ownerId, company.ownerName)}</span>
+                          </div>
+                          
+                          <div className="flex items-center gap-2 text-xs">
+                            <Building2 className="h-3 w-3 text-muted-foreground" />
+                            <span>{company.industry !== 'N/A' ? company.industry.replace(/_/g, ' ') : 'Unknown'}</span>
+                          </div>
+                          
+                          <div className="flex items-center gap-2 text-xs">
+                            <Eye className="h-3 w-3 text-muted-foreground" />
+                            <span>{company.pageViews} page views</span>
+                          </div>
+                          
+                          {company.intentScore > 0 && (
+                            <div className="flex items-center gap-2 text-xs">
+                              <Zap className="h-3 w-3 text-orange-500" />
+                              <span className="text-orange-600">Intent Score: {company.intentScore}</span>
+                            </div>
+                          )}
+                         
+                          <div className="flex items-center justify-between pt-2">
+                            <Badge variant="secondary" className="text-xs">
+                              {company.lifecycleStage}
+                            </Badge>
+                            <Button 
+                              size="sm" 
+                              variant="outline" 
+                              className="h-6 text-xs px-2"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                analyzeCompany(company);
+                              }}
+                            >
+                              <Brain className="h-3 w-3 mr-1" />
+                              Analyze
+                            </Button>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+              
+              {getFilteredCompanies().length > 12 && (
+                <div className="text-center pt-2">
+                  <Badge variant="outline">
+                    +{getFilteredCompanies().length - 12} more companies available
+                  </Badge>
+                </div>
+              )}
+            </div>
+          </>
         )}
 
         {companies.length === 0 && !isLoading && (
