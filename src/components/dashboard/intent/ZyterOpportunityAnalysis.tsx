@@ -185,14 +185,39 @@ const ZyterOpportunityAnalysis: React.FC<ZyterOpportunityAnalysisProps> = ({ dat
       });
 
       if (!response.ok) {
-        throw new Error('Failed to analyze Zyter opportunity');
+        // Try to get error details from response
+        try {
+          const errorData = await response.json();
+          throw new Error(`HTTP ${response.status}: ${errorData.error || errorData.details || 'Unknown error'}`);
+        } catch (parseError) {
+          throw new Error(`HTTP ${response.status}: Failed to analyze Zyter opportunity`);
+        }
       }
 
       const result = await response.json();
+      
+      if (!result.analysis) {
+        throw new Error('No analysis returned from API');
+      }
+      
       setAnalysis(result.analysis);
     } catch (error) {
       console.error('Error analyzing Zyter opportunity:', error);
-      setAnalysis('Failed to generate analysis. Please try again.');
+      console.error('Error details:', {
+        message: error.message,
+        stack: error.stack
+      });
+      
+      // Show more detailed error message to user
+      if (error.message.includes('HTTP 500')) {
+        setAnalysis('Server error occurred. Please check your OpenAI API key configuration and try again.');
+      } else if (error.message.includes('HTTP 401') || error.message.includes('HTTP 403')) {
+        setAnalysis('Authentication error. Please check your OpenAI API key and try again.');
+      } else if (error.message.includes('Failed to fetch') || error.message.includes('network')) {
+        setAnalysis('Network error. Please check your internet connection and try again.');
+      } else {
+        setAnalysis(`Error: ${error.message}. Please try again.`);
+      }
     } finally {
       setIsAnalyzing(false);
     }
