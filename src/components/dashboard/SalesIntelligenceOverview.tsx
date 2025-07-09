@@ -217,7 +217,8 @@ const SalesIntelligenceOverview = () => {
   };
 
   const getUniqueOwners = () => {
-    const uniqueOwnerIds = [...new Set(companies.map(c => c.ownerId).filter(id => id && id !== 'N/A'))];
+    const allowedOwnerIds = ['76269911', '680170754']; // Brian Roy and David Hamilton
+    const uniqueOwnerIds = [...new Set(companies.map(c => c.ownerId).filter(id => id && id !== 'N/A' && allowedOwnerIds.includes(id)))];
     return uniqueOwnerIds.map(id => ({
       id,
       name: getOwnerDisplayName(id)
