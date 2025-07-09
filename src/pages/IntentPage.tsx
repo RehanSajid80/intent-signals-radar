@@ -16,6 +16,7 @@ import {
 import { WeekSelector } from '@/components/dashboard/upload/WeekSelector';
 import WeekTrendsAnalysis from '@/components/dashboard/intent/WeekTrendsAnalysis';
 import ZyterOpportunityAnalysis from '@/components/dashboard/intent/ZyterOpportunityAnalysis';
+import SavedStrategies from '@/components/dashboard/SavedStrategies';
 
 const IntentPage = () => {
   const [activeTab, setActiveTab] = useState("database");
@@ -114,6 +115,7 @@ const IntentPage = () => {
               <TabsTrigger value="database">Database Data</TabsTrigger>
               <TabsTrigger value="sample">Sample Data</TabsTrigger>
               <TabsTrigger value="upload">Upload Data</TabsTrigger>
+              <TabsTrigger value="saved-strategies">Saved Strategies</TabsTrigger>
             </TabsList>
             
             <TabsContent value="database" className="mt-4">
@@ -197,6 +199,10 @@ const IntentPage = () => {
             
             <TabsContent value="upload" className="mt-4">
               <IntentUpload />
+            </TabsContent>
+            
+            <TabsContent value="saved-strategies" className="mt-4">
+              <SavedStrategies />
             </TabsContent>
           </Tabs>
         </main>

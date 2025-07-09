@@ -122,6 +122,39 @@ export type Database = {
         }
         Relationships: []
       }
+      saved_strategies: {
+        Row: {
+          analysis_content: string
+          analysis_type: string
+          company_name: string
+          created_at: string
+          id: string
+          strategy_title: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          analysis_content: string
+          analysis_type?: string
+          company_name: string
+          created_at?: string
+          id?: string
+          strategy_title: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          analysis_content?: string
+          analysis_type?: string
+          company_name?: string
+          created_at?: string
+          id?: string
+          strategy_title?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       user_settings: {
         Row: {
           created_at: string

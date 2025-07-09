@@ -3,8 +3,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import { IntentData } from "../types/intentTypes";
-import { Target, TrendingUp, Building2, Star, ArrowRight, Brain, Loader2, Eye } from "lucide-react";
+import { Target, TrendingUp, Building2, Star, ArrowRight, Brain, Loader2, Eye, BookmarkPlus } from "lucide-react";
+import { useSavedStrategies } from "@/hooks/useSavedStrategies";
 
 interface ZyterOpportunityAnalysisProps {
   data: IntentData[];
@@ -16,6 +18,8 @@ const ZyterOpportunityAnalysis: React.FC<ZyterOpportunityAnalysisProps> = ({ dat
   const [isDeepDiveOpen, setIsDeepDiveOpen] = useState(false);
   const [analysis, setAnalysis] = useState<string>('');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [strategyTitle, setStrategyTitle] = useState<string>('');
+  const { saveStrategy, isLoading: isSavingStrategy } = useSavedStrategies();
 
   // Define Zyter's relevant categories and topics based on their healthcare technology focus
   const zyterRelevantCategories = [
@@ -149,6 +153,17 @@ const ZyterOpportunityAnalysis: React.FC<ZyterOpportunityAnalysisProps> = ({ dat
     setSelectedCompany(opportunity);
     setIsDeepDiveOpen(true);
     setAnalysis('');
+    setStrategyTitle(`${opportunity.company} Strategy - ${new Date().toLocaleDateString()}`);
+  };
+
+  const handleSaveStrategy = async () => {
+    if (!selectedCompany || !analysis) return;
+    
+    try {
+      await saveStrategy(selectedCompany.company, analysis, strategyTitle);
+    } catch (error) {
+      console.error('Error saving strategy:', error);
+    }
   };
 
   const analyzeZyterOpportunity = async () => {
@@ -480,8 +495,46 @@ const ZyterOpportunityAnalysis: React.FC<ZyterOpportunityAnalysisProps> = ({ dat
                       <span>Generating Zyter-specific opportunity analysis...</span>
                     </div>
                   ) : analysis ? (
-                    <div className="prose prose-sm max-w-none">
-                      <pre className="whitespace-pre-wrap font-sans text-sm bg-muted/30 p-4 rounded border">{analysis}</pre>
+                    <div className="space-y-4">
+                      <div className="prose prose-sm max-w-none">
+                        <pre className="whitespace-pre-wrap font-sans text-sm bg-muted/30 p-4 rounded border">{analysis}</pre>
+                      </div>
+                      
+                      {/* Save Strategy Section */}
+                      <div className="border-t pt-4">
+                        <div className="flex items-center gap-3 mb-3">
+                          <div className="flex-1">
+                            <Input
+                              placeholder="Strategy title (optional)"
+                              value={strategyTitle}
+                              onChange={(e) => setStrategyTitle(e.target.value)}
+                              className="text-sm"
+                            />
+                          </div>
+                          <Button
+                            onClick={handleSaveStrategy}
+                            disabled={isSavingStrategy}
+                            variant="default"
+                            size="sm"
+                            className="flex items-center gap-2"
+                          >
+                            {isSavingStrategy ? (
+                              <>
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                                Saving...
+                              </>
+                            ) : (
+                              <>
+                                <BookmarkPlus className="h-4 w-4" />
+                                Save Strategy
+                              </>
+                            )}
+                          </Button>
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          Save this strategy to reference later and share with your team
+                        </p>
+                      </div>
                     </div>
                   ) : (
                     <p className="text-muted-foreground">
