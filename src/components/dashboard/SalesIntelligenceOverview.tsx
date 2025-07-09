@@ -169,36 +169,6 @@ const SalesIntelligenceOverview = () => {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="flex gap-2">
-          <div className="flex-1">
-            <Label htmlFor="webhook-url">n8n Webhook URL</Label>
-            <Input
-              id="webhook-url"
-              placeholder="https://your-n8n-instance.com/webhook/your-endpoint"
-              value={webhookUrl}
-              onChange={(e) => setWebhookUrl(e.target.value)}
-            />
-          </div>
-          <div className="flex items-end">
-            <Button 
-              onClick={handleFetchData} 
-              disabled={isLoading}
-              className="whitespace-nowrap"
-            >
-              {isLoading ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Loading...
-                </>
-              ) : (
-                <>
-                  <Download className="h-4 w-4 mr-2" />
-                  Refresh Pipeline
-                </>
-              )}
-            </Button>
-          </div>
-        </div>
 
         {companies.length > 0 && (
           <div className="space-y-4">
