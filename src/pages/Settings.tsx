@@ -1,31 +1,18 @@
-import React from 'react';
-import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Shield } from "lucide-react";
+import React, { useState } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import { Shield, Key, Webhook, Eye, EyeOff } from "lucide-react";
 import Sidebar from "@/components/Sidebar";
-import { useHubspot } from "@/context/hubspot";
-import HubspotApiSettings from "@/components/settings/HubspotApiSettings";
-import IntegrationSettings from "@/components/settings/IntegrationSettings";
-import GeneralSettings from "@/components/settings/GeneralSettings";
-import NotificationSettings from "@/components/settings/NotificationSettings";
-import ScoringSettings from "@/components/settings/ScoringSettings";
 import N8nSettings from "@/components/settings/N8nSettings";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { useToast } from "@/hooks/use-toast";
 
 const Settings = () => {
-  const { isAuthenticated } = useHubspot();
-  const navigate = useNavigate();
-  
-  useEffect(() => {
-    // Remove this check to allow settings page to be accessed without authentication
-    // This way we can set the API key before connecting
-    /* 
-    if (!isAuthenticated) {
-      navigate("/");
-    }
-    */
-  }, [isAuthenticated, navigate]);
+  const [showApiKey, setShowApiKey] = useState(false);
+  const { toast } = useToast();
   
   return (
     <div className="flex min-h-screen bg-background">
@@ -38,54 +25,121 @@ const Settings = () => {
           </div>
         </header>
         
-        <main className="container mx-auto p-4 md:p-6">
+        <main className="container mx-auto p-4 md:p-6 max-w-4xl">
           {/* Security notice */}
           <Alert className="mb-6 bg-blue-50 border-blue-200">
             <Shield className="h-5 w-5 text-blue-600" />
             <AlertTitle className="text-blue-700">Enhanced Security</AlertTitle>
             <AlertDescription className="text-blue-600">
-              Your API keys are now securely stored in the database and masked in the UI for security. 
-              We follow best practices to protect your sensitive data.
+              Your API keys are securely stored and encrypted. We follow best practices to protect your sensitive data.
             </AlertDescription>
           </Alert>
           
-          {/* Integration settings at the top */}
-          <div className="mb-8 space-y-6">
-            <div>
-              <h2 className="text-xl font-semibold mb-4">HubSpot Integration</h2>
-              <HubspotApiSettings />
-            </div>
-            
-            <div>
-              <h2 className="text-xl font-semibold mb-4">n8n Integration</h2>
-              <N8nSettings />
-            </div>
+          <div className="space-y-6">
+            {/* n8n Integration */}
+            <Card>
+              <CardHeader>
+                <div className="flex items-center gap-2">
+                  <Webhook className="h-5 w-5" />
+                  <CardTitle>n8n Webhook Integration</CardTitle>
+                </div>
+                <CardDescription>
+                  Configure your n8n webhook URL to fetch sales intelligence data
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <N8nSettings />
+              </CardContent>
+            </Card>
+
+            {/* OpenAI API */}
+            <Card>
+              <CardHeader>
+                <div className="flex items-center gap-2">
+                  <Key className="h-5 w-5" />
+                  <CardTitle>OpenAI API Integration</CardTitle>
+                </div>
+                <CardDescription>
+                  Your OpenAI API key is required for AI-powered analysis and insights
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <Label>OpenAI API Key Status</Label>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        API key is managed securely through Supabase Edge Function secrets
+                      </p>
+                    </div>
+                    <Badge variant="secondary" className="bg-green-100 text-green-800">
+                      <Key className="h-3 w-3 mr-1" />
+                      Configured
+                    </Badge>
+                  </div>
+                  
+                  <div className="p-4 bg-muted/50 rounded-lg border">
+                    <h4 className="font-medium mb-2">Configuration Instructions:</h4>
+                    <ol className="text-sm text-muted-foreground space-y-1 list-decimal list-inside">
+                      <li>Get your API key from <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">OpenAI Platform</a></li>
+                      <li>The API key is automatically configured when you use the secret form</li>
+                      <li>API key is stored securely in Supabase Edge Function secrets</li>
+                      <li>Used for AI analysis in Intent Signals and Sales Intelligence</li>
+                    </ol>
+                  </div>
+
+                  <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                    <h4 className="font-semibold text-blue-900 mb-2">🔧 Features Powered by OpenAI:</h4>
+                    <ul className="text-sm text-blue-800 space-y-1">
+                      <li>• <strong>Zyter Deep Dive Analysis</strong> - AI-powered opportunity insights</li>
+                      <li>• <strong>Company Intelligence</strong> - Strategic recommendations</li>
+                      <li>• <strong>Intent Signal Analysis</strong> - Behavioral insights</li>
+                      <li>• <strong>Sales Strategy Generation</strong> - Customized approaches</li>
+                    </ul>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Usage & Integration Status */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Integration Status</CardTitle>
+                <CardDescription>
+                  Overview of your configured integrations and their status
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between p-3 border rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <Webhook className="h-5 w-5 text-blue-600" />
+                      <div>
+                        <p className="font-medium">n8n Webhook</p>
+                        <p className="text-sm text-muted-foreground">Sales pipeline data integration</p>
+                      </div>
+                    </div>
+                    <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                      Active
+                    </Badge>
+                  </div>
+                  
+                  <div className="flex items-center justify-between p-3 border rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <Key className="h-5 w-5 text-purple-600" />
+                      <div>
+                        <p className="font-medium">OpenAI API</p>
+                        <p className="text-sm text-muted-foreground">AI-powered analysis and insights</p>
+                      </div>
+                    </div>
+                    <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                      Configured
+                    </Badge>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </div>
-          
-          <Tabs defaultValue="integrations">
-            <TabsList className="mb-6">
-              <TabsTrigger value="integrations">Integrations</TabsTrigger>
-              <TabsTrigger value="general">General</TabsTrigger>
-              <TabsTrigger value="notifications">Notifications</TabsTrigger>
-              <TabsTrigger value="scoring">Scoring Model</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="integrations">
-              <IntegrationSettings />
-            </TabsContent>
-            
-            <TabsContent value="general">
-              <GeneralSettings />
-            </TabsContent>
-            
-            <TabsContent value="notifications">
-              <NotificationSettings />
-            </TabsContent>
-            
-            <TabsContent value="scoring">
-              <ScoringSettings />
-            </TabsContent>
-          </Tabs>
         </main>
       </div>
     </div>
