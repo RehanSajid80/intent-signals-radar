@@ -169,6 +169,25 @@ const SalesIntelligenceOverview = () => {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
+        <div className="flex justify-center">
+          <Button 
+            onClick={handleFetchData} 
+            disabled={isLoading}
+            className="whitespace-nowrap"
+          >
+            {isLoading ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Loading...
+              </>
+            ) : (
+              <>
+                <Download className="h-4 w-4 mr-2" />
+                Refresh Pipeline
+              </>
+            )}
+          </Button>
+        </div>
 
         {companies.length > 0 && (
           <div className="space-y-4">
