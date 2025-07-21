@@ -104,6 +104,8 @@ const GTMIntelligenceDashboard = () => {
 
       const hubspotData = await hubspotResponse.json();
       const companies = Array.isArray(hubspotData) ? hubspotData : hubspotData.companies || [];
+      
+      console.log('Companies from n8n:', companies.length, companies.slice(0, 2));
 
       // Fetch intent data
       const { data: intentData } = await supabase
