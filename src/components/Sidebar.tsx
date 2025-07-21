@@ -93,12 +93,6 @@ export const MobileSidebar = () => {
             onClick={handleNavClick}
           />
           <NavItem 
-            to="/contacts" 
-            icon={<Contact2 className="h-5 w-5" />} 
-            label="Contacts" 
-            onClick={handleNavClick}
-          />
-          <NavItem 
             to="/accounts" 
             icon={<Building2 className="h-5 w-5" />} 
             label="Accounts" 
@@ -148,7 +142,7 @@ export const DesktopSidebar = () => {
       </div>
       <div className="flex flex-col gap-1 p-3 flex-1">
         <NavItem to="/dashboard" icon={<BarChart3 className="h-5 w-5" />} label="Dashboard" />
-        <NavItem to="/contacts" icon={<Contact2 className="h-5 w-5" />} label="Contacts" />
+        
         <NavItem to="/accounts" icon={<Building2 className="h-5 w-5" />} label="Accounts" />
         <NavItem to="/intent" icon={<Bell className="h-5 w-5" />} label="Intent" />
         <NavItem to="/settings" icon={<Settings className="h-5 w-5" />} label="Settings" />
