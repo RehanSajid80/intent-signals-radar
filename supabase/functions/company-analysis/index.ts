@@ -150,6 +150,41 @@ Please provide:
 
 Focus on actionable insights for sales teams working with intent data.
 `;
+    } else if (analysisType === 'gtm-intelligence') {
+      // GTM Intelligence structured analysis
+      prompt = `
+You are a B2B GTM Intelligence Agent. Analyze this account and provide structured insights for sales and marketing teams.
+
+Company Data:
+- Name: ${companyData.name}
+- Domain: ${companyData.domain || 'N/A'}
+- Industry: ${companyData.industry || 'N/A'}
+- Lifecycle Stage: ${companyData.lifecycleStage || 'N/A'}
+- Owner: ${companyData.ownerName || 'Unknown'}
+- Page Views: ${companyData.pageViews || 0}
+- Intent Score: ${companyData.intentScore || 0}
+- Intent Topics: ${companyData.intentTopics?.join(', ') || 'None'}
+- Intent Categories: ${companyData.intentCategories?.join(', ') || 'None'}
+
+Return ONLY a valid JSON object with these exact fields:
+{
+  "bestEntryPoint": "Specific role/persona to target first based on industry and intent",
+  "messagingStrategy": "Concise 1-2 sentence messaging approach focusing on their likely pain points",
+  "marketingPersona": "Primary persona for marketing campaigns based on industry and stage",
+  "contentRecommendations": ["Content type 1", "Content type 2", "Content type 3"]
+}
+
+Guidelines:
+- For healthcare/medical: Focus on operational efficiency, patient outcomes, compliance
+- For technology: Focus on scalability, integration, digital transformation
+- For financial services: Focus on security, compliance, customer experience
+- For manufacturing: Focus on operational efficiency, supply chain, automation
+- High intent scores (60+): Suggest demo, case studies, ROI calculators
+- Medium intent (30-60): Suggest whitepapers, webinars, industry reports
+- Low/No intent: Suggest educational content, thought leadership, industry insights
+
+No additional text or explanation - only the JSON object.
+`;
     } else {
       // Default company analysis
       prompt = `
@@ -194,8 +229,8 @@ Be specific and actionable. Focus on what a salesperson needs to know RIGHT NOW.
           },
           { role: 'user', content: prompt }
         ],
-        temperature: 0.3,
-        max_tokens: analysisType === 'zyter-opportunity' ? 2000 : 1000,
+        temperature: analysisType === 'gtm-intelligence' ? 0.1 : 0.3,
+        max_tokens: analysisType === 'zyter-opportunity' ? 2000 : (analysisType === 'gtm-intelligence' ? 500 : 1000),
       }),
     });
 
@@ -233,6 +268,33 @@ Be specific and actionable. Focus on what a salesperson needs to know RIGHT NOW.
       // Don't fail the request if cache save fails
     } else {
       console.log('Analysis saved to cache successfully');
+    }
+
+    // For GTM intelligence, try to parse JSON response
+    if (analysisType === 'gtm-intelligence') {
+      try {
+        const parsedAnalysis = JSON.parse(analysis);
+        return new Response(JSON.stringify({ 
+          ...parsedAnalysis,
+          cached: false,
+          freshlyGenerated: true
+        }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      } catch (parseError) {
+        console.error('Failed to parse GTM intelligence JSON:', parseError);
+        // Return default structure if parsing fails
+        return new Response(JSON.stringify({
+          bestEntryPoint: "Technical Decision Maker",
+          messagingStrategy: "Focus on operational efficiency and digital transformation benefits",
+          marketingPersona: "IT Operations Manager",
+          contentRecommendations: ["Product Demo", "ROI Calculator", "Industry Case Studies"],
+          cached: false,
+          freshlyGenerated: true
+        }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
     }
 
     return new Response(JSON.stringify({ 
