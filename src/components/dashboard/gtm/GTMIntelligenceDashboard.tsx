@@ -88,6 +88,8 @@ const GTMIntelligenceDashboard = () => {
         .from('user_settings')
         .select('setting_value')
         .eq('setting_key', 'n8n_webhook_url')
+        .order('created_at', { ascending: false })
+        .limit(1)
         .maybeSingle();
 
       if (!settingsData?.setting_value) {
