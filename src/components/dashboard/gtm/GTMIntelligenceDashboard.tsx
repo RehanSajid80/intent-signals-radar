@@ -113,11 +113,10 @@ const GTMIntelligenceDashboard = () => {
         .select('*')
         .order('date', { ascending: false });
 
-      // Process and match data
+      // Process and match data - Show ALL companies first, then enhance with intent data
       const processedAccounts: GTMAccount[] = companies
-        .filter((company: any) => company.domain && company.domain !== 'N/A')
         .map((company: any) => {
-          // Find intent matches by domain
+          // Find intent matches by domain (optional enhancement)
           const domainMatches = intentData?.filter(intent => 
             intent.website && company.domain && 
             (intent.website.includes(company.domain) || company.domain.includes(intent.website))
@@ -130,7 +129,7 @@ const GTMIntelligenceDashboard = () => {
           return {
             id: company.id || `company-${Math.random()}`,
             name: company.name,
-            domain: company.domain,
+            domain: company.domain || 'No domain',
             industry: company.industry || 'Unknown',
             lifecycleStage: company.lifecycleStage || 'subscriber',
             ownerId: company.ownerId,
@@ -164,7 +163,7 @@ const GTMIntelligenceDashboard = () => {
       
       toast({
         title: "Intelligence Loaded",
-        description: `Analyzed ${sortedAccounts.length} accounts with intent matching`,
+        description: `Loaded ${sortedAccounts.length} accounts (${sortedAccounts.filter(acc => acc.intentMatch).length} with intent signals)`,
       });
     } catch (error) {
       console.error('Error loading account intelligence:', error);
