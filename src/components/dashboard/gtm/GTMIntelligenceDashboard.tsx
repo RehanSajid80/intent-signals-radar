@@ -384,23 +384,23 @@ const GTMIntelligenceDashboard = () => {
                 />
               </div>
               
-              <Select value={filters.owner} onValueChange={(value) => setFilters(prev => ({ ...prev, owner: value }))}>
+              <Select value={filters.owner || "all"} onValueChange={(value) => setFilters(prev => ({ ...prev, owner: value === "all" ? "" : value }))}>
                 <SelectTrigger>
                   <SelectValue placeholder="Owner" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Owners</SelectItem>
+                  <SelectItem value="all">All Owners</SelectItem>
                   <SelectItem value="Brian Roy">Brian Roy</SelectItem>
                   <SelectItem value="David Hamilton">David Hamilton</SelectItem>
                 </SelectContent>
               </Select>
               
-              <Select value={filters.intentScore} onValueChange={(value) => setFilters(prev => ({ ...prev, intentScore: value }))}>
+              <Select value={filters.intentScore || "all"} onValueChange={(value) => setFilters(prev => ({ ...prev, intentScore: value === "all" ? "" : value }))}>
                 <SelectTrigger>
                   <SelectValue placeholder="Intent Score" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Intent</SelectItem>
+                  <SelectItem value="all">All Intent</SelectItem>
                   <SelectItem value="high">High (70+)</SelectItem>
                   <SelectItem value="medium">Medium (30-70)</SelectItem>
                   <SelectItem value="low">Low (&lt;30)</SelectItem>
@@ -408,24 +408,24 @@ const GTMIntelligenceDashboard = () => {
                 </SelectContent>
               </Select>
               
-              <Select value={filters.opportunityScore} onValueChange={(value) => setFilters(prev => ({ ...prev, opportunityScore: value }))}>
+              <Select value={filters.opportunityScore || "all"} onValueChange={(value) => setFilters(prev => ({ ...prev, opportunityScore: value === "all" ? "" : value }))}>
                 <SelectTrigger>
                   <SelectValue placeholder="Opportunity" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Opportunity</SelectItem>
+                  <SelectItem value="all">All Opportunity</SelectItem>
                   <SelectItem value="High">High</SelectItem>
                   <SelectItem value="Medium">Medium</SelectItem>
                   <SelectItem value="Low">Low</SelectItem>
                 </SelectContent>
               </Select>
               
-              <Select value={filters.lifecycleStage} onValueChange={(value) => setFilters(prev => ({ ...prev, lifecycleStage: value }))}>
+              <Select value={filters.lifecycleStage || "all"} onValueChange={(value) => setFilters(prev => ({ ...prev, lifecycleStage: value === "all" ? "" : value }))}>
                 <SelectTrigger>
                   <SelectValue placeholder="Stage" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Stages</SelectItem>
+                  <SelectItem value="all">All Stages</SelectItem>
                   <SelectItem value="opportunity">Opportunity</SelectItem>
                   <SelectItem value="lead">Lead</SelectItem>
                   <SelectItem value="subscriber">Subscriber</SelectItem>
