@@ -8,6 +8,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 // Lazy load pages for better performance
 const Index = lazy(() => import('./pages/Index'));
 const Dashboard = lazy(() => import('./pages/Dashboard'));
+const Accounts = lazy(() => import('./pages/Accounts'));
 const ContactDetails = lazy(() => import('./pages/ContactDetails'));
 const AccountDetails = lazy(() => import('./pages/AccountDetails'));
 const IntentPage = lazy(() => import('./pages/IntentPage'));
@@ -23,6 +24,11 @@ function App() {
           <Route path="/dashboard" element={
             <ProtectedRoute>
               <Dashboard />
+            </ProtectedRoute>
+          } />
+          <Route path="/accounts" element={
+            <ProtectedRoute>
+              <Accounts />
             </ProtectedRoute>
           } />
           <Route path="/contact/:contactId" element={
