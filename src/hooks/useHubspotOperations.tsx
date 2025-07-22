@@ -85,20 +85,126 @@ export const useHubspotOperations = () => {
           corsErrorShownRef.current = true;
           showToast(
             "Connection Limited",
-            "Browser security prevents direct HubSpot API access. This is normal for web applications.",
+            "Browser security prevents direct HubSpot API access. Using demo data for preview.",
             "default"
           );
         }
         
-        // Return empty data structure but don't consider it a failure
+        // Return demo data when CORS errors occur so users can still see the UI
+        const demoContacts = [
+          {
+            id: "demo-1",
+            firstName: "John",
+            lastName: "Smith",
+            email: "john.smith@techcorp.com",
+            company: "TechCorp Solutions",
+            title: "VP of Engineering",
+            phone: "+1-555-0123",
+            score: 85,
+            priorityLevel: "high" as const,
+            lastActivity: "2024-01-15",
+            engagementLevel: 8,
+            intentSignals: [],
+            owner: "Sarah Johnson",
+            lifecycleStage: "opportunity",
+            lastEngagementDate: "2024-01-15",
+            timesContacted: 12,
+            city: "San Francisco",
+            country: "USA",
+            marketingStatus: "qualified",
+            leadStatus: "qualified"
+          },
+          {
+            id: "demo-2",
+            firstName: "Maria",
+            lastName: "Rodriguez",
+            email: "maria.rodriguez@healthplus.com",
+            company: "HealthPlus Inc",
+            title: "Director of IT",
+            phone: "+1-555-0456",
+            score: 72,
+            priorityLevel: "medium" as const,
+            lastActivity: "2024-01-12",
+            engagementLevel: 6,
+            intentSignals: [],
+            owner: "Mike Chen",
+            lifecycleStage: "salesqualifiedlead",
+            lastEngagementDate: "2024-01-12",
+            timesContacted: 8,
+            city: "Austin",
+            country: "USA",
+            marketingStatus: "qualified",
+            leadStatus: "open"
+          }
+        ];
+
+        const demoAccounts = [
+          {
+            id: "demo-account-1",
+            name: "TechCorp Solutions",
+            industry: "Technology",
+            website: "https://techcorp.com",
+            size: "500-1000",
+            contacts: [demoContacts[0]],
+            stage: "qualification" as const,
+            penetrationScore: 75,
+            totalDeals: 2,
+            totalRevenue: 250000,
+            activeDeals: 1,
+            city: "San Francisco",
+            country: "USA",
+            lastActivity: "2024-01-15",
+            timesContacted: 12,
+            buyingRoles: 3,
+            pageviews: 45,
+            sessions: 12,
+            leadStatus: "qualified",
+            lifecycleStage: "opportunity"
+          },
+          {
+            id: "demo-account-2",
+            name: "HealthPlus Inc",
+            industry: "Healthcare",
+            website: "https://healthplus.com",
+            size: "100-500",
+            contacts: [demoContacts[1]],
+            stage: "qualification" as const,
+            penetrationScore: 60,
+            totalDeals: 1,
+            totalRevenue: 120000,
+            activeDeals: 1,
+            city: "Austin",
+            country: "USA",
+            lastActivity: "2024-01-12",
+            timesContacted: 8,
+            buyingRoles: 2,
+            pageviews: 28,
+            sessions: 8,
+            leadStatus: "open",
+            lifecycleStage: "salesqualifiedlead"
+          }
+        ];
+        
         return {
-          contacts: [],
-          accounts: [],
+          contacts: demoContacts,
+          accounts: demoAccounts,
           analytics: {
-            contactOwnerStats: {},
-            contactLifecycleStats: {},
-            jobTitleStats: {},
-            engagementByOwner: {}
+            contactOwnerStats: {
+              "Sarah Johnson": 1,
+              "Mike Chen": 1
+            },
+            contactLifecycleStats: {
+              "Sarah Johnson": { opportunity: 1 },
+              "Mike Chen": { salesqualifiedlead: 1 }
+            },
+            jobTitleStats: {
+              "VP of Engineering": 1,
+              "Director of IT": 1
+            },
+            engagementByOwner: {
+              "Sarah Johnson": { high: 1, medium: 0, low: 0 },
+              "Mike Chen": { high: 0, medium: 1, low: 0 }
+            }
           }
         };
       }
