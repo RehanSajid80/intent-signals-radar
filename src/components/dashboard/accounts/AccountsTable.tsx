@@ -19,8 +19,15 @@ import { Building, Search, ArrowUpDown, Calendar, PhoneCall, MapPin, Users, Acti
 type SortField = 'name' | 'industry' | 'contacts' | 'lastActivity' | 'city' | 'country';
 type SortDirection = 'asc' | 'desc';
 
-const AccountsTable = ({ onSelectAccount }: { onSelectAccount: (accountId: string) => void }) => {
-  const { accounts } = useHubspot();
+const AccountsTable = ({ 
+  onSelectAccount, 
+  accounts: propAccounts 
+}: { 
+  onSelectAccount: (accountId: string) => void;
+  accounts?: Account[];
+}) => {
+  const { accounts: contextAccounts } = useHubspot();
+  const accounts = propAccounts || contextAccounts;
   const [searchTerm, setSearchTerm] = useState('');
   const [sortField, setSortField] = useState<SortField>('name');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');

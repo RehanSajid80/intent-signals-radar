@@ -6,13 +6,18 @@ import ContactRoleMapping from "@/components/dashboard/accounts/ContactRoleMappi
 import CloudProviderAnalysis from "@/components/dashboard/accounts/CloudProviderAnalysis";
 import IntentUpload from "@/components/dashboard/IntentUpload";
 import { useHubspot } from "@/context/hubspot";
+import { useSupabaseData } from "@/hooks/useSupabaseData";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Layers, ListFilter, ChevronRight, BarChart } from "lucide-react";
+import { ArrowLeft, Layers, ListFilter, ChevronRight, BarChart, RefreshCw } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const AccountsTabContent = () => {
   const [selectedAccountId, setSelectedAccountId] = useState<string | null>(null);
-  const { accounts } = useHubspot();
+  const { accounts: contextAccounts } = useHubspot();
+  const { accounts: supabaseAccounts, isLoading, loadData } = useSupabaseData();
+  
+  // Use Supabase data if available, fallback to context data
+  const accounts = supabaseAccounts.length > 0 ? supabaseAccounts : contextAccounts;
   
   const handleAccountSelected = React.useCallback((accountId: string) => {
     setSelectedAccountId(accountId);
@@ -63,15 +68,41 @@ const AccountsTabContent = () => {
           
           <TabsContent value="table" className="mt-4">
             <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <div></div>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={loadData}
+                  disabled={isLoading}
+                  className="gap-2"
+                >
+                  <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+                  Refresh Data
+                </Button>
+              </div>
               <CloudProviderAnalysis accountId="default" />
-              <AccountsTable onSelectAccount={handleAccountSelected} />
+              <AccountsTable onSelectAccount={handleAccountSelected} accounts={accounts} />
             </div>
           </TabsContent>
           
           <TabsContent value="engagement" className="mt-4">
             <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <div></div>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={loadData}
+                  disabled={isLoading}
+                  className="gap-2"
+                >
+                  <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+                  Refresh Data
+                </Button>
+              </div>
               <CloudProviderAnalysis accountId="default" />
-              <AccountEngagementList onAccountSelected={handleAccountSelected} />
+              <AccountEngagementList onAccountSelected={handleAccountSelected} accounts={accounts} />
             </div>
           </TabsContent>
           

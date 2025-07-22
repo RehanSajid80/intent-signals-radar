@@ -42,7 +42,73 @@ export const useHubspotOperations = () => {
     }
   };
 
-  // Check if error is CORS related
+  // Save data to Supabase
+  const saveDataToSupabase = async (contacts: Contact[], accounts: Account[]) => {
+    try {
+      // Save contacts
+      const contactsData = contacts.map(contact => ({
+        user_id: null, // Allow anonymous for now
+        hubspot_id: contact.id,
+        first_name: contact.firstName,
+        last_name: contact.lastName,
+        email: contact.email,
+        company: contact.company,
+        title: contact.title,
+        phone: contact.phone,
+        score: contact.score,
+        priority_level: contact.priorityLevel,
+        last_activity: contact.lastActivity || null,
+        engagement_level: contact.engagementLevel,
+        owner: contact.owner,
+        lifecycle_stage: contact.lifecycleStage,
+        last_engagement_date: contact.lastEngagementDate || null,
+        times_contacted: contact.timesContacted,
+        city: contact.city,
+        country: contact.country,
+        marketing_status: contact.marketingStatus,
+        lead_status: contact.leadStatus
+      }));
+
+      // Save accounts
+      const accountsData = accounts.map(account => ({
+        user_id: null, // Allow anonymous for now
+        hubspot_id: account.id,
+        name: account.name,
+        industry: account.industry,
+        website: account.website,
+        size: account.size,
+        stage: account.stage,
+        penetration_score: account.penetrationScore,
+        total_deals: account.totalDeals,
+        total_revenue: account.totalRevenue,
+        active_deals: account.activeDeals,
+        city: account.city,
+        country: account.country,
+        last_activity: account.lastActivity || null,
+        times_contacted: account.timesContacted,
+        buying_roles: account.buyingRoles,
+        pageviews: account.pageviews,
+        sessions: account.sessions,
+        lead_status: account.leadStatus,
+        lifecycle_stage: account.lifecycleStage
+      }));
+
+      await Promise.all([
+        supabase.from('contacts').upsert(contactsData, { 
+          onConflict: 'user_id,hubspot_id',
+          ignoreDuplicates: false 
+        }),
+        supabase.from('accounts').upsert(accountsData, { 
+          onConflict: 'user_id,hubspot_id',
+          ignoreDuplicates: false 
+        })
+      ]);
+
+      console.log(`Saved ${contacts.length} contacts and ${accounts.length} accounts to Supabase`);
+    } catch (error) {
+      console.error('Error saving data to Supabase:', error);
+    }
+  };
   const isCorsError = (error: any): boolean => {
     return error instanceof TypeError && error.message.includes('Failed to fetch');
   };
@@ -185,6 +251,9 @@ export const useHubspotOperations = () => {
           }
         ];
         
+        // Save demo data to Supabase
+        await saveDataToSupabase(demoContacts, demoAccounts);
+        
         return {
           contacts: demoContacts,
           accounts: demoAccounts,
@@ -228,8 +297,10 @@ export const useHubspotOperations = () => {
         engagementByOwner: {}
       };
       
-      // Only show success toast if we actually got data
+      // Save real HubSpot data to Supabase
       if (localContacts.length > 0 || localAccounts.length > 0) {
+        await saveDataToSupabase(localContacts, localAccounts);
+        
         showToast(
           "Data Synced",
           `Successfully loaded ${localContacts.length} contacts and ${localAccounts.length} accounts from HubSpot`

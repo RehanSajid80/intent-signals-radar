@@ -50,10 +50,12 @@ const calculateAccountEngagement = (account: Account): EngagementLevel => {
 
 interface AccountEngagementListProps {
   onAccountSelected: (accountId: string) => void;
+  accounts?: Account[];
 }
 
-const AccountEngagementList = ({ onAccountSelected }: AccountEngagementListProps) => {
-  const { accounts } = useHubspot();
+const AccountEngagementList = ({ onAccountSelected, accounts: propAccounts }: AccountEngagementListProps) => {
+  const { accounts: contextAccounts } = useHubspot();
+  const accounts = propAccounts || contextAccounts;
   const [selectedLevel, setSelectedLevel] = useState<EngagementLevel | 'all'>('all');
   
   const accountsByEngagement = {
