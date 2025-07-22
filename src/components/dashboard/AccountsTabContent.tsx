@@ -1,15 +1,15 @@
 
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
+import { useHubspot } from "@/context/hubspot";
+import { useSupabaseData } from "@/hooks/useSupabaseData";
+import { Button } from "@/components/ui/button";
+import { ArrowLeft, Layers, ListFilter, BarChart, RefreshCw } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import AccountsTable from "@/components/dashboard/accounts/AccountsTable";
 import AccountEngagementList from "@/components/dashboard/accounts/AccountEngagementList";
 import ContactRoleMapping from "@/components/dashboard/accounts/ContactRoleMapping";
 import CloudProviderAnalysis from "@/components/dashboard/accounts/CloudProviderAnalysis";
 import IntentUpload from "@/components/dashboard/IntentUpload";
-import { useHubspot } from "@/context/hubspot";
-import { useSupabaseData } from "@/hooks/useSupabaseData";
-import { Button } from "@/components/ui/button";
-import { ArrowLeft, Layers, ListFilter, ChevronRight, BarChart, RefreshCw } from "lucide-react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const AccountsTabContent = () => {
   const [selectedAccountId, setSelectedAccountId] = useState<string | null>(null);
@@ -19,7 +19,7 @@ const AccountsTabContent = () => {
   // Use Supabase data if available, fallback to context data
   const accounts = supabaseAccounts.length > 0 ? supabaseAccounts : contextAccounts;
   
-  const handleAccountSelected = React.useCallback((accountId: string) => {
+  const handleAccountSelected = useCallback((accountId: string) => {
     setSelectedAccountId(accountId);
   }, []);
   
