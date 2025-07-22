@@ -10,11 +10,15 @@ import AccountEngagementList from "@/components/dashboard/accounts/AccountEngage
 import ContactRoleMapping from "@/components/dashboard/accounts/ContactRoleMapping";
 import CloudProviderAnalysis from "@/components/dashboard/accounts/CloudProviderAnalysis";
 import IntentUpload from "@/components/dashboard/IntentUpload";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 const AccountsTabContent = () => {
   const [selectedAccountId, setSelectedAccountId] = useState<string | null>(null);
+  const [isRefreshingIntelligence, setIsRefreshingIntelligence] = useState(false);
   const { accounts: contextAccounts } = useHubspot();
   const { accounts: supabaseAccounts, isLoading, loadData } = useSupabaseData();
+  const { toast } = useToast();
   
   // Use Supabase data if available, fallback to context data
   const accounts = supabaseAccounts.length > 0 ? supabaseAccounts : contextAccounts;
@@ -22,6 +26,60 @@ const AccountsTabContent = () => {
   const handleAccountSelected = useCallback((accountId: string) => {
     setSelectedAccountId(accountId);
   }, []);
+
+  const refreshIntelligence = useCallback(async () => {
+    setIsRefreshingIntelligence(true);
+    try {
+      // Fetch webhook URL for GTM intelligence
+      const { data: settingsData } = await supabase
+        .from('user_settings')
+        .select('setting_value')
+        .eq('setting_key', 'n8n_webhook_url')
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (!settingsData?.setting_value) {
+        toast({
+          title: "No Webhook Configured",
+          description: "Please configure the N8N webhook URL in Settings first",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Trigger the GTM intelligence refresh
+      const hubspotResponse = await fetch(settingsData.setting_value, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ source: 'accounts-tab' })
+      });
+
+      if (!hubspotResponse.ok) {
+        throw new Error('Failed to fetch HubSpot data');
+      }
+
+      // Wait a moment for the GTM intelligence to process and save data
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      // Refresh Supabase data
+      await loadData();
+      
+      toast({
+        title: "Intelligence Refreshed",
+        description: "Account data has been updated with latest intelligence",
+      });
+    } catch (error) {
+      console.error('Error refreshing intelligence:', error);
+      toast({
+        title: "Error",
+        description: "Failed to refresh intelligence data",
+        variant: "destructive",
+      });
+    } finally {
+      setIsRefreshingIntelligence(false);
+    }
+  }, [loadData, toast]);
   
   const selectedAccount = selectedAccountId ? accounts.find(a => a.id === selectedAccountId) : null;
   
@@ -70,16 +128,28 @@ const AccountsTabContent = () => {
             <div className="space-y-4">
               <div className="flex justify-between items-center">
                 <div></div>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={loadData}
-                  disabled={isLoading}
-                  className="gap-2"
-                >
-                  <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
-                  Refresh Data
-                </Button>
+                <div className="flex gap-2">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={refreshIntelligence}
+                    disabled={isRefreshingIntelligence}
+                    className="gap-2"
+                  >
+                    <RefreshCw className={`h-4 w-4 ${isRefreshingIntelligence ? 'animate-spin' : ''}`} />
+                    Refresh Intelligence
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={loadData}
+                    disabled={isLoading}
+                    className="gap-2"
+                  >
+                    <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+                    Refresh Data
+                  </Button>
+                </div>
               </div>
               <CloudProviderAnalysis accountId="default" />
               <AccountsTable onSelectAccount={handleAccountSelected} accounts={accounts} />
@@ -90,16 +160,28 @@ const AccountsTabContent = () => {
             <div className="space-y-4">
               <div className="flex justify-between items-center">
                 <div></div>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={loadData}
-                  disabled={isLoading}
-                  className="gap-2"
-                >
-                  <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
-                  Refresh Data
-                </Button>
+                <div className="flex gap-2">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={refreshIntelligence}
+                    disabled={isRefreshingIntelligence}
+                    className="gap-2"
+                  >
+                    <RefreshCw className={`h-4 w-4 ${isRefreshingIntelligence ? 'animate-spin' : ''}`} />
+                    Refresh Intelligence
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={loadData}
+                    disabled={isLoading}
+                    className="gap-2"
+                  >
+                    <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+                    Refresh Data
+                  </Button>
+                </div>
               </div>
               <CloudProviderAnalysis accountId="default" />
               <AccountEngagementList onAccountSelected={handleAccountSelected} accounts={accounts} />
