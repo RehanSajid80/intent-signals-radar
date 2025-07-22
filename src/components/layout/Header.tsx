@@ -12,8 +12,8 @@ const Header: React.FC = () => {
           <div className="flex items-center gap-3">
             <Link to="/">
               <img 
-                src="https://www.zyter.com/wp-content/uploads/2023/04/ZTC_LOGO_FINAL1.png" 
-                alt="Zyter Logo" 
+                src="/lovable-uploads/f3a0b406-a7a5-4c86-968e-b6e62a0a187e.png" 
+                alt="Zyter TruCare Logo" 
                 className="h-10" 
               />
             </Link>

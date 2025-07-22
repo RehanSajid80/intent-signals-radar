@@ -81,7 +81,12 @@ export const MobileSidebar = () => {
       </SheetTrigger>
       <SheetContent side="left" className="bg-sidebar p-0 w-64">
         <SheetHeader className="p-4 border-b border-sidebar-border">
-          <SheetTitle className="text-sidebar-foreground">
+          <SheetTitle className="text-sidebar-foreground flex items-center gap-3">
+            <img 
+              src="/lovable-uploads/f3a0b406-a7a5-4c86-968e-b6e62a0a187e.png" 
+              alt="Zyter TruCare Logo" 
+              className="h-6" 
+            />
             Lead Priority Radar
           </SheetTitle>
         </SheetHeader>
@@ -138,7 +143,14 @@ export const DesktopSidebar = () => {
   return (
     <div className="hidden md:flex bg-sidebar w-64 flex-col h-screen sticky top-0">
       <div className="p-4 border-b border-sidebar-border">
-        <h1 className="text-xl font-bold text-sidebar-foreground">Lead Priority Radar</h1>
+        <div className="flex items-center gap-3">
+          <img 
+            src="/lovable-uploads/f3a0b406-a7a5-4c86-968e-b6e62a0a187e.png" 
+            alt="Zyter TruCare Logo" 
+            className="h-8" 
+          />
+          <h1 className="text-lg font-bold text-sidebar-foreground">Lead Priority Radar</h1>
+        </div>
       </div>
       <div className="flex flex-col gap-1 p-3 flex-1">
         <NavItem to="/dashboard" icon={<BarChart3 className="h-5 w-5" />} label="Dashboard" />
