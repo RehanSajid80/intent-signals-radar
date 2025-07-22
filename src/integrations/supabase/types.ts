@@ -14,6 +14,84 @@ export type Database = {
   }
   public: {
     Tables: {
+      accounts: {
+        Row: {
+          active_deals: number | null
+          buying_roles: number | null
+          city: string | null
+          country: string | null
+          created_at: string
+          hubspot_id: string
+          id: string
+          industry: string | null
+          last_activity: string | null
+          lead_status: string | null
+          lifecycle_stage: string | null
+          name: string
+          pageviews: number | null
+          penetration_score: number | null
+          sessions: number | null
+          size: string | null
+          stage: string | null
+          times_contacted: number | null
+          total_deals: number | null
+          total_revenue: number | null
+          updated_at: string
+          user_id: string | null
+          website: string | null
+        }
+        Insert: {
+          active_deals?: number | null
+          buying_roles?: number | null
+          city?: string | null
+          country?: string | null
+          created_at?: string
+          hubspot_id: string
+          id?: string
+          industry?: string | null
+          last_activity?: string | null
+          lead_status?: string | null
+          lifecycle_stage?: string | null
+          name: string
+          pageviews?: number | null
+          penetration_score?: number | null
+          sessions?: number | null
+          size?: string | null
+          stage?: string | null
+          times_contacted?: number | null
+          total_deals?: number | null
+          total_revenue?: number | null
+          updated_at?: string
+          user_id?: string | null
+          website?: string | null
+        }
+        Update: {
+          active_deals?: number | null
+          buying_roles?: number | null
+          city?: string | null
+          country?: string | null
+          created_at?: string
+          hubspot_id?: string
+          id?: string
+          industry?: string | null
+          last_activity?: string | null
+          lead_status?: string | null
+          lifecycle_stage?: string | null
+          name?: string
+          pageviews?: number | null
+          penetration_score?: number | null
+          sessions?: number | null
+          size?: string | null
+          stage?: string | null
+          times_contacted?: number | null
+          total_deals?: number | null
+          total_revenue?: number | null
+          updated_at?: string
+          user_id?: string | null
+          website?: string | null
+        }
+        Relationships: []
+      }
       ai_analysis_cache: {
         Row: {
           analysis_result: string
@@ -70,6 +148,84 @@ export type Database = {
           id?: string
           service?: string
           updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      contacts: {
+        Row: {
+          city: string | null
+          company: string | null
+          country: string | null
+          created_at: string
+          email: string | null
+          engagement_level: number | null
+          first_name: string | null
+          hubspot_id: string
+          id: string
+          last_activity: string | null
+          last_engagement_date: string | null
+          last_name: string | null
+          lead_status: string | null
+          lifecycle_stage: string | null
+          marketing_status: string | null
+          owner: string | null
+          phone: string | null
+          priority_level: string | null
+          score: number | null
+          times_contacted: number | null
+          title: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          city?: string | null
+          company?: string | null
+          country?: string | null
+          created_at?: string
+          email?: string | null
+          engagement_level?: number | null
+          first_name?: string | null
+          hubspot_id: string
+          id?: string
+          last_activity?: string | null
+          last_engagement_date?: string | null
+          last_name?: string | null
+          lead_status?: string | null
+          lifecycle_stage?: string | null
+          marketing_status?: string | null
+          owner?: string | null
+          phone?: string | null
+          priority_level?: string | null
+          score?: number | null
+          times_contacted?: number | null
+          title?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          city?: string | null
+          company?: string | null
+          country?: string | null
+          created_at?: string
+          email?: string | null
+          engagement_level?: number | null
+          first_name?: string | null
+          hubspot_id?: string
+          id?: string
+          last_activity?: string | null
+          last_engagement_date?: string | null
+          last_name?: string | null
+          lead_status?: string | null
+          lifecycle_stage?: string | null
+          marketing_status?: string | null
+          owner?: string | null
+          phone?: string | null
+          priority_level?: string | null
+          score?: number | null
+          times_contacted?: number | null
+          title?: string | null
+          updated_at?: string
           user_id?: string | null
         }
         Relationships: []
