@@ -115,11 +115,13 @@ const GTMIntelligenceDashboard = () => {
 
       // Process and match data - Show ALL companies first, then enhance with intent data
       const processedAccounts: GTMAccount[] = companies
+        .filter((company: any) => company.name) // Only include companies with names
         .map((company: any) => {
-          // Find intent matches by domain (optional enhancement)
+          // Find intent matches by domain or website (optional enhancement)
+          const companyDomain = company.domain !== 'N/A' ? company.domain : company.website;
           const domainMatches = intentData?.filter(intent => 
-            intent.website && company.domain && 
-            (intent.website.includes(company.domain) || company.domain.includes(intent.website))
+            intent.website && companyDomain && companyDomain !== 'N/A' &&
+            (intent.website.includes(companyDomain) || companyDomain.includes(intent.website))
           ) || [];
 
           const hasIntentMatch = domainMatches.length > 0;
@@ -129,12 +131,12 @@ const GTMIntelligenceDashboard = () => {
           return {
             id: company.id || `company-${Math.random()}`,
             name: company.name,
-            domain: company.domain || 'No domain',
-            industry: company.industry || 'Unknown',
+            domain: company.domain !== 'N/A' ? company.domain : (company.website !== 'N/A' ? company.website : 'No domain'),
+            industry: company.industry !== 'N/A' ? company.industry : 'Unknown',
             lifecycleStage: company.lifecycleStage || 'subscriber',
-            ownerId: company.ownerId,
-            ownerName: getOwnerDisplayName(company.ownerId, company.ownerName),
-            pageViews: company.pageViews || 0,
+            ownerId: company.ownerId !== 'N/A' ? company.ownerId : 'unassigned',
+            ownerName: getOwnerDisplayName(company.ownerId !== 'N/A' ? company.ownerId : null, company.ownerName),
+            pageViews: typeof company.pageViews === 'number' ? company.pageViews : 0,
             createdDate: company.createdDate,
             intentMatch: hasIntentMatch,
             intentScore: avgIntentScore,
