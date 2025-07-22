@@ -163,10 +163,49 @@ const GTMIntelligenceDashboard = () => {
 
       setAccounts(sortedAccounts);
       setFilteredAccounts(sortedAccounts);
+
+      // Save accounts to Supabase for use in Accounts tab
+      if (sortedAccounts.length > 0) {
+        const accountsData = sortedAccounts.map(account => ({
+          user_id: null, // Allow anonymous for now
+          hubspot_id: account.id,
+          name: account.name,
+          industry: account.industry !== 'Unknown' ? account.industry : null,
+          website: account.domain !== 'No domain' ? account.domain : null,
+          size: null, // Not available in this data
+          stage: account.lifecycleStage,
+          penetration_score: account.intentScore,
+          total_deals: 0, // Default value
+          total_revenue: 0, // Default value
+          active_deals: account.lifecycleStage === 'opportunity' ? 1 : 0,
+          city: null, // Not available in this data
+          country: null, // Not available in this data
+          last_activity: account.lastIntentSignal || null,
+          times_contacted: 0, // Default value
+          buying_roles: 0, // Default value
+          pageviews: account.pageViews,
+          sessions: 0, // Default value
+          lead_status: account.opportunityScore,
+          lifecycle_stage: account.lifecycleStage
+        }));
+
+        const { error: saveError } = await supabase
+          .from('accounts')
+          .upsert(accountsData, { 
+            onConflict: 'user_id,hubspot_id',
+            ignoreDuplicates: false 
+          });
+
+        if (saveError) {
+          console.error('Error saving accounts to Supabase:', saveError);
+        } else {
+          console.log(`Saved ${accountsData.length} accounts to Supabase`);
+        }
+      }
       
       toast({
         title: "Intelligence Loaded",
-        description: `Loaded ${sortedAccounts.length} accounts (${sortedAccounts.filter(acc => acc.intentMatch).length} with intent signals)`,
+        description: `Loaded ${sortedAccounts.length} accounts (${sortedAccounts.filter(acc => acc.intentMatch).length} with intent signals) and saved to database`,
       });
     } catch (error) {
       console.error('Error loading account intelligence:', error);
