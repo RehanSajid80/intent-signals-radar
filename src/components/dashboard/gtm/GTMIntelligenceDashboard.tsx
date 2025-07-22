@@ -69,6 +69,7 @@ const GTMIntelligenceDashboard = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [selectedAccount, setSelectedAccount] = useState<GTMAccount | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [activeView, setActiveView] = useState<'overview' | 'hot-accounts' | 'intent-signals' | 'high-opportunity' | 'accounts-insights'>('overview');
   const [filters, setFilters] = useState<GTMFilters>({
     owner: '',
     intentScore: '',
@@ -299,9 +300,19 @@ const GTMIntelligenceDashboard = () => {
                 </CardDescription>
               </div>
             </div>
-            <Button onClick={loadAccountIntelligence} disabled={isLoading}>
-              {isLoading ? 'Loading...' : 'Refresh Intelligence'}
-            </Button>
+            <div className="flex gap-2">
+              <Button onClick={loadAccountIntelligence} disabled={isLoading}>
+                {isLoading ? 'Loading...' : 'Refresh Intelligence'}
+              </Button>
+              <Button 
+                variant="outline" 
+                onClick={() => setActiveView('accounts-insights')}
+                className="flex items-center gap-2"
+              >
+                <Brain className="h-4 w-4" />
+                AI Targeting Insights
+              </Button>
+            </div>
           </div>
         </CardHeader>
       </Card>
@@ -309,7 +320,10 @@ const GTMIntelligenceDashboard = () => {
       {/* Key Metrics */}
       {accounts.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <Card>
+          <Card 
+            className="cursor-pointer hover:shadow-lg transition-shadow"
+            onClick={() => setActiveView('hot-accounts')}
+          >
             <CardContent className="pt-6">
               <div className="flex items-center">
                 <Flame className="h-8 w-8 text-red-500" />
@@ -321,7 +335,10 @@ const GTMIntelligenceDashboard = () => {
             </CardContent>
           </Card>
           
-          <Card>
+          <Card 
+            className="cursor-pointer hover:shadow-lg transition-shadow"
+            onClick={() => setActiveView('intent-signals')}
+          >
             <CardContent className="pt-6">
               <div className="flex items-center">
                 <Zap className="h-8 w-8 text-orange-500" />
@@ -335,7 +352,10 @@ const GTMIntelligenceDashboard = () => {
             </CardContent>
           </Card>
           
-          <Card>
+          <Card 
+            className="cursor-pointer hover:shadow-lg transition-shadow"
+            onClick={() => setActiveView('high-opportunity')}
+          >
             <CardContent className="pt-6">
               <div className="flex items-center">
                 <TrendingUp className="h-8 w-8 text-blue-500" />
@@ -363,172 +383,507 @@ const GTMIntelligenceDashboard = () => {
         </div>
       )}
 
-      {/* Filters */}
+      {/* Main Content - Different Views */}
       {accounts.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Filter className="h-5 w-5" />
-              Filters
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search accounts..."
-                  value={filters.searchTerm}
-                  onChange={(e) => setFilters(prev => ({ ...prev, searchTerm: e.target.value }))}
-                  className="pl-10"
-                />
-              </div>
-              
-              <Select value={filters.owner || "all"} onValueChange={(value) => setFilters(prev => ({ ...prev, owner: value === "all" ? "" : value }))}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Owner" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Owners</SelectItem>
-                  <SelectItem value="Brian Roy">Brian Roy</SelectItem>
-                  <SelectItem value="David Hamilton">David Hamilton</SelectItem>
-                </SelectContent>
-              </Select>
-              
-              <Select value={filters.intentScore || "all"} onValueChange={(value) => setFilters(prev => ({ ...prev, intentScore: value === "all" ? "" : value }))}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Intent Score" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Intent</SelectItem>
-                  <SelectItem value="high">High (70+)</SelectItem>
-                  <SelectItem value="medium">Medium (30-70)</SelectItem>
-                  <SelectItem value="low">Low (&lt;30)</SelectItem>
-                  <SelectItem value="none">No Intent</SelectItem>
-                </SelectContent>
-              </Select>
-              
-              <Select value={filters.opportunityScore || "all"} onValueChange={(value) => setFilters(prev => ({ ...prev, opportunityScore: value === "all" ? "" : value }))}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Opportunity" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Opportunity</SelectItem>
-                  <SelectItem value="High">High</SelectItem>
-                  <SelectItem value="Medium">Medium</SelectItem>
-                  <SelectItem value="Low">Low</SelectItem>
-                </SelectContent>
-              </Select>
-              
-              <Select value={filters.lifecycleStage || "all"} onValueChange={(value) => setFilters(prev => ({ ...prev, lifecycleStage: value === "all" ? "" : value }))}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Stage" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Stages</SelectItem>
-                  <SelectItem value="opportunity">Opportunity</SelectItem>
-                  <SelectItem value="lead">Lead</SelectItem>
-                  <SelectItem value="subscriber">Subscriber</SelectItem>
-                </SelectContent>
-              </Select>
-              
-              <Button 
-                variant="outline" 
-                onClick={() => setFilters({
-                  owner: '', 
-                  intentScore: '', 
-                  opportunityScore: '', 
-                  industry: '', 
-                  lifecycleStage: '', 
-                  searchTerm: ''
-                })}
-              >
-                Clear All
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Account Cards */}
-      {filteredAccounts.length > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredAccounts.slice(0, 20).map((account) => (
-            <Card 
-              key={account.id} 
-              className="hover:shadow-lg transition-shadow cursor-pointer"
-              onClick={() => enhanceWithAI(account)}
-            >
-              <CardHeader className="pb-3">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <CardTitle className="text-sm font-medium leading-tight flex items-center gap-2">
-                      {account.name}
-                      {account.intentMatch && account.intentScore > 60 && (
-                        <Flame className="h-4 w-4 text-red-500" />
-                      )}
-                    </CardTitle>
-                    <p className="text-xs text-muted-foreground mt-1">{account.domain}</p>
-                  </div>
-                  <Badge className={getScoreBadgeColor(account.opportunityScore)}>
-                    {account.opportunityScore}
-                  </Badge>
-                </div>
-              </CardHeader>
-              
-              <CardContent className="pt-0 space-y-3">
-                <div className="flex items-center justify-between text-xs">
-                  <span className="text-muted-foreground">Owner:</span>
-                  <span className="font-medium">{account.ownerName}</span>
-                </div>
-                
-                <div className="flex items-center justify-between text-xs">
-                  <span className="text-muted-foreground">Stage:</span>
-                  <Badge variant="secondary" className="text-xs">
-                    {account.lifecycleStage}
-                  </Badge>
-                </div>
-                
-                {account.intentMatch ? (
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="text-muted-foreground">Intent Score:</span>
-                      <Badge className={getIntentBadgeColor(account.intentScore)}>
-                        {account.intentScore}
-                      </Badge>
+        <>
+          {activeView === 'overview' && (
+            <>
+              {/* Filters */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Filter className="h-5 w-5" />
+                    Filters
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        placeholder="Search accounts..."
+                        value={filters.searchTerm}
+                        onChange={(e) => setFilters(prev => ({ ...prev, searchTerm: e.target.value }))}
+                        className="pl-10"
+                      />
                     </div>
                     
-                    {account.intentTopics.length > 0 && (
-                      <div className="text-xs">
-                        <span className="text-muted-foreground">Topics: </span>
-                        <span className="font-medium">
-                          {account.intentTopics.slice(0, 2).join(', ')}
-                          {account.intentTopics.length > 2 && ` +${account.intentTopics.length - 2} more`}
-                        </span>
+                    <Select value={filters.owner || "all"} onValueChange={(value) => setFilters(prev => ({ ...prev, owner: value === "all" ? "" : value }))}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Owner" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Owners</SelectItem>
+                        <SelectItem value="Brian Roy">Brian Roy</SelectItem>
+                        <SelectItem value="David Hamilton">David Hamilton</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    
+                    <Select value={filters.intentScore || "all"} onValueChange={(value) => setFilters(prev => ({ ...prev, intentScore: value === "all" ? "" : value }))}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Intent Score" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Intent</SelectItem>
+                        <SelectItem value="high">High (70+)</SelectItem>
+                        <SelectItem value="medium">Medium (30-70)</SelectItem>
+                        <SelectItem value="low">Low (&lt;30)</SelectItem>
+                        <SelectItem value="none">No Intent</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    
+                    <Select value={filters.opportunityScore || "all"} onValueChange={(value) => setFilters(prev => ({ ...prev, opportunityScore: value === "all" ? "" : value }))}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Opportunity" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Opportunity</SelectItem>
+                        <SelectItem value="High">High</SelectItem>
+                        <SelectItem value="Medium">Medium</SelectItem>
+                        <SelectItem value="Low">Low</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    
+                    <Select value={filters.lifecycleStage || "all"} onValueChange={(value) => setFilters(prev => ({ ...prev, lifecycleStage: value === "all" ? "" : value }))}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Stage" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Stages</SelectItem>
+                        <SelectItem value="opportunity">Opportunity</SelectItem>
+                        <SelectItem value="lead">Lead</SelectItem>
+                        <SelectItem value="subscriber">Subscriber</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    
+                    <Button 
+                      variant="outline" 
+                      onClick={() => setFilters({
+                        owner: '', 
+                        intentScore: '', 
+                        opportunityScore: '', 
+                        industry: '', 
+                        lifecycleStage: '', 
+                        searchTerm: ''
+                      })}
+                    >
+                      Clear All
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Account Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {filteredAccounts.slice(0, 20).map((account) => (
+                  <Card 
+                    key={account.id} 
+                    className="hover:shadow-lg transition-shadow cursor-pointer"
+                    onClick={() => enhanceWithAI(account)}
+                  >
+                    <CardHeader className="pb-3">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <CardTitle className="text-sm font-medium leading-tight flex items-center gap-2">
+                            {account.name}
+                            {account.intentMatch && account.intentScore > 60 && (
+                              <Flame className="h-4 w-4 text-red-500" />
+                            )}
+                          </CardTitle>
+                          <p className="text-xs text-muted-foreground mt-1">{account.domain}</p>
+                        </div>
+                        <Badge className={getScoreBadgeColor(account.opportunityScore)}>
+                          {account.opportunityScore}
+                        </Badge>
                       </div>
-                    )}
+                    </CardHeader>
+                    
+                    <CardContent className="pt-0 space-y-3">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-muted-foreground">Owner:</span>
+                        <span className="font-medium">{account.ownerName}</span>
+                      </div>
+                      
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-muted-foreground">Stage:</span>
+                        <Badge variant="secondary" className="text-xs">
+                          {account.lifecycleStage}
+                        </Badge>
+                      </div>
+                      
+                      {account.intentMatch ? (
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between text-xs">
+                            <span className="text-muted-foreground">Intent Score:</span>
+                            <Badge className={getIntentBadgeColor(account.intentScore)}>
+                              {account.intentScore}
+                            </Badge>
+                          </div>
+                          
+                          {account.intentTopics.length > 0 && (
+                            <div className="text-xs">
+                              <span className="text-muted-foreground">Topics: </span>
+                              <span className="font-medium">
+                                {account.intentTopics.slice(0, 2).join(', ')}
+                                {account.intentTopics.length > 2 && ` +${account.intentTopics.length - 2} more`}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                          <AlertTriangle className="h-3 w-3" />
+                          No intent signals
+                        </div>
+                      )}
+                      
+                      <div className="flex items-center justify-between pt-2">
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                          <Eye className="h-3 w-3" />
+                          {account.pageViews} views
+                        </div>
+                        <Button size="sm" variant="outline" className="h-6 text-xs">
+                          <Brain className="h-3 w-3 mr-1" />
+                          Analyze
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </>
+          )}
+
+          {/* Hot Accounts View */}
+          {activeView === 'hot-accounts' && (
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Flame className="h-6 w-6 text-red-500" />
+                    <div>
+                      <CardTitle>Hot Accounts ({hotAccounts.length})</CardTitle>
+                      <CardDescription>Accounts with high opportunity score + strong intent signals (60+)</CardDescription>
+                    </div>
                   </div>
-                ) : (
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                    <AlertTriangle className="h-3 w-3" />
-                    No intent signals
+                  <Button variant="outline" onClick={() => setActiveView('overview')}>
+                    ← Back to Overview
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {hotAccounts.map((account) => (
+                    <div key={account.id} className="border rounded-lg p-4 hover:bg-muted/50 cursor-pointer" onClick={() => enhanceWithAI(account)}>
+                      <div className="flex items-center justify-between">
+                        <div className="flex-1">
+                          <h3 className="font-medium flex items-center gap-2">
+                            {account.name}
+                            <Flame className="h-4 w-4 text-red-500" />
+                          </h3>
+                          <p className="text-sm text-muted-foreground">{account.domain} • {account.industry}</p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Badge className={getIntentBadgeColor(account.intentScore)}>
+                            Intent: {account.intentScore}
+                          </Badge>
+                          <Badge className={getScoreBadgeColor(account.opportunityScore)}>
+                            {account.opportunityScore}
+                          </Badge>
+                        </div>
+                      </div>
+                      <div className="mt-2 text-sm">
+                        <span className="text-muted-foreground">Topics: </span>
+                        {account.intentTopics.join(', ')}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Intent Signals View */}
+          {activeView === 'intent-signals' && (
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Zap className="h-6 w-6 text-orange-500" />
+                    <div>
+                      <CardTitle>Accounts with Intent Signals ({filteredAccounts.filter(acc => acc.intentMatch).length})</CardTitle>
+                      <CardDescription>All accounts showing buying intent based on research behavior</CardDescription>
+                    </div>
                   </div>
-                )}
-                
-                <div className="flex items-center justify-between pt-2">
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                    <Eye className="h-3 w-3" />
-                    {account.pageViews} views
+                  <Button variant="outline" onClick={() => setActiveView('overview')}>
+                    ← Back to Overview
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {filteredAccounts.filter(acc => acc.intentMatch).map((account) => (
+                    <div key={account.id} className="border rounded-lg p-4 hover:bg-muted/50 cursor-pointer" onClick={() => enhanceWithAI(account)}>
+                      <div className="flex items-center justify-between">
+                        <div className="flex-1">
+                          <h3 className="font-medium">{account.name}</h3>
+                          <p className="text-sm text-muted-foreground">{account.domain} • {account.industry}</p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Badge className={getIntentBadgeColor(account.intentScore)}>
+                            Score: {account.intentScore}
+                          </Badge>
+                          <Badge variant="secondary">{account.lifecycleStage}</Badge>
+                        </div>
+                      </div>
+                      <div className="mt-2 grid grid-cols-2 gap-4 text-sm">
+                        <div>
+                          <span className="text-muted-foreground">Intent Topics: </span>
+                          {account.intentTopics.join(', ')}
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground">Last Signal: </span>
+                          {account.lastIntentSignal ? new Date(account.lastIntentSignal).toLocaleDateString() : 'N/A'}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* High Opportunity View */}
+          {activeView === 'high-opportunity' && (
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <TrendingUp className="h-6 w-6 text-blue-500" />
+                    <div>
+                      <CardTitle>High Opportunity Accounts ({filteredAccounts.filter(acc => acc.opportunityScore === 'High').length})</CardTitle>
+                      <CardDescription>Accounts scored as high opportunity based on multiple signals</CardDescription>
+                    </div>
                   </div>
-                  <Button size="sm" variant="outline" className="h-6 text-xs">
-                    <Brain className="h-3 w-3 mr-1" />
-                    Analyze
+                  <Button variant="outline" onClick={() => setActiveView('overview')}>
+                    ← Back to Overview
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {filteredAccounts.filter(acc => acc.opportunityScore === 'High').map((account) => (
+                    <div key={account.id} className="border rounded-lg p-4 hover:bg-muted/50 cursor-pointer" onClick={() => enhanceWithAI(account)}>
+                      <div className="flex items-center justify-between">
+                        <div className="flex-1">
+                          <h3 className="font-medium flex items-center gap-2">
+                            {account.name}
+                            {account.intentMatch && <Zap className="h-4 w-4 text-orange-500" />}
+                          </h3>
+                          <p className="text-sm text-muted-foreground">{account.domain} • {account.industry}</p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Badge className={getScoreBadgeColor(account.opportunityScore)}>
+                            High Opportunity
+                          </Badge>
+                          {account.intentMatch && (
+                            <Badge className={getIntentBadgeColor(account.intentScore)}>
+                              Intent: {account.intentScore}
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+                      <div className="mt-2 grid grid-cols-3 gap-4 text-sm">
+                        <div>
+                          <span className="text-muted-foreground">Owner: </span>
+                          {account.ownerName}
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground">Stage: </span>
+                          {account.lifecycleStage}
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground">Page Views: </span>
+                          {account.pageViews}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Accounts AI Insights Tab */}
+          {activeView === 'accounts-insights' && (
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Brain className="h-6 w-6 text-purple-500" />
+                    <div>
+                      <CardTitle>Zyter AI Targeting Intelligence</CardTitle>
+                      <CardDescription>AI-powered insights on how Zyter can target different account types</CardDescription>
+                    </div>
+                  </div>
+                  <Button variant="outline" onClick={() => setActiveView('overview')}>
+                    ← Back to Overview
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <Tabs defaultValue="healthcare">
+                  <TabsList className="grid w-full grid-cols-4">
+                    <TabsTrigger value="healthcare">Healthcare</TabsTrigger>
+                    <TabsTrigger value="enterprise">Enterprise</TabsTrigger>
+                    <TabsTrigger value="technology">Technology</TabsTrigger>
+                    <TabsTrigger value="strategy">Strategy</TabsTrigger>
+                  </TabsList>
+                  
+                  <TabsContent value="healthcare" className="space-y-4">
+                    <Card>
+                      <CardContent className="pt-4">
+                        <h4 className="font-medium mb-3 flex items-center gap-2">
+                          <Target className="h-4 w-4" />
+                          Healthcare Provider Targeting
+                        </h4>
+                        <div className="space-y-3 text-sm">
+                          <div className="bg-blue-50 p-3 rounded-lg">
+                            <h5 className="font-medium text-blue-900">Primary Targets</h5>
+                            <p className="text-blue-700">Large health systems (500+ beds) with existing digital transformation initiatives</p>
+                          </div>
+                          <div className="bg-green-50 p-3 rounded-lg">
+                            <h5 className="font-medium text-green-900">Key Decision Makers</h5>
+                            <p className="text-green-700">CIOs, CMIOs, VP of Clinical Operations, Population Health Directors</p>
+                          </div>
+                          <div className="bg-purple-50 p-3 rounded-lg">
+                            <h5 className="font-medium text-purple-900">Messaging Focus</h5>
+                            <p className="text-purple-700">Patient engagement, care coordination, clinical workflow optimization, value-based care outcomes</p>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </TabsContent>
+                  
+                  <TabsContent value="enterprise" className="space-y-4">
+                    <Card>
+                      <CardContent className="pt-4">
+                        <h4 className="font-medium mb-3 flex items-center gap-2">
+                          <Building2 className="h-4 w-4" />
+                          Enterprise Account Strategy
+                        </h4>
+                        <div className="space-y-3 text-sm">
+                          <div className="bg-red-50 p-3 rounded-lg">
+                            <h5 className="font-medium text-red-900">High-Value Targets</h5>
+                            <p className="text-red-700">Fortune 1000 companies with complex operational workflows and customer experience challenges</p>
+                          </div>
+                          <div className="bg-yellow-50 p-3 rounded-lg">
+                            <h5 className="font-medium text-yellow-900">Entry Points</h5>
+                            <p className="text-yellow-700">Digital transformation initiatives, customer success teams, operations optimization projects</p>
+                          </div>
+                          <div className="bg-indigo-50 p-3 rounded-lg">
+                            <h5 className="font-medium text-indigo-900">Value Proposition</h5>
+                            <p className="text-indigo-700">AI-powered automation, scalable customer engagement, operational efficiency gains</p>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </TabsContent>
+                  
+                  <TabsContent value="technology" className="space-y-4">
+                    <Card>
+                      <CardContent className="pt-4">
+                        <h4 className="font-medium mb-3 flex items-center gap-2">
+                          <Zap className="h-4 w-4" />
+                          Technology Integration Approach
+                        </h4>
+                        <div className="space-y-3 text-sm">
+                          <div className="bg-cyan-50 p-3 rounded-lg">
+                            <h5 className="font-medium text-cyan-900">Technical Fit</h5>
+                            <p className="text-cyan-700">Organizations with existing cloud infrastructure, API-first architecture, and data integration capabilities</p>
+                          </div>
+                          <div className="bg-orange-50 p-3 rounded-lg">
+                            <h5 className="font-medium text-orange-900">Integration Partners</h5>
+                            <p className="text-orange-700">Salesforce, Microsoft, AWS, Google Cloud - leverage existing partnerships for warm introductions</p>
+                          </div>
+                          <div className="bg-teal-50 p-3 rounded-lg">
+                            <h5 className="font-medium text-teal-900">Technical Value</h5>
+                            <p className="text-teal-700">Low-code/no-code deployment, pre-built integrations, scalable AI infrastructure</p>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </TabsContent>
+                  
+                  <TabsContent value="strategy" className="space-y-4">
+                    <Card>
+                      <CardContent className="pt-4">
+                        <h4 className="font-medium mb-3 flex items-center gap-2">
+                          <Star className="h-4 w-4" />
+                          Account Prioritization Strategy
+                        </h4>
+                        <div className="space-y-4">
+                          <div className="border-l-4 border-red-500 pl-4">
+                            <h5 className="font-medium text-red-700">Tier 1: Hot Accounts (ABM Focus)</h5>
+                            <p className="text-sm text-muted-foreground">High intent + high opportunity + active buying signals</p>
+                            <p className="text-sm">Personalized outreach, executive engagement, custom demos</p>
+                          </div>
+                          <div className="border-l-4 border-orange-500 pl-4">
+                            <h5 className="font-medium text-orange-700">Tier 2: Intent Signals (Nurture)</h5>
+                            <p className="text-sm text-muted-foreground">Active research but no clear buying timeline</p>
+                            <p className="text-sm">Educational content, webinars, case studies, gentle follow-up</p>
+                          </div>
+                          <div className="border-l-4 border-blue-500 pl-4">
+                            <h5 className="font-medium text-blue-700">Tier 3: High Opportunity (Awareness)</h5>
+                            <p className="text-sm text-muted-foreground">Good fit profile but no current intent signals</p>
+                            <p className="text-sm">Thought leadership, industry events, referral programs</p>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </TabsContent>
+                </Tabs>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Quick Navigation */}
+          {activeView !== 'overview' && (
+            <Card className="border-dashed">
+              <CardContent className="pt-4">
+                <div className="flex items-center justify-center gap-4">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => setActiveView('accounts-insights')}
+                    className="flex items-center gap-2"
+                  >
+                    <Brain className="h-4 w-4" />
+                    AI Targeting Insights
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => setActiveView('hot-accounts')}
+                    className="flex items-center gap-2"
+                  >
+                    <Flame className="h-4 w-4" />
+                    Hot Accounts ({hotAccounts.length})
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => setActiveView('intent-signals')}
+                    className="flex items-center gap-2"
+                  >
+                    <Zap className="h-4 w-4" />
+                    Intent Signals ({filteredAccounts.filter(acc => acc.intentMatch).length})
                   </Button>
                 </div>
               </CardContent>
             </Card>
-          ))}
-        </div>
+          )}
+        </>
       )}
 
       {/* AI Analysis Modal */}
